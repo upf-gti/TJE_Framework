@@ -2,8 +2,7 @@
 	This class encapsulates the game, is in charge of creating the game, getting the user input, process the update and render.
 */
 
-#ifndef GAME_H
-#define GAME_H
+#pragma once
 
 #include "framework/includes.h"
 #include "framework/camera.h"
@@ -46,5 +45,3 @@ public:
 	void onGamepadButtonUp(SDL_JoyButtonEvent event);
 	void onResize(int width, int height);
 };
-
-#endif 

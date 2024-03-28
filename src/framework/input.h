@@ -1,5 +1,4 @@
-#ifndef INPUT_H
-#define INPUT_H
+#pragma once
 
 #include "includes.h"
 #include "utils.h"
@@ -101,5 +100,3 @@ public:
 	static SDL_Joystick* openGamepad(int index);
 	static void updateGamepadState(SDL_Joystick* joystick, GamepadState& state);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef FBO_H
-#define FBO_H
+#pragma once
 
 #include "framework/includes.h"
 #include "texture.h"
@@ -38,5 +37,3 @@ public:
 
 	void freeTextures();
 };
-
-#endif

@@ -4,8 +4,7 @@
 	This class also stores the matrices used to do the transformation and projection of the scene.
 */
 
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include "framework.h"
 
@@ -76,6 +75,3 @@ public:
 	char testSphereInFrustum( const Vector3& v, float radius);
 	char testBoxInFrustum( const Vector3& center, const Vector3& halfsize);
 };
-
-
-#endif

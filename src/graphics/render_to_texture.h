@@ -2,8 +2,7 @@
 	This allows to render the scene to a texture instead of the screen, it is used to do special FX.
 */
 
-#ifndef RENDER_TO_TEXTURE
-#define RENDER_TO_TEXTURE
+#pragma once
 
 #include <string>
 #include <map>
@@ -28,5 +27,3 @@ public:
 	void enable();
 	void disable();
 };
-
-#endif

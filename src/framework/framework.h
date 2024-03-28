@@ -2,8 +2,7 @@
 	Here we define all the mathematical classes like Vector3, Matrix44 and some extra useful geometrical functions
 */
 
-#ifndef FRAMEWORK //macros to ensure the code is included once
-#define FRAMEWORK
+#pragma once
 
 #include <vector>
 #include <cmath>
@@ -102,6 +101,8 @@ public:
 	void set(float x, float y, float z) { this->x = x; this->y = y; this->z = z; }
 	void set(float v) { this->x = v; this->y = v; this->z = v; }
 
+	Vector2 xy() { return Vector2(x, y); }
+
 	void setMin(const Vector3 & v);
 	void setMax(const Vector3 & v);
 
@@ -153,6 +154,8 @@ public:
 	Vector4(const float* v) { x = v[0]; x = v[1]; x = v[2]; x = v[3]; }
     void set(float x, float y, float z, float w) { this->x = x; this->y = y; this->z = z; this->w = w; }
 	void set(float v) { this->x = v; this->y = v; this->z = v; this->w = v; }
+
+	Vector3 xyz() { return Vector3(x, y, z); }
 
 	static Vector4 WHITE;
 	static Vector4 RED;
@@ -244,11 +247,13 @@ class Matrix44
 
 		//transform using local coordinates
 		void translate(float x, float y, float z);
+		void translate(const Vector3& delta);
 		void rotate( float angle_in_rad, const Vector3& axis  );
 		void scale(float x, float y, float z);
 
 		//transform using global coordinates
 		void translateGlobal(float x, float y, float z);
+		void translateGlobal(const Vector3& v);
 		void rotateGlobal( float angle_in_rad, const Vector3& axis  );
 
 		//create a transformation matrix from scratch
@@ -395,5 +400,3 @@ typedef Vector3 vec3;
 typedef Vector4 vec4;
 typedef Matrix44 mat4;
 typedef Quaternion quat;
-
-#endif

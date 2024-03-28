@@ -1,5 +1,4 @@
-#ifndef MESH_H
-#define MESH_H
+#pragma once
 
 #include <vector>
 #include "framework/framework.h"
@@ -151,5 +150,3 @@ private:
 	bool parseMTL(const char* filename);
 	bool loadMESH(const char* filename); //personal format used for animations
 };
-
-#endif

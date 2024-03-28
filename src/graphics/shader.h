@@ -2,8 +2,7 @@
 	This allows to use compile and use shaders when rendering. Used for advanced lighting.
 */
 
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include "framework/includes.h"
 #include <string>
@@ -157,5 +156,3 @@ public:
 	GLint getLocation( const char* varname, loctable* table );
 	loctable locations;	
 };
-
-#endif

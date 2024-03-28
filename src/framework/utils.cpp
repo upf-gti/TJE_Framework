@@ -174,6 +174,11 @@ bool drawText(float x, float y, std::string text, Vector3 c, float scale )
 	return true;
 }
 
+double easeInCubic(double t)
+{
+	return t * t * t;
+}
+
 std::vector<std::string> tokenize(const std::string& source, const char* delimiters, bool process_strings)
 {
 	std::vector<std::string> tokens;

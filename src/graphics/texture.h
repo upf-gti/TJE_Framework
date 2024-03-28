@@ -1,8 +1,8 @@
 /*  by Javi Agenjo 2013 UPF  javi.agenjo@gmail.com
 	This contains a texture wrapper to use textures. It allow to load TGAs.
 */
-#ifndef TEXTURE_H
-#define TEXTURE_H
+
+#pragma once
 
 #include "framework/includes.h"
 #include "framework/framework.h"
@@ -131,5 +131,3 @@ public:
 };
 
 bool isPowerOfTwo(int n);
-
-#endif

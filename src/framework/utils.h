@@ -1,8 +1,7 @@
 /*  by Javi Agenjo 2013 UPF  javi.agenjo@gmail.com
 	This contains several functions that can be useful when programming your game.
 */
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <string>
 #include <sstream>
@@ -19,6 +18,9 @@ bool readFile(const std::string& filename, std::string& content);
 void drawGrid();
 bool drawText(float x, float y, std::string text, Vector3 c, float scale = 1);
 
+// ease functions
+double easeInCubic(double t);
+
 //check opengl errors
 bool checkGLErrors();
 
@@ -31,7 +33,6 @@ std::string join(std::vector<std::string>& strings, const char* delim);
 bool replace(std::string& str, const std::string& from, const std::string& to);
 
 std::string getGPUStats();
-void drawGrid();
 
 //Used in the MESH and ANIM parsers
 char* fetchWord(char* data, char* word);
@@ -45,5 +46,40 @@ char* fetchBufferVec3u(char* data, std::vector<Vector3u>& vector);
 char* fetchBufferVec4ub(char* data, std::vector<Vector4ub>& vector);
 char* fetchBufferVec4(char* data, std::vector<Vector4>& vector);
 
+class Timer {
 
-#endif
+	float init_time = 0.0f;
+	float time_left = 0.0f;
+
+public:
+	Timer() {};
+
+	Timer(const float duration)
+	{
+		set(duration);
+	}
+
+	bool update(float dt)
+	{
+		time_left -= dt;
+
+		if (time_left <= 0.0f) {
+			time_left = init_time;
+			return true;
+		}
+
+		return false;
+	}
+
+	void reset()
+	{
+		init_time = 0.0f;
+		time_left = 0.0f;
+	}
+
+	void set(const float duration)
+	{
+		time_left = duration;
+		init_time = duration;
+	}
+};
