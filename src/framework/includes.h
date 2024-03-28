@@ -7,7 +7,8 @@
 #define INCLUDES_H
 
 //under windows we need this file to make opengl work
-#ifdef WIN32 
+#ifdef WIN32
+	#define NOMINMAX
 	#include <windows.h>
 #endif
 

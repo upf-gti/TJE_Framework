@@ -3,6 +3,7 @@
 #include "graphics/mesh.h"
 #include <cstring>
 #include <algorithm>
+#include <functional>
 
 class Camera;
 
@@ -22,7 +23,6 @@ enum BODY_LAYERS {
 
 //used to compare bone names in the map
 struct cmp_str { bool operator()(char const *a, char const *b) const { return std::strcmp(a, b) < 0; } };
-
 
 //This class contains the bone structure hierarchy
 class Skeleton {
@@ -63,6 +63,8 @@ public:
 
 	Skeleton skeleton;
 
+	std::string name;
+
 	float duration;
 	float samples_per_second;
 	int num_animated_bones;
@@ -90,3 +92,51 @@ public:
 	void operator = (Animation* anim);
 };
 
+struct AnimationCallback {
+
+	std::string animation_name;
+	// Callback can be attached to a keyframe index or a given time (in secs)
+	float time = -1.0f;
+	int keyframe = -1;
+	// Function to execute
+	std::function<void(float)> callback;
+	float time_elapsed = 1e9f;
+	bool block_next = false;
+};
+
+class Animator {
+
+	float time = 0.0f;
+
+	bool playing_loop = true;
+	Animation* current_animation = nullptr;
+
+	// Transitions
+	bool must_play_loop = true;
+	const char* last_loop_animation = nullptr;
+	Animation* target_animation = nullptr;
+	Skeleton blended_skeleton;
+
+	float transition_counter	= 0.f;
+	float transition_time		= 0.f;
+
+	// Callbacks
+	float last_time = 0.0f;
+	std::vector<AnimationCallback> callbacks;
+
+public:
+
+	Animator() {};
+	~Animator();
+
+	void playAnimation(const char* path, bool loop = true, float transition = 0.2f, bool reset_time = true);
+	void stopAnimation();
+
+	void update(float delta_time);
+
+	void addCallback(const std::string& filename, std::function<void(float)> callback, float time);
+	void addCallback(const std::string& filename, std::function<void(float)> callback, int keyframe);
+
+	Animation* getCurrentAnimation() { return target_animation ? target_animation : current_animation; };
+	Skeleton& getCurrentSkeleton();
+};

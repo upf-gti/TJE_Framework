@@ -212,7 +212,6 @@ void Animation::assignTime(float t, bool loop, bool interpolate, uint8 layers)
 	skeleton.updateGlobalMatrices();
 }
 
-
 void Animation::operator = (Animation* anim)
 {
 	memcpy(this, anim, sizeof(Animation));
@@ -221,34 +220,28 @@ void Animation::operator = (Animation* anim)
 
 bool Animation::load(const char* filename)
 {
-	//struct stat stbuffer;
+	name = filename;
 
 	std::cout << " + Animation loading: " << filename << " ... ";
 	long time = getTime();
 
 	//char file_format = 0;
-	std::string name = filename;
 	std::string ext = name.substr(name.find_last_of(".") + 1);
 	if (ext == "abin" || ext == "ABIN")
 	{
 		if( !loadABIN(filename) )
 			return false;
 	}
-	else //not a bin
+	else //not a bin, try to load in ASCII
 	{
-		std::string binfilename = name + ".abin";
-		if (!loadABIN(binfilename.c_str())) //not found
+		if (!loadSKANIM(filename))
 		{
-			//try to load in ASCII
-			if (!loadSKANIM(filename))
-			{
-				std::cout << " [ERROR]: File not found" << std::endl;
-				return false;
-			}
-
-			std::cout << "[Writing .ABIN] ... ";
-			writeABIN( filename );
+			std::cout << " [ERROR]: File not found" << std::endl;
+			return false;
 		}
+
+		std::cout << "[Writing .ABIN] ... ";
+		writeABIN(filename);
 	}
 
 	std::cout << "[OK] Num. Bones: " << skeleton.num_bones << " Time: " << (getTime() - time) * 0.001 << "sec" << std::endl;
@@ -495,4 +488,160 @@ Animation* Animation::Get(const char* filename)
 
 	sAnimationsLoaded[filename] = anim;
 	return anim;
+}
+
+Animator::~Animator()
+{
+	delete current_animation;
+	delete target_animation;
+}
+
+void Animator::playAnimation(const char* path, bool loop, float transition, bool reset_time)
+{
+	if (current_animation) {
+
+		if (target_animation)
+			delete target_animation;
+
+		target_animation = new Animation();
+		if (!target_animation->load(path)) {
+			assert(0 && "No animation found!");
+			delete target_animation;
+			target_animation = nullptr;
+		}
+
+		must_play_loop = loop;
+	}
+	else {
+
+		if (current_animation)
+			delete current_animation;
+
+		current_animation = new Animation();
+		if (!current_animation->load(path)) {
+			assert(0 && "No animation found!");
+			delete current_animation;
+			current_animation = nullptr;
+		}
+
+		playing_loop = loop;
+	}
+
+	transition_counter = 0.0f;
+	transition_time = transition;
+
+	if (reset_time) {
+		time = 0.0f;
+	}
+
+	if (loop) {
+		last_loop_animation = path;
+	}
+}
+
+void Animator::stopAnimation()
+{
+	delete current_animation;
+	delete target_animation;
+	delete last_loop_animation;
+
+	current_animation = nullptr;
+	target_animation = nullptr;
+	last_loop_animation = nullptr;
+}
+
+void Animator::update(float delta_time)
+{
+	time += delta_time;
+
+	if (!current_animation)
+		return;
+
+	// Set previous loop in case there's any.. if not, leave action pose
+	if (!playing_loop && time >= (current_animation->duration - transition_time)
+		&& last_loop_animation && !target_animation) {
+
+		playAnimation(last_loop_animation, true, 0.3f, false);
+	}
+
+	current_animation->assignTime(time, playing_loop);
+
+	if (target_animation) {
+
+		target_animation->assignTime(transition_counter, must_play_loop);
+
+		transition_counter += delta_time;
+
+		blendSkeleton(
+			&current_animation->skeleton,
+			&target_animation->skeleton,
+			transition_counter / transition_time,
+			&blended_skeleton);
+
+		if (transition_counter >= transition_time) {
+			current_animation = target_animation;
+			playing_loop = must_play_loop;
+			time = transition_counter; // continue where the transition ended..
+			delete target_animation;
+			target_animation = nullptr;
+			return;
+		}
+	}
+
+	// Check callbacks for current animation
+
+	float t = time;
+
+	if (playing_loop)
+	{
+		t = fmod(t, current_animation->duration);
+		if (t < 0)
+			t = current_animation->duration + t;
+	}
+	else
+	{
+		t = clamp(t, 0.0f, current_animation->duration - (1.0f / current_animation->samples_per_second));
+	}
+
+	for (AnimationCallback& cb : callbacks)
+	{
+		cb.time_elapsed += std::max(t - last_time, 0.0f);
+
+		if (current_animation->name != cb.animation_name)
+			continue;
+
+		int keyframe = cb.keyframe;
+
+		if (cb.time != -1.0f) {
+			float v = current_animation->samples_per_second * cb.time;
+			keyframe = (int)clamp(floor(v), 0.0f, (float)(current_animation->num_keyframes - 1));
+		}
+
+		float v = current_animation->samples_per_second * t;
+		int index = (int)clamp(floor(v), 0.0f, (float)(current_animation->num_keyframes - 1));
+
+		if (index == keyframe && cb.time_elapsed > (1.0f / current_animation->samples_per_second)) {
+			cb.callback(t);
+			cb.time_elapsed = 0.0f;
+		}
+	}
+
+	last_time = t;
+}
+
+// CALLBACKS
+
+void Animator::addCallback(const std::string& filename, std::function<void(float)> callback, float time)
+{
+	callbacks.push_back({ filename, time, -1, callback });
+}
+
+void Animator::addCallback(const std::string& filename, std::function<void(float)> callback, int keyframe)
+{
+	callbacks.push_back({ filename, -1.0f, keyframe, callback });
+}
+
+Skeleton& Animator::getCurrentSkeleton()
+{
+	return current_animation->skeleton;
 }
