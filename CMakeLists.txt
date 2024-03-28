@@ -34,6 +34,8 @@ endmacro()
 set(DIR_ROOT       ${CMAKE_CURRENT_LIST_DIR})
 set(DIR_SOURCES    "${DIR_ROOT}/src")
 
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+
 project (TJE_Framework CXX)
 
 find_package(OpenGL REQUIRED)
@@ -63,6 +65,7 @@ endmacro()
 
 CG_SOURCES_APPEND(${DIR_SOURCES})
 CG_SOURCES_APPEND(${DIR_SOURCES}/framework)
+CG_SOURCES_APPEND(${DIR_SOURCES}/framework/entities)
 CG_SOURCES_APPEND(${DIR_SOURCES}/framework/extra)
 CG_SOURCES_APPEND(${DIR_SOURCES}/framework/extra/coldet)
 CG_SOURCES_APPEND(${DIR_SOURCES}/framework/extra/pathfinder)
@@ -74,15 +77,17 @@ add_executable(${PROJECT_NAME} ${CG_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${DIR_SOURCES})
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${DIR_ROOT}")
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+                      XCODE_GENERATE_SCHEME TRUE
+                      XCODE_SCHEME_WORKING_DIRECTORY "${DIR_ROOT}/")
 
 GroupSources(src)
 
 # Ensure that _AMD64_ or _X86_ are defined on Microsoft Windows, as otherwise
 # um/winnt.h provided since Windows 10.0.22000 will error.
-if (NOT UNIX)
+if (WIN32)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         add_definitions(-D_AMD64_)
         message(STATUS "64 bits detected")
@@ -90,7 +95,12 @@ if (NOT UNIX)
         add_definitions(-D_X86_)
         message(STATUS "32 bits detected")
     endif()
-endif (NOT UNIX)
+endif()
+
+if (APPLE)
+    find_library(cocoa_lib Cocoa REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${cocoa_lib})
+endif()
 
 # sdl2
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL2)
@@ -109,13 +119,8 @@ set_property(TARGET libglew_static PROPERTY FOLDER "External/libglew_static")
 target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL OpenGL::GLU)
 
 # Properties
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 11)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD_REQUIRED ON)
 
 message(STATUS "dir root: ${DIR_ROOT}")
 message(STATUS "bin root: ${CMAKE_BINARY_DIR}")
-
-#COPY_FROM_TO_DIR(${DIR_ROOT}/res/meshes ${CMAKE_BINARY_DIR}/res/meshes)
-#COPY_FROM_TO_DIR(${DIR_ROOT}/res/shaders ${CMAKE_BINARY_DIR}/res/shaders)
-#COPY_FROM_TO_DIR(${DIR_ROOT}/res/textures ${CMAKE_BINARY_DIR}/res/textures)
-#COPY_FROM_TO_DIR(${DIR_ROOT}/res/images ${CMAKE_BINARY_DIR}/res/images)

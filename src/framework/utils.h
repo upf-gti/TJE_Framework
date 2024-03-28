@@ -22,8 +22,6 @@ bool drawText(float x, float y, std::string text, Vector3 c, float scale = 1);
 //check opengl errors
 bool checkGLErrors();
 
-std::string getPath();
-
 Vector2 getDesktopSize( int display_index = 0 );
 
 std::vector<std::string> tokenize(const std::string& source, const char* delimiters, bool process_strings = false);
