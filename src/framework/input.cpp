@@ -53,18 +53,6 @@ void Input::update()
 		updateGamepadState(_joy[i], gamepads[i]);
 }
 
-void Input::centerMouse()
-{
-	int window_width, window_height;
-	SDL_GetWindowSize(window, &window_width, &window_height);
-
-	int center_x = (int)floor(window_width*0.5f);
-	int center_y = (int)floor(window_height*0.5f);
-	SDL_WarpMouseInWindow(window, center_x, center_y); //put the mouse back in the middle of the screen
-	Input::mouse_position.x = (float)center_x;
-	Input::mouse_position.y = (float)center_y;
-}
-
 SDL_Joystick* Input::openGamepad(int index)
 {
 	// Check for number of joysticks available

@@ -83,6 +83,7 @@ public:
 	//keyboard
 	static bool isKeyPressed(int key_code) { return keystate[key_code] != 0; }
 	static bool wasKeyPressed(int key_code) { return keystate[key_code] != 0 && prev_keystate[key_code] == 0; }
+	static bool wasKeyReleased(int key_code) { return keystate[key_code] == 0 && prev_keystate[key_code] != 0; }
 
 	//gamepad state
 	static GamepadState gamepads[4];
@@ -93,7 +94,6 @@ public:
 
 	//mouse
 	static bool isMousePressed(int button) { return mouse_state & SDL_BUTTON(button); } //button could be SDL_BUTTON_LEFT
-	static void centerMouse();
 
 	static void init( SDL_Window* window );
 	static void update();
@@ -101,7 +101,5 @@ public:
 	static SDL_Joystick* openGamepad(int index);
 	static void updateGamepadState(SDL_Joystick* joystick, GamepadState& state);
 };
-
-
 
 #endif
