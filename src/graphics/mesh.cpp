@@ -469,14 +469,17 @@ void Mesh::renderFixedPipeline(int primitive)
 
 void Mesh::renderAnimated( unsigned int primitive, Skeleton* skeleton )
 {
-	Shader* shader = Shader::current;
-	std::vector<Matrix44> bone_matrices;
-	assert(bones.size());
-	int bones_loc = shader->getUniformLocation("u_bones");
-	if (bones_loc != -1)
+	if (skeleton)
 	{
-		skeleton->computeFinalBoneMatrices(bone_matrices, this);
-		shader->setUniform("u_bones", bone_matrices );
+		Shader* shader = Shader::current;
+		std::vector<Matrix44> bone_matrices;
+		assert(bones.size());
+		int bones_loc = shader->getUniformLocation("u_bones");
+		if (bones_loc != -1)
+		{
+			skeleton->computeFinalBoneMatrices(bone_matrices, this);
+			shader->setUniform("u_bones", bone_matrices);
+		}
 	}
 
 	render(primitive);
