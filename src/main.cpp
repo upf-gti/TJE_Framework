@@ -117,6 +117,10 @@ void mainLoop()
 				Input::mouse_wheel_delta = static_cast<float>(sdlEvent.wheel.y);
 				game->onMouseWheel(sdlEvent.wheel);
 				break;
+			case SDL_MOUSEMOTION:
+				Input::mouse_position.set((float)sdlEvent.motion.x, (float)sdlEvent.motion.y);
+				Input::mouse_delta = Input::mouse_delta + Vector2((float)sdlEvent.motion.xrel, (float)sdlEvent.motion.yrel);
+				break;
 			case SDL_KEYDOWN:
 				game->onKeyDown(sdlEvent.key);
 				break;
