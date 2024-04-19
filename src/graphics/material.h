@@ -7,19 +7,10 @@ class Shader;
 class Texture;
 
 class Material {
-
+public:
 	Shader* shader = nullptr;
 	Vector4 color = Vector4(1.f);
-
 	Texture* diffuse = nullptr;
-	Texture* normals = nullptr;
-
-	Vector3 Kd = Vector3(1.0f);
-	Vector3 Ks = Vector3(0.2f);
-
-	bool transparent = false;
-
-	float tiling = 1.f;
 };
 
 struct sRenderData {

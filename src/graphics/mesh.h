@@ -9,6 +9,7 @@
 class Shader; //for binding
 class Image; //for displace
 class Skeleton; //for skinned meshes
+class Texture;
 
 //version from 21/01/2024
 #define MESH_BIN_VERSION 12 //this is used to regenerate bins if the format changes
@@ -39,6 +40,7 @@ struct sMaterialInfo
 	Vector3 Ka;
 	Vector3 Kd;
 	Vector3 Ks;
+	Texture* Kd_texture = nullptr;
 };
 
 class Mesh
@@ -61,7 +63,7 @@ public:
 	std::vector< Vector2 > uvs;	 //here we store the texture coordinates
 	std::vector< Vector2 > uvs1; //secondary sets of uvs
 	std::vector< Vector4 > colors; //here we store the colors
-	
+
 	struct tInterleaved {
 		Vector3 vertex;
 		Vector3 normal;
@@ -100,12 +102,12 @@ public:
 
 	void clear();
 
-	void render( unsigned int primitive, int submesh_id = -1, int num_instances = 0 );
+	void render(unsigned int primitive, int submesh_id = -1, int num_instances = 0);
 	void renderInstanced(unsigned int primitive, const Matrix44* instanced_models, int number);
-	void renderInstanced(unsigned int primitive, const std::vector<Vector3> positions, const char* uniform_name );
-	void renderBounding( const Matrix44& model, bool world_bounding = true );
+	void renderInstanced(unsigned int primitive, const std::vector<Vector3> positions, const char* uniform_name);
+	void renderBounding(const Matrix44& model, bool world_bounding = true);
 	void renderFixedPipeline(int primitive); //sloooooooow
-	void renderAnimated(unsigned int primitive, Skeleton *sk);
+	void renderAnimated(unsigned int primitive, Skeleton* sk);
 
 	void enableBuffers(Shader* shader);
 	void drawCall(unsigned int primitive, int submesh_id, int draw_call_id, int num_instances);
@@ -121,7 +123,7 @@ public:
 	void* collision_model;
 	bool createCollisionModel(bool is_static = false); //is_static sets if the inv matrix should be computed after setTransform (true) or before rayCollision (false)
 	//help: model is the transform of the mesh, ray origin and direction, a Vector3 where to store the collision if found, a Vector3 where to store the normal if there was a collision, max ray distance in case the ray should go to infintiy, and in_object_space to get the collision point in object space or world space
-	bool testRayCollision( Matrix44 model, Vector3 ray_origin, Vector3 ray_direction, Vector3& collision, Vector3& normal, float max_ray_dist = 3.4e+38F, bool in_object_space = false );
+	bool testRayCollision(Matrix44 model, Vector3 ray_origin, Vector3 ray_direction, Vector3& collision, Vector3& normal, float max_ray_dist = 3.4e+38F, bool in_object_space = false);
 	bool testSphereCollision(Matrix44 model, Vector3 center, float radius, Vector3& collision, Vector3& normal);
 
 	//loader

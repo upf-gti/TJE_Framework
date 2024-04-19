@@ -1,7 +1,6 @@
 /*  by Javi Agenjo 2013 UPF  javi.agenjo@gmail.com
 	This contains a texture wrapper to use textures. It allow to load TGAs.
 */
-
 #pragma once
 
 #include "framework/includes.h"
@@ -26,20 +25,20 @@ public:
 
 	Image() { width = height = 0; data = NULL; bytes_per_pixel = 3; }
 	Image(int w, int h, int bytes_per_pixel = 3) { data = NULL; resize(w, h, bytes_per_pixel); }
-	~Image() { if (data) delete []data; data = NULL; }
+	~Image() { if (data) delete[]data; data = NULL; }
 
-	void resize(int w, int h, int bytes_per_pixel = 3) { if (data) delete[] data; width = w; height = h; this->bytes_per_pixel = bytes_per_pixel; data = new uint8[w*h*bytes_per_pixel]; memset(data, 0, w*h*bytes_per_pixel); }
+	void resize(int w, int h, int bytes_per_pixel = 3) { if (data) delete[] data; width = w; height = h; this->bytes_per_pixel = bytes_per_pixel; data = new uint8[w * h * bytes_per_pixel]; memset(data, 0, w * h * bytes_per_pixel); }
 	void clear() { if (data) delete[]data; data = NULL; width = height = 0; }
 	void flipY();
 
 	Color getPixel(int x, int y) {
 		assert(x >= 0 && x < (int)width && y >= 0 && y < (int)height && "reading of memory");
-		int pos = y*width*bytes_per_pixel + x*bytes_per_pixel;
+		int pos = y * width * bytes_per_pixel + x * bytes_per_pixel;
 		return Color(data[pos], data[pos + 1], data[pos + 2], bytes_per_pixel == 4 ? 255 : data[pos + 3]);
 	};
 	void setPixel(int x, int y, Color v) {
 		assert(x >= 0 && x < (int)width && y >= 0 && y < (int)height && "writing of memory");
-		int pos = y*width*bytes_per_pixel + x*bytes_per_pixel;
+		int pos = y * width * bytes_per_pixel + x * bytes_per_pixel;
 		data[pos] = v.x; data[pos + 1] = v.y; data[pos + 2] = v.z; if (bytes_per_pixel == 4) data[pos + 3] = v.w;
 	};
 
@@ -68,7 +67,7 @@ public:
 	//textures manager
 	static std::map<std::string, Texture*> sTexturesLoaded;
 
-	GLuint texture_id; // GL id to identify the texture in opengl, every texture must have its own id
+	GLuint texture_id = 0; // GL id to identify the texture in opengl, every texture must have its own id
 	float width;
 	float height;
 	float depth;	//Optional for 3dTexture or 2dTexture array
@@ -108,7 +107,7 @@ public:
 
 	static void UnbindAll();
 
-	void operator = (const Texture& tex) { assert("textures cannot be cloned like this!");  }
+	void operator = (const Texture& tex) { assert("textures cannot be cloned like this!"); }
 
 	//load without using the manager
 	bool load(const char* filename, bool mipmaps = true, bool wrap = true, unsigned int type = GL_UNSIGNED_BYTE);
@@ -121,7 +120,7 @@ public:
 	void generateMipmaps();
 
 	//show the texture on the current viewport
-	void toViewport( Shader* shader = NULL );
+	void toViewport(Shader* shader = NULL);
 	//copy to another texture
 	void copyTo(Texture* destination, Shader* shader = NULL);
 

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <limits>
 #include <sys/stat.h>
+#include <filesystem>
 
 #include "framework/camera.h"
 #include "texture.h"
@@ -45,14 +46,14 @@ Mesh::~Mesh()
 void Mesh::clear()
 {
 	//Free VBOs
-	if (vertices_vbo_id) 
-		glDeleteBuffersARB(1,&vertices_vbo_id);
+	if (vertices_vbo_id)
+		glDeleteBuffersARB(1, &vertices_vbo_id);
 	if (uvs_vbo_id)
-		glDeleteBuffersARB(1,&uvs_vbo_id);
-	if (normals_vbo_id) 
-		glDeleteBuffersARB(1,&normals_vbo_id);
-	if (colors_vbo_id) 
-		glDeleteBuffersARB(1,&colors_vbo_id);
+		glDeleteBuffersARB(1, &uvs_vbo_id);
+	if (normals_vbo_id)
+		glDeleteBuffersARB(1, &normals_vbo_id);
+	if (colors_vbo_id)
+		glDeleteBuffersARB(1, &colors_vbo_id);
 	if (interleaved_vbo_id)
 		glDeleteBuffersARB(1, &interleaved_vbo_id);
 	if (indices_vbo_id)
@@ -236,7 +237,7 @@ void Mesh::render(unsigned int primitive, int submesh_id, int num_instances)
 	enableBuffers(shader);
 
 	//draw call
-	if (submesh_id == -1 && materials.size() > 0) // if there's mesh mtl
+	if (submesh_id == -1 && !materials.empty()) // if there's mesh mtl
 	{
 		for (int i = 0; i < submeshes.size(); ++i) {
 			sSubmeshInfo& submesh = submeshes[i];
@@ -246,6 +247,16 @@ void Mesh::render(unsigned int primitive, int submesh_id, int num_instances)
 					shader->setUniform("u_Ka", materials[dc.material].Ka);
 					shader->setUniform("u_Kd", materials[dc.material].Kd);
 					shader->setUniform("u_Ks", materials[dc.material].Ks);
+
+					if (materials[dc.material].Kd_texture && materials[dc.material].Kd_texture->texture_id != 0) {
+						shader->setUniform("u_texture", materials[dc.material].Kd_texture, 0);
+					}
+					else {
+						glActiveTexture(GL_TEXTURE0);
+						glBindTexture(GL_TEXTURE_2D, 0);
+					}
+
+					shader->setUniform("u_maps", Vector2(!!materials[dc.material].Kd_texture, 0));
 				}
 				drawCall(primitive, i, j, num_instances);
 			}
@@ -347,10 +358,10 @@ void Mesh::renderInstanced(unsigned int primitive, const Matrix44* instanced_mod
 	//mat4 count as 4 different attributes of vec4... (thanks opengl...)
 	for (int k = 0; k < 4; ++k)
 	{
-		glEnableVertexAttribArray(attribLocation + k );
+		glEnableVertexAttribArray(attribLocation + k);
 		int offset = sizeof(float) * 4 * k;
-		const Uint8* addr = (Uint8*) offset;
-		glVertexAttribPointer(attribLocation + k, 4, GL_FLOAT, false, sizeof(Matrix44), addr); 
+		const Uint8* addr = (Uint8*)offset;
+		glVertexAttribPointer(attribLocation + k, 4, GL_FLOAT, false, sizeof(Matrix44), addr);
 		glVertexAttribDivisor(attribLocation + k, 1); // This makes it instanced!
 	}
 
@@ -467,19 +478,16 @@ void Mesh::renderFixedPipeline(int primitive)
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //if it crashes, comment this line
 }
 
-void Mesh::renderAnimated( unsigned int primitive, Skeleton* skeleton )
+void Mesh::renderAnimated(unsigned int primitive, Skeleton* skeleton)
 {
-	if (skeleton)
+	Shader* shader = Shader::current;
+	std::vector<Matrix44> bone_matrices;
+	assert(bones.size());
+	int bones_loc = shader->getUniformLocation("u_bones");
+	if (bones_loc != -1)
 	{
-		Shader* shader = Shader::current;
-		std::vector<Matrix44> bone_matrices;
-		assert(bones.size());
-		int bones_loc = shader->getUniformLocation("u_bones");
-		if (bones_loc != -1)
-		{
-			skeleton->computeFinalBoneMatrices(bone_matrices, this);
-			shader->setUniform("u_bones", bone_matrices);
-		}
+		skeleton->computeFinalBoneMatrices(bone_matrices, this);
+		shader->setUniform("u_bones", bone_matrices);
 	}
 
 	render(primitive);
@@ -613,18 +621,18 @@ bool Mesh::createCollisionModel(bool is_static)
 	else if (interleaved.size()) //is interleaved
 	{
 		collision_model->setTriangleNumber(interleaved.size() / 3);
-		for (unsigned int i = 0; i < interleaved.size(); i+=3)
+		for (unsigned int i = 0; i < interleaved.size(); i += 3)
 		{
 			auto v1 = interleaved[i];
-			auto v2 = interleaved[i+1];
-			auto v3 = interleaved[i+2];
+			auto v2 = interleaved[i + 1];
+			auto v3 = interleaved[i + 2];
 			collision_model->addTriangle(v1.vertex.v, v2.vertex.v, v3.vertex.v);
 		}
 	}
 	else if (vertices.size()) //non interleaved
 	{
 		collision_model->setTriangleNumber((int)vertices.size() / 3);
-		for (unsigned int i = 0; i < (int)vertices.size(); i+=3)
+		for (unsigned int i = 0; i < (int)vertices.size(); i += 3)
 		{
 			auto v1 = vertices[i];
 			auto v2 = vertices[i + 1];
@@ -643,7 +651,7 @@ bool Mesh::createCollisionModel(bool is_static)
 }
 
 //help: model is the transform of the mesh, ray origin and direction, a Vector3 where to store the collision if found, a Vector3 where to store the normal if there was a collision, max ray distance in case the ray should go to infintiy, and in_object_space to get the collision point in object space or world space
-bool Mesh::testRayCollision(Matrix44 model, Vector3 start, Vector3 front, Vector3& collision, Vector3& normal, float max_ray_dist, bool in_object_space )
+bool Mesh::testRayCollision(Matrix44 model, Vector3 start, Vector3 front, Vector3& collision, Vector3& normal, float max_ray_dist, bool in_object_space)
 {
 	if (!this->collision_model)
 		if (!createCollisionModel())
@@ -652,19 +660,19 @@ bool Mesh::testRayCollision(Matrix44 model, Vector3 start, Vector3 front, Vector
 	CollisionModel3D* collision_model = (CollisionModel3D*)this->collision_model;
 	assert(collision_model && "CollisionModel3D must be created before using it, call createCollisionModel");
 
-	collision_model->setTransform( model.m );
-	if (collision_model->rayCollision( start.v , front.v, true,0.0, max_ray_dist) == false)
+	collision_model->setTransform(model.m);
+	if (collision_model->rayCollision(start.v, front.v, true, 0.0, max_ray_dist) == false)
 		return false;
 
-	collision_model->getCollisionPoint( collision.v, in_object_space);
+	collision_model->getCollisionPoint(collision.v, in_object_space);
 
-	float t1[9],t2[9];
-	collision_model->getCollidingTriangles(t1,t2, in_object_space);
+	float t1[9], t2[9];
+	collision_model->getCollidingTriangles(t1, t2, in_object_space);
 
 	Vector3 v1;
 	Vector3 v2;
-	v1=Vector3(t1[3]-t1[0],t1[4]-t1[1],t1[5]-t1[2]);
-	v2=Vector3(t1[6]-t1[0],t1[7]-t1[1],t1[8]-t1[2]);
+	v1 = Vector3(t1[3] - t1[0], t1[4] - t1[1], t1[5] - t1[2]);
+	v2 = Vector3(t1[6] - t1[0], t1[7] - t1[1], t1[8] - t1[2]);
 	v1.normalize();
 	v2.normalize();
 	normal = v1.cross(v2);
@@ -744,23 +752,23 @@ struct sMeshInfo
 
 bool Mesh::readBin(const char* filename)
 {
-	FILE *f;
+	FILE* f;
 	assert(filename);
 
 	struct stat stbuffer;
 
-	stat(filename,&stbuffer);
-	f = fopen(filename,"rb");
+	stat(filename, &stbuffer);
+	f = fopen(filename, "rb");
 	if (f == NULL)
 		return false;
 
 	unsigned int size = (unsigned int)stbuffer.st_size;
 	char* data = new char[size];
-	fread(data,size,1,f);
+	fread(data, size, 1, f);
 	fclose(f);
 
 	//watermark
-	if ( memcmp(data,"MBIN",4) != 0 )
+	if (memcmp(data, "MBIN", 4) != 0)
 	{
 		std::cout << "[ERROR] loading BIN: invalid content: " << filename << std::endl;
 		return false;
@@ -768,10 +776,10 @@ bool Mesh::readBin(const char* filename)
 
 	char* pos = data + 4;
 	sMeshInfo info;
-	memcpy(&info,pos,sizeof(sMeshInfo));
+	memcpy(&info, pos, sizeof(sMeshInfo));
 	pos += sizeof(sMeshInfo);
 
-	if(info.version != MESH_BIN_VERSION || info.header_bytes != sizeof(sMeshInfo) )
+	if (info.version != MESH_BIN_VERSION || info.header_bytes != sizeof(sMeshInfo))
 	{
 		std::cout << "[WARN] loading BIN: old version: " << filename << std::endl;
 		return false;
@@ -793,21 +801,21 @@ bool Mesh::readBin(const char* filename)
 	if (info.streams[1] == 'N')
 	{
 		normals.resize(info.size);
-		memcpy((void*)&normals[0],pos,sizeof(Vector3) * info.size);
+		memcpy((void*)&normals[0], pos, sizeof(Vector3) * info.size);
 		pos += sizeof(Vector3) * info.size;
 	}
 
 	if (info.streams[2] == 'U')
 	{
 		uvs.resize(info.size);
-		memcpy((void*)&uvs[0],pos,sizeof(Vector2) * info.size);
+		memcpy((void*)&uvs[0], pos, sizeof(Vector2) * info.size);
 		pos += sizeof(Vector2) * info.size;
 	}
 
 	if (info.streams[3] == 'C')
 	{
 		colors.resize(info.size);
-		memcpy((void*)&colors[0],pos,sizeof(Vector4) * info.size);
+		memcpy((void*)&colors[0], pos, sizeof(Vector4) * info.size);
 		pos += sizeof(Vector4) * info.size;
 	}
 
@@ -879,11 +887,11 @@ bool Mesh::readBin(const char* filename)
 
 bool Mesh::writeBin(const char* filename)
 {
-	assert( vertices.size() || interleaved.size() );
+	assert(vertices.size() || interleaved.size());
 	std::string s_filename = filename;
 	s_filename += ".mbin";
 
-	FILE* f = fopen(s_filename.c_str(),"wb");
+	FILE* f = fopen(s_filename.c_str(), "wb");
 	if (f == NULL)
 	{
 		std::cout << "[ERROR] cannot write mesh BIN: " << s_filename.c_str() << std::endl;
@@ -891,7 +899,7 @@ bool Mesh::writeBin(const char* filename)
 	}
 
 	//watermark
-	fwrite("MBIN",sizeof(char),4,f);
+	fwrite("MBIN", sizeof(char), 4, f);
 
 	sMeshInfo info;
 	memset(&info, 0, sizeof(info));
@@ -918,7 +926,7 @@ bool Mesh::writeBin(const char* filename)
 	info.streams[7] = uvs1.size() ? 'u' : ' ';
 
 	//write info
-	fwrite((void*)&info, sizeof(sMeshInfo),1, f);
+	fwrite((void*)&info, sizeof(sMeshInfo), 1, f);
 
 	//write streams
 	if (interleaved.size())
@@ -947,7 +955,7 @@ bool Mesh::writeBin(const char* filename)
 	if (uvs1.size())
 		fwrite((void*)&uvs1[0], uvs1.size() * sizeof(Vector2), 1, f);
 
-	if(submeshes.size())
+	if (submeshes.size())
 		fwrite((void*)&submeshes[0], submeshes.size() * sizeof(sSubmeshInfo), 1, f);
 
 	fclose(f);
@@ -956,11 +964,11 @@ bool Mesh::writeBin(const char* filename)
 
 bool Mesh::loadASE(const char* filename)
 {
-	int nVtx,nFcs;
+	int nVtx, nFcs;
 	int count;
-	int vId,aId,bId,cId;
-	float vtxX,vtxY,vtxZ;
-	float nX,nY,nZ;
+	int vId, aId, bId, cId;
+	float vtxX, vtxY, vtxZ;
+	float nX, nY, nZ;
 	TextParser t;
 	if (t.create(filename) == false)
 		return false;
@@ -970,42 +978,42 @@ bool Mesh::loadASE(const char* filename)
 	t.seek("*MESH_NUMFACES");
 	nFcs = t.getint();
 
-	normals.resize(nFcs*3);
-	vertices.resize(nFcs*3);
-	uvs.resize(nFcs*3);
+	normals.resize(nFcs * 3);
+	vertices.resize(nFcs * 3);
+	uvs.resize(nFcs * 3);
 
 	std::vector<Vector3> unique_vertices;
 	unique_vertices.resize(nVtx);
 
 	const float max_float = 10000000;
 	const float min_float = -10000000;
-	aabb_min.set(max_float,max_float,max_float);
-	aabb_max.set(min_float,min_float,min_float);
+	aabb_min.set(max_float, max_float, max_float);
+	aabb_max.set(min_float, min_float, min_float);
 
 	//load unique vertices
-	for(count=0;count<nVtx;count++)
+	for (count = 0; count < nVtx; count++)
 	{
 		t.seek("*MESH_VERTEX");
 		vId = t.getint();
-		vtxX=(float)t.getfloat();
-		vtxY= (float)t.getfloat();
-		vtxZ= (float)t.getfloat();
-		Vector3 v(-vtxX,vtxZ,vtxY);
+		vtxX = (float)t.getfloat();
+		vtxY = (float)t.getfloat();
+		vtxZ = (float)t.getfloat();
+		Vector3 v(-vtxX, vtxZ, vtxY);
 		unique_vertices[count] = v;
-		aabb_min.setMin( v );
-		aabb_max.setMax( v );
+		aabb_min.setMin(v);
+		aabb_max.setMax(v);
 	}
 	box.center = (aabb_max + aabb_min) * 0.5;
 	box.halfsize = (aabb_max - box.center);
-	radius = (float)fmax( aabb_max.length(), aabb_min.length() );
-	
+	radius = (float)fmax(aabb_max.length(), aabb_min.length());
+
 	int prev_mat = 0;
 
 	sSubmeshInfo submesh;
 	memset(&submesh, 0, sizeof(submesh));
 
 	//load faces
-	for(count=0;count<nFcs;count++)
+	for (count = 0; count < nFcs; count++)
 	{
 		t.seek("*MESH_FACE");
 		t.seek("A:");
@@ -1014,9 +1022,9 @@ bool Mesh::loadASE(const char* filename)
 		bId = t.getint();
 		t.seek("C:");
 		cId = t.getint();
-		vertices[count*3 + 0] = unique_vertices[aId];
-		vertices[count*3 + 1] = unique_vertices[bId];
-		vertices[count*3 + 2] = unique_vertices[cId];
+		vertices[count * 3 + 0] = unique_vertices[aId];
+		vertices[count * 3 + 1] = unique_vertices[bId];
+		vertices[count * 3 + 2] = unique_vertices[cId];
 
 		/*t.seek("*MESH_MTLID");
 		int current_mat = t.getint();
@@ -1038,47 +1046,47 @@ bool Mesh::loadASE(const char* filename)
 	std::vector<Vector2> unique_uvs;
 	unique_uvs.resize(nVtx);
 
-	for(count=0;count<nVtx;count++)
+	for (count = 0; count < nVtx; count++)
 	{
 		t.seek("*MESH_TVERT");
 		vId = t.getint();
-		vtxX= (float)t.getfloat();
-		vtxY= (float)t.getfloat();
-		unique_uvs[count]=Vector2(vtxX,vtxY);
+		vtxX = (float)t.getfloat();
+		vtxY = (float)t.getfloat();
+		unique_uvs[count] = Vector2(vtxX, vtxY);
 	}
 
 	t.seek("*MESH_NUMTVFACES");
 	nFcs = t.getint();
-	for(count=0;count<nFcs;count++)
+	for (count = 0; count < nFcs; count++)
 	{
 		t.seek("*MESH_TFACE");
 		t.getint(); //num face
-		uvs[count*3] = unique_uvs[ t.getint() ];
-		uvs[count*3+1] = unique_uvs[ t.getint() ];
-		uvs[count*3+2] = unique_uvs[ t.getint() ];
+		uvs[count * 3] = unique_uvs[t.getint()];
+		uvs[count * 3 + 1] = unique_uvs[t.getint()];
+		uvs[count * 3 + 2] = unique_uvs[t.getint()];
 	}
 
 	//normals
-	for(count=0;count<nFcs;count++)
+	for (count = 0; count < nFcs; count++)
 	{
 		t.seek("*MESH_VERTEXNORMAL");
 		aId = t.getint();
 		nX = (float)t.getfloat();
 		nY = (float)t.getfloat();
 		nZ = (float)t.getfloat();
-		normals[count*3]=Vector3(-nX,nZ,nY);
+		normals[count * 3] = Vector3(-nX, nZ, nY);
 		t.seek("*MESH_VERTEXNORMAL");
 		aId = t.getint();
 		nX = (float)t.getfloat();
 		nY = (float)t.getfloat();
 		nZ = (float)t.getfloat();
-		normals[count*3+1]=Vector3(-nX,nZ,nY);
+		normals[count * 3 + 1] = Vector3(-nX, nZ, nY);
 		t.seek("*MESH_VERTEXNORMAL");
 		aId = t.getint();
 		nX = (float)t.getfloat();
 		nY = (float)t.getfloat();
 		nZ = (float)t.getfloat();
-		normals[count*3+2]=Vector3(-nX,nZ,nY);
+		normals[count * 3 + 2] = Vector3(-nX, nZ, nY);
 	}
 
 	return true;
@@ -1142,6 +1150,11 @@ bool Mesh::parseMTL(const char* filename)
 		{
 			info.Ks = Vector3((float)atof(tokens[1].c_str()), (float)atof(tokens[2].c_str()), (float)atof(tokens[3].c_str()));
 		}
+		else if (tokens[0] == "map_Kd")
+		{
+			std::filesystem::path mesh_path = std::filesystem::path(filename);
+			info.Kd_texture = Texture::Get((mesh_path.parent_path().string() + "/" + tokens[1]).c_str());
+		}
 		else if (tokens[0] == "newmtl") //material file
 		{
 			if (parsingMaterial) {
@@ -1163,18 +1176,18 @@ bool Mesh::loadOBJ(const char* filename)
 {
 	struct stat stbuffer;
 
-	FILE* f = fopen(filename,"rb");
+	FILE* f = fopen(filename, "rb");
 	if (f == NULL)
 	{
 		std::cerr << "File not found: " << filename << std::endl;
 		return false;
 	}
 
-	stat(filename,&stbuffer);
+	stat(filename, &stbuffer);
 
 	unsigned int size = stbuffer.st_size;
-	char* data = new char[size+1];
-	fread(data,size,1,f);
+	char* data = new char[size + 1];
+	fread(data, size, 1, f);
 	fclose(f);
 	data[size] = 0;
 
@@ -1189,8 +1202,8 @@ bool Mesh::loadOBJ(const char* filename)
 
 	const float max_float = 10000000;
 	const float min_float = -10000000;
-	aabb_min.set(max_float,max_float,max_float);
-	aabb_max.set(min_float,min_float,min_float);
+	aabb_min.set(max_float, max_float, max_float);
+	aabb_max.set(min_float, min_float, min_float);
 
 	unsigned int vertex_i = 0;
 	unsigned int submesh_draw_calls = 0;
@@ -1204,15 +1217,15 @@ bool Mesh::loadOBJ(const char* filename)
 	size_t last_submesh_vertex = 0;
 
 	//parse file
-	while(*pos != 0)
+	while (*pos != 0)
 	{
 		if (*pos == '\n') pos++;
 		if (*pos == '\r') pos++;
 
 		//read one line
 		i = 0;
-		while(i < 255 && pos[i] != '\n' && pos[i] != '\r' && pos[i] != 0) i++;
-		memcpy(line,pos,i);
+		while (i < 255 && pos[i] != '\n' && pos[i] != '\r' && pos[i] != 0) i++;
+		memcpy(line, pos, i);
 		line[i] = 0;
 		pos = pos + i;
 
@@ -1220,7 +1233,7 @@ bool Mesh::loadOBJ(const char* filename)
 		if (*line == '#' || *line == 0) continue; //comment
 
 		//tokenize line
-		std::vector<std::string> tokens = tokenize(line," ");
+		std::vector<std::string> tokens = tokenize(line, " ");
 
 		if (tokens.empty()) continue;
 
@@ -1234,11 +1247,11 @@ bool Mesh::loadOBJ(const char* filename)
 		}
 		else if (tokens[0] == "v")
 		{
-			Vector3 v((float)atof(tokens[1].c_str()), (float)atof(tokens[2].c_str()), (float)atof(tokens[3].c_str()) );
+			Vector3 v((float)atof(tokens[1].c_str()), (float)atof(tokens[2].c_str()), (float)atof(tokens[3].c_str()));
 			indexed_positions.push_back(v);
 
-			aabb_min.setMin( v );
-			aabb_max.setMax( v );
+			aabb_min.setMin(v);
+			aabb_max.setMax(v);
 
 			if (tokens.size() > 4) {
 				Vector4 color((float)atof(tokens[4].c_str()), (float)atof(tokens[5].c_str()), (float)atof(tokens[6].c_str()), 1.0);
@@ -1247,12 +1260,12 @@ bool Mesh::loadOBJ(const char* filename)
 		}
 		else if (tokens[0] == "vt" && tokens.size() >= 3)
 		{
-			Vector2 v((float)atof(tokens[1].c_str()), (float)atof(tokens[2].c_str()) );
+			Vector2 v((float)atof(tokens[1].c_str()), (float)atof(tokens[2].c_str()));
 			indexed_uvs.push_back(v);
 		}
 		else if (tokens[0] == "vn" && tokens.size() == 4)
 		{
-			Vector3 v((float)atof(tokens[1].c_str()), (float)atof(tokens[2].c_str()), (float)atof(tokens[3].c_str()) );
+			Vector3 v((float)atof(tokens[1].c_str()), (float)atof(tokens[2].c_str()), (float)atof(tokens[3].c_str()));
 			indexed_normals.push_back(v);
 		}
 		else if (tokens[0] == "o") // submesh
@@ -1297,21 +1310,21 @@ bool Mesh::loadOBJ(const char* filename)
 		}
 		else if (tokens[0] == "g") //surface? it appears one time before the faces
 		{
-			
+
 		}
 		else if (tokens[0] == "f" && tokens.size() >= 4)
 		{
-			Vector3 v1,v2,v3;
-			v1.parseFromText( tokens[1].c_str(), '/' );
+			Vector3 v1, v2, v3;
+			v1.parseFromText(tokens[1].c_str(), '/');
 
 			for (unsigned int iPoly = 2; iPoly < tokens.size() - 1; iPoly++)
 			{
-				v2.parseFromText( tokens[iPoly].c_str(), '/' );
-				v3.parseFromText( tokens[iPoly+1].c_str(), '/' );
+				v2.parseFromText(tokens[iPoly].c_str(), '/');
+				v3.parseFromText(tokens[iPoly + 1].c_str(), '/');
 
-				vertices.push_back( indexed_positions[ (unsigned int)(v1.x) -1 ] );
-				vertices.push_back( indexed_positions[ (unsigned int)(v2.x) -1] );
-				vertices.push_back( indexed_positions[ (unsigned int)(v3.x) -1] );
+				vertices.push_back(indexed_positions[(unsigned int)(v1.x) - 1]);
+				vertices.push_back(indexed_positions[(unsigned int)(v2.x) - 1]);
+				vertices.push_back(indexed_positions[(unsigned int)(v3.x) - 1]);
 
 				if (!indexed_colors.empty()) {
 					colors.push_back(indexed_colors[(unsigned int)(v1.x) - 1]);
@@ -1324,23 +1337,23 @@ bool Mesh::loadOBJ(const char* filename)
 
 				if (indexed_uvs.size() > 0)
 				{
-					uvs.push_back( indexed_uvs[(unsigned int)(v1.y) -1] );
-					uvs.push_back( indexed_uvs[(unsigned int)(v2.y) -1] );
-					uvs.push_back( indexed_uvs[(unsigned int)(v3.y) -1] );
+					uvs.push_back(indexed_uvs[(unsigned int)(v1.y) - 1]);
+					uvs.push_back(indexed_uvs[(unsigned int)(v2.y) - 1]);
+					uvs.push_back(indexed_uvs[(unsigned int)(v3.y) - 1]);
 				}
 
 				if (indexed_normals.size() > 0)
 				{
-					normals.push_back( indexed_normals[(unsigned int)(v1.z) -1] );
-					normals.push_back( indexed_normals[(unsigned int)(v2.z) -1] );
-					normals.push_back( indexed_normals[(unsigned int)(v3.z) -1] );
+					normals.push_back(indexed_normals[(unsigned int)(v1.z) - 1]);
+					normals.push_back(indexed_normals[(unsigned int)(v2.z) - 1]);
+					normals.push_back(indexed_normals[(unsigned int)(v3.z) - 1]);
 				}
 			}
 		}
 	}
 
 	// if the mtl is not specified in the obj but it's needed
-	if (!materials.size()) {
+	if (materials.empty()) {
 		std::string mesh_name = filename;
 		replace(mesh_name, ".obj", ".mtl");
 		if (!parseMTL(mesh_name.c_str()))
@@ -1349,7 +1362,7 @@ bool Mesh::loadOBJ(const char* filename)
 
 	box.center = (aabb_max + aabb_min) * 0.5;
 	box.halfsize = (aabb_max - box.center);
-	radius = (float)fmax( aabb_max.length(), aabb_min.length() );
+	radius = (float)fmax(aabb_max.length(), aabb_min.length());
 
 	submesh_dc_info.length = vertices.size() - last_submesh_vertex;
 	submesh_info.draw_calls[submesh_draw_calls] = submesh_dc_info;
@@ -1417,12 +1430,12 @@ bool Mesh::loadMESH(const char* filename)
 				for (int j = 0; j < bones_info.size(); ++j)
 				{
 					pos = fetchWord(pos, word);
-                    strcpy(bones_info[j].name, word);
-                    pos = fetchMatrix44(pos, bones_info[j].bind_pose);
+					strcpy(bones_info[j].name, word);
+					pos = fetchMatrix44(pos, bones_info[j].bind_pose);
 				}
 			}
 			else if (str == "bind_matrix")
-				pos = fetchMatrix44( pos, bind_matrix);
+				pos = fetchMatrix44(pos, bind_matrix);
 			else
 				pos = fetchEndLine(pos);
 		}
@@ -1438,9 +1451,9 @@ bool Mesh::loadMESH(const char* filename)
 void Mesh::createCube()
 {
 	const float _verts[] = { -1, 1, -1, -1, -1, +1, -1, 1, 1,    -1, 1, -1, -1, -1, -1, -1, -1, +1,     1, 1, -1,  1, 1, 1,  1, -1, +1,     1, 1, -1,   1, -1, +1,   1, -1, -1,    -1, 1, 1,  1, -1, 1,  1, 1, 1,    -1, 1, 1, -1,-1,1,  1, -1, 1,    -1,1,-1, 1,1,-1,  1,-1,-1,   -1,1,-1, 1,-1,-1, -1,-1,-1,   -1,1,-1, 1,1,1, 1,1,-1,    -1,1,-1, -1,1,1, 1,1,1,    -1,-1,-1, 1,-1,-1, 1,-1,1,   -1,-1,-1, 1,-1,1, -1,-1,1 };
-	const float _uvs[] = {       0,  1, 1, 0, 1, 1,			 	     0, 1,       0,  0,      1,  0,        0, 1,      1, 1,      1, 0,         0, 1,        1, 0,        0, 0,          0, 1, 1, 0, 1, 1,               0, 1,  0, 0,  1,  0,              0,1,  1,1, 1,0,              0,1,    1,0,    0,0,           0,0, 1,1, 1,0,           0,0,    0,1,   1,1,        0,0, 1,0, 1,1,              0,0, 1,1, 0,1 };
+	const float _uvs[] = { 0,  1, 1, 0, 1, 1,			 	     0, 1,       0,  0,      1,  0,        0, 1,      1, 1,      1, 0,         0, 1,        1, 0,        0, 0,          0, 1, 1, 0, 1, 1,               0, 1,  0, 0,  1,  0,              0,1,  1,1, 1,0,              0,1,    1,0,    0,0,           0,0, 1,1, 1,0,           0,0,    0,1,   1,1,        0,0, 1,0, 1,1,              0,0, 1,1, 0,1 };
 
-	vertices.resize( 6 * 2 * 3);
+	vertices.resize(6 * 2 * 3);
 	uvs.resize(6 * 2 * 3);
 	memcpy(&vertices[0], _verts, sizeof(Vector3) * vertices.size());
 	memcpy(&uvs[0], _uvs, sizeof(Vector2) * uvs.size());
@@ -1457,7 +1470,7 @@ void Mesh::createWireBox()
 	memcpy(&vertices[0], _verts, sizeof(Vector3) * vertices.size());
 
 	box.center.set(0, 0, 0);
-	box.halfsize.set(1,1,1);
+	box.halfsize.set(1, 1, 1);
 	radius = (float)box.halfsize.length();
 }
 
@@ -1470,12 +1483,12 @@ void Mesh::createQuad(float center_x, float center_y, float w, float h, bool fli
 
 	//create six vertices (3 for upperleft triangle and 3 for lowerright)
 
-	vertices.push_back(Vector3(center_x + w*0.5f, center_y + h*0.5f, 0.0f));
-	vertices.push_back(Vector3(center_x - w*0.5f, center_y - h*0.5f, 0.0f));
-	vertices.push_back(Vector3(center_x + w*0.5f, center_y - h*0.5f, 0.0f));
-	vertices.push_back(Vector3(center_x - w*0.5f, center_y + h*0.5f, 0.0f));
-	vertices.push_back(Vector3(center_x - w*0.5f, center_y - h*0.5f, 0.0f));
-	vertices.push_back(Vector3(center_x + w*0.5f, center_y + h*0.5f, 0.0f));
+	vertices.push_back(Vector3(center_x + w * 0.5f, center_y + h * 0.5f, 0.0f));
+	vertices.push_back(Vector3(center_x - w * 0.5f, center_y - h * 0.5f, 0.0f));
+	vertices.push_back(Vector3(center_x + w * 0.5f, center_y - h * 0.5f, 0.0f));
+	vertices.push_back(Vector3(center_x - w * 0.5f, center_y + h * 0.5f, 0.0f));
+	vertices.push_back(Vector3(center_x - w * 0.5f, center_y - h * 0.5f, 0.0f));
+	vertices.push_back(Vector3(center_x + w * 0.5f, center_y + h * 0.5f, 0.0f));
 
 	//texture coordinates
 	uvs.push_back(Vector2(1.0f, flip_uvs ? 0.0f : 1.0f));
@@ -1492,6 +1505,15 @@ void Mesh::createQuad(float center_x, float center_y, float w, float h, bool fli
 	normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
 	normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
 	normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
+
+	// bb
+
+	aabb_min = Vector3(center_x - w * 0.5f, center_y - h * 0.5f, 0.0f);
+	aabb_max = Vector3(center_x + w * 0.5f, center_y + h * 0.5f, 0.0f);
+
+	box.center.set(center_x, center_y, 0);
+	box.halfsize = aabb_max;
+	radius = (float)box.halfsize.length();
 }
 
 
@@ -1512,12 +1534,12 @@ void Mesh::createPlane(float size)
 	vertices.push_back(Vector3(-size, 0, -size));
 
 	//all of them have the same normal
-	normals.push_back(Vector3(0, 1, 0));
-	normals.push_back(Vector3(0, 1, 0));
-	normals.push_back(Vector3(0, 1, 0));
-	normals.push_back(Vector3(0, 1, 0));
-	normals.push_back(Vector3(0, 1, 0));
-	normals.push_back(Vector3(0, 1, 0));
+	normals.push_back(Vector3::UP);
+	normals.push_back(Vector3::UP);
+	normals.push_back(Vector3::UP);
+	normals.push_back(Vector3::UP);
+	normals.push_back(Vector3::UP);
+	normals.push_back(Vector3::UP);
 
 	//texture coordinates
 	uvs.push_back(Vector2(1, 1));
@@ -1532,7 +1554,7 @@ void Mesh::createPlane(float size)
 	radius = (float)box.halfsize.length();
 }
 
-void Mesh::createSubdividedPlane(float size, int subdivisions, bool centered )
+void Mesh::createSubdividedPlane(float size, int subdivisions, bool centered)
 {
 	float isize = static_cast<float>(size / (double)(subdivisions));
 	//float hsize = centered ? size * -0.5f : 0.0f;
@@ -1545,8 +1567,8 @@ void Mesh::createSubdividedPlane(float size, int subdivisions, bool centered )
 		for (int z = 0; z < subdivisions; ++z)
 		{
 
-			Vector2 offset(sub_size*z, sub_size*x);
-			Vector3 offset2(isize*x, 0.0f, isize*z);
+			Vector2 offset(sub_size * z, sub_size * x);
+			Vector3 offset2(isize * x, 0.0f, isize * z);
 
 			vertices.push_back(Vector3(isize, 0.0f, isize) + offset2);
 			vertices.push_back(Vector3(isize, 0.0f, 0.0f) + offset2);
@@ -1568,9 +1590,9 @@ void Mesh::createSubdividedPlane(float size, int subdivisions, bool centered )
 	if (centered)
 		box.center.set(0.0f, 0.0f, 0.0f);
 	else
-		box.center.set(size*0.5f, 0.0f, size*0.5f);
+		box.center.set(size * 0.5f, 0.0f, size * 0.5f);
 
-	box.halfsize.set(size*0.5f, 0.0f, size*0.5f);
+	box.halfsize.set(size * 0.5f, 0.0f, size * 0.5f);
 	radius = static_cast<float>(box.halfsize.length());
 }
 
@@ -1592,8 +1614,8 @@ void Mesh::displace(Image* heightmap, float altitude)
 		else
 			vertices[i].y = (c.x / 255.0f) * altitude;
 	}
-	box.center.y += altitude*0.5f;
-	box.halfsize.y += altitude*0.5f;
+	box.center.y += altitude * 0.5f;
+	box.halfsize.y += altitude * 0.5f;
 	radius = static_cast<float>(box.halfsize.length());
 }
 
@@ -1605,10 +1627,10 @@ void Mesh::createGrid(float dist)
 
 	for (float i = num_lines * -0.5f; i <= num_lines * 0.5f; ++i)
 	{
-		vertices.push_back(Vector3(i*dist, 0.0f, dist * num_lines * -0.5f ));
-		vertices.push_back(Vector3(i*dist, 0.0f, dist * num_lines * +0.5f));
-		vertices.push_back(Vector3(dist * num_lines * 0.5f, 0.0f, i*dist));
-		vertices.push_back(Vector3(dist * num_lines * -0.5f, 0.0f, i*dist));
+		vertices.push_back(Vector3(i * dist, 0.0f, dist * num_lines * -0.5f));
+		vertices.push_back(Vector3(i * dist, 0.0f, dist * num_lines * +0.5f));
+		vertices.push_back(Vector3(dist * num_lines * 0.5f, 0.0f, i * dist));
+		vertices.push_back(Vector3(dist * num_lines * -0.5f, 0.0f, i * dist));
 
 		Vector4 color = int(i) % 10 == 0 ? Vector4(1.0f, 1.0f, 1.0f, 1.0f) : Vector4(0.75f, 0.75f, 0.75f, 0.5f);
 		colors.push_back(color);
@@ -1644,7 +1666,7 @@ void Mesh::updateBoundingBox()
 
 Mesh* wire_box = NULL;
 
-void Mesh::renderBounding( const Matrix44& model, bool world_bounding )
+void Mesh::renderBounding(const Matrix44& model, bool world_bounding)
 {
 	if (!wire_box)
 	{
@@ -1702,10 +1724,11 @@ Mesh* Mesh::Get(const char* filename)
 
 	Mesh* m = new Mesh();
 	std::string name = filename;
+	m->name = name;
 
 	//detect format
 	char file_format = 0;
-	std::string ext = name.substr(name.find_last_of(".")+1);
+	std::string ext = name.substr(name.find_last_of(".") + 1);
 	if (ext == "ase" || ext == "ASE")
 		file_format = FORMAT_ASE;
 	else if (ext == "obj" || ext == "OBJ")
@@ -1729,9 +1752,9 @@ Mesh* Mesh::Get(const char* filename)
 		binfilename = binfilename + ".mbin";
 
 	//try loading the binary version
-	if ( use_binary && m->readBin(binfilename.c_str()) )
+	if (use_binary && m->readBin(binfilename.c_str()))
 	{
-		if(interleave_meshes && m->interleaved.size() == 0)
+		if (interleave_meshes && m->interleaved.size() == 0)
 		{
 			std::cout << "[INTERL] ";
 			m->interleaveBuffers();
@@ -1744,7 +1767,7 @@ Mesh* Mesh::Get(const char* filename)
 		}
 
 		std::cout << "[OK BIN]  Faces: " << (m->interleaved.size() ? m->interleaved.size() : m->vertices.size()) / 3 << " Time: " << (getTime() - time) * 0.001 << "sec" << std::endl;
-		m->registerMesh(filename);
+		sMeshesLoaded[filename] = m;
 		return m;
 	}
 
@@ -1790,8 +1813,7 @@ Mesh* Mesh::Get(const char* filename)
 	return m;
 }
 
-void Mesh::registerMesh( std::string name )
+void Mesh::registerMesh(std::string name)
 {
-	this->name = name;
 	sMeshesLoaded[name] = this;
 }

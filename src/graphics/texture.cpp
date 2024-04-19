@@ -12,16 +12,16 @@
 
 //bilinear interpolation
 Color Image::getPixelInterpolated(float x, float y, bool repeat) {
-	int ix = repeat ? fmod(x,width) : clamp(x,0,width-1);
-	int iy = repeat ? fmod(y,height) : clamp(y, 0, height - 1);
+	int ix = repeat ? fmod(x, width) : clamp(x, 0, width - 1);
+	int iy = repeat ? fmod(y, height) : clamp(y, 0, height - 1);
 	if (ix < 0) ix += width;
 	if (iy < 0) iy += height;
 	float fx = (x - (int)x);
 	float fy = (y - (int)y);
 	int ix2 = ix < static_cast<int>(width) - 1 ? ix + 1 : 0;
 	int iy2 = iy < static_cast<int>(height) - 1 ? iy + 1 : 0;
-	Color top = lerp( getPixel(ix, iy), getPixel(ix2, iy), fx );
-	Color bottom = lerp( getPixel(ix, iy2), getPixel(ix2, iy2), fx);
+	Color top = lerp(getPixel(ix, iy), getPixel(ix2, iy), fx);
+	Color bottom = lerp(getPixel(ix, iy2), getPixel(ix2, iy2), fx);
 	return lerp(top, bottom, fy);
 };
 
@@ -34,7 +34,7 @@ Vector4 Image::getPixelInterpolatedHigh(float x, float y, bool repeat) {
 	float fy = (y - (int)y);
 	int ix2 = ix < static_cast<int>(width) - 1 ? ix + 1 : 0;
 	int iy2 = iy < static_cast<int>(height) - 1 ? iy + 1 : 0;
-	Vector4 top = lerp( getPixel(ix, iy).toVector4(), getPixel(ix2, iy).toVector4(), fx);
+	Vector4 top = lerp(getPixel(ix, iy).toVector4(), getPixel(ix2, iy).toVector4(), fx);
 	Vector4 bottom = lerp(getPixel(ix, iy2).toVector4(), getPixel(ix2, iy2).toVector4(), fx);
 	return lerp(top, bottom, fy);
 };
@@ -102,7 +102,7 @@ void Texture::create(unsigned int width, unsigned int height, unsigned int forma
 
 	this->texture_type = GL_TEXTURE_2D;
 
-	if(texture_id == 0)
+	if (texture_id == 0)
 		glGenTextures(1, &texture_id); //we need to create an unique ID for the texture
 
 	assert(checkGLErrors() && "Error creating texture");
@@ -169,10 +169,9 @@ Texture* Texture::Get(const char* filename, bool mipmaps, bool wrap)
 
 	//load it
 	Texture* texture = new Texture();
-	if (!texture->load(filename, mipmaps,wrap))
+	if (!texture->load(filename, mipmaps, wrap))
 	{
-		delete texture;
-		return NULL;
+		texture = Texture::Get("data/textures/missing.tga");
 	}
 
 	return texture;
@@ -193,7 +192,7 @@ bool Texture::load(const char* filename, bool mipmaps, bool wrap, unsigned int t
 	if (ext == ".tga" || ext == ".TGA")
 		found = image->loadTGA(filename);
 	else if (ext == ".png" || ext == ".PNG")
-		found = image->loadPNG(filename);
+		found = image->loadPNG(filename, true);
 	else
 	{
 		std::cout << "[ERROR]: unsupported format" << std::endl;
@@ -214,7 +213,7 @@ bool Texture::load(const char* filename, bool mipmaps, bool wrap, unsigned int t
 		internal_format = (image->bytes_per_pixel == 3 ? GL_RGB32F : GL_RGBA32F);
 
 	//upload to VRAM
-	create(image->width, image->height, (image->bytes_per_pixel == 3 ? GL_RGB : GL_RGBA), type, mipmaps, image->data, 0 );
+	create(image->width, image->height, (image->bytes_per_pixel == 3 ? GL_RGB : GL_RGBA), type, mipmaps, image->data, 0);
 
 	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_S, this->mipmaps && wrap ? GL_REPEAT : GL_CLAMP_TO_EDGE);
 	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_T, this->mipmaps && wrap ? GL_REPEAT : GL_CLAMP_TO_EDGE);
@@ -247,7 +246,7 @@ bool Texture::loadCubemap(const char* name, std::vector<std::string> faces, bool
 		if (ext == ".tga" || ext == ".TGA")
 			found = image->loadTGA(faces[i].c_str());
 		else if (ext == ".png" || ext == ".PNG")
-			found = image->loadPNG(faces[i].c_str());
+			found = image->loadPNG(faces[i].c_str(), true);
 		else
 		{
 			std::cout << "[ERROR]: unsupported format" << std::endl;
@@ -288,7 +287,7 @@ void Texture::upload(Image* img)
 }
 
 //uploads the bytes of a texture to the VRAM
-void Texture::upload( unsigned int format, unsigned int type, bool mipmaps, Uint8* data, unsigned int internal_format)
+void Texture::upload(unsigned int format, unsigned int type, bool mipmaps, Uint8* data, unsigned int internal_format)
 {
 	assert(texture_id && "Must create texture before uploading data.");
 	assert(texture_type == GL_TEXTURE_2D && "Texture type does not match.");
@@ -332,14 +331,14 @@ void Texture::upload3D(unsigned int format, unsigned int type, bool mipmaps, Uin
 }
 
 void Texture::uploadCubemap(unsigned int format, unsigned int type, bool mipmaps, Uint8** data, unsigned int internal_format) {
-	
+
 	assert(texture_id && "Must create texture before uploading data.");
 	assert(texture_type == GL_TEXTURE_CUBE_MAP && "Texture type does not match.");
 
 	glBindTexture(this->texture_type, texture_id);	//we activate this id to tell opengl we are going to use this texture
 
 	for (int i = 0; i < 6; i++)
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal_format == 0 ? format : internal_format, width, height, 0, format, type, data ? data[i] : NULL );
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal_format == 0 ? format : internal_format, width, height, 0, format, type, data ? data[i] : NULL);
 
 	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, Texture::default_mag_filter);	//set the min filter
 	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, this->mipmaps ? Texture::default_min_filter : GL_LINEAR);   //set the mag filter
@@ -406,8 +405,8 @@ void Texture::uploadAsArray(unsigned int texture_size, bool mipmaps)
 	assert(glGetError() == GL_NO_ERROR);
 	if (texture_id == 0)
 		glGenTextures(1, &texture_id); //we need to create an unique ID for the texture
-	glBindTexture( this->texture_type, texture_id);	//we activate this id to tell opengl we are going to use this texture
-	glTexImage3D( this->texture_type, 0, format, width, height, num_textures, 0, dataFormat, type, data);
+	glBindTexture(this->texture_type, texture_id);	//we activate this id to tell opengl we are going to use this texture
+	glTexImage3D(this->texture_type, 0, format, width, height, num_textures, 0, dataFormat, type, data);
 	assert(glGetError() == GL_NO_ERROR);
 
 	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, Texture::default_mag_filter);	//set the min filter
@@ -427,32 +426,32 @@ void Texture::uploadAsArray(unsigned int texture_size, bool mipmaps)
 void Texture::bind()
 {
 	//glEnable(this->texture_type); //enable the textures 
-	glBindTexture(this->texture_type, texture_id );	//enable the id of the texture we are going to use
+	glBindTexture(this->texture_type, texture_id);	//enable the id of the texture we are going to use
 }
 
 void Texture::unbind()
 {
 	//glDisable(this->texture_type); //disable the textures 
-	glBindTexture(this->texture_type, 0 );	//disable the id of the texture we are going to use
+	glBindTexture(this->texture_type, 0);	//disable the id of the texture we are going to use
 }
 
 void Texture::UnbindAll()
 {
-	glDisable( GL_TEXTURE_CUBE_MAP );
-	glDisable( GL_TEXTURE_2D );
+	glDisable(GL_TEXTURE_CUBE_MAP);
+	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_3D);
-	glBindTexture( GL_TEXTURE_2D, 0 );
-	glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 void Texture::generateMipmaps()
 {
-	if(!glGenerateMipmapEXT)
+	if (!glGenerateMipmapEXT)
 		return;
 
-	glBindTexture(this->texture_type, texture_id );	//enable the id of the texture we are going to use
-	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, Texture::default_min_filter ); //set the mag filter
+	glBindTexture(this->texture_type, texture_id);	//enable the id of the texture we are going to use
+	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, Texture::default_min_filter); //set the mag filter
 	glGenerateMipmapEXT(this->texture_type);
 }
 
@@ -526,14 +525,14 @@ void Image::fromScreen(int width, int height)
 		data = new uint8[width * height * 4];
 	}
 
-	glReadPixels(0,0,width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
 void Image::fromTexture(Texture* texture)
 {
 	assert(texture);
 
-	if(data && (width != texture->width || height != texture->height ))
+	if (data && (width != texture->width || height != texture->height))
 		clear();
 
 	if (!data)
@@ -542,7 +541,7 @@ void Image::fromTexture(Texture* texture)
 		height = static_cast<unsigned int>(texture->height);
 		data = new uint8[width * height * 4];
 	}
-	
+
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
@@ -550,29 +549,29 @@ void Image::fromTexture(Texture* texture)
 //also on https://gshaw.ca/closecombat/formats/tga.html
 bool Image::loadTGA(const char* filename)
 {
-    GLubyte TGAheader[12] = {0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    GLubyte TGAcompare[12];
-    GLubyte header[6];
-    GLuint imageSize;
-    //GLuint type = GL_RGBA;
+	GLubyte TGAheader[12] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	GLubyte TGAcompare[12];
+	GLubyte header[6];
+	GLuint imageSize;
+	//GLuint type = GL_RGBA;
 
-    FILE * file = fopen(filename, "rb");
-    
-    if ( file == NULL || fread(TGAcompare, 1, sizeof(TGAcompare), file) != sizeof(TGAcompare) ||
-        memcmp(TGAheader, TGAcompare, sizeof(TGAheader)) != 0 ||
-        fread(header, 1, sizeof(header), file) != sizeof(header))
-    {
-        if (file == NULL)
-            return NULL;
-        else
-        {
-            fclose(file);
-            return NULL;
-        }
-    }
+	FILE* file = fopen(filename, "rb");
 
-    width = header[1] * 256 + header[0];
-    height = header[3] * 256 + header[2];
+	if (file == NULL || fread(TGAcompare, 1, sizeof(TGAcompare), file) != sizeof(TGAcompare) ||
+		memcmp(TGAheader, TGAcompare, sizeof(TGAheader)) != 0 ||
+		fread(header, 1, sizeof(header), file) != sizeof(header))
+	{
+		if (file == NULL)
+			return NULL;
+		else
+		{
+			fclose(file);
+			return NULL;
+		}
+	}
+
+	width = header[1] * 256 + header[0];
+	height = header[3] * 256 + header[2];
 	bytes_per_pixel = header[4] / 8;
 
 	bool error = false;
@@ -582,43 +581,43 @@ bool Image::loadTGA(const char* filename)
 		error = true;
 		std::cerr << "File format not supported: " << bytes_per_pixel << " bytes per pixel" << std::endl;
 	}
-    
-    if (width <= 0 || height <= 0)
+
+	if (width <= 0 || height <= 0)
 	{
 		error = true;
 		std::cerr << "Wrong texture size: " << width << "x" << height << " pixels" << std::endl;
 	}
 
-	if(error)
-    {
-        fclose(file);
-        return false;
-    }
+	if (error)
+	{
+		fclose(file);
+		return false;
+	}
 
-    imageSize = width * height * bytes_per_pixel;
-    
-    data = new GLubyte[imageSize];
-    if (data == NULL || fread(data, 1, imageSize, file) != imageSize)
-    {
-        if (data != NULL)
-            delete []data;
-        fclose(file);
-        return NULL;
-    }
+	imageSize = width * height * bytes_per_pixel;
+
+	data = new GLubyte[imageSize];
+	if (data == NULL || fread(data, 1, imageSize, file) != imageSize)
+	{
+		if (data != NULL)
+			delete[]data;
+		fclose(file);
+		return NULL;
+	}
 
 	if (header[5] & (1 << 5)) //flip
 		origin_topleft = true;
-    
+
 	//flip BGR to RGB pixels
-	#pragma omp simd
-    for (GLuint i = 0; i < int(imageSize); i += bytes_per_pixel)
-    {
-        uint8 temp = data[i];
-        data[i] = data[i + 2];
-        data[i + 2] = temp;
-    }
-    
-    fclose(file);
+#pragma omp simd
+	for (GLuint i = 0; i < int(imageSize); i += bytes_per_pixel)
+	{
+		uint8 temp = data[i];
+		data[i] = data[i + 2];
+		data[i + 2] = temp;
+	}
+
+	fclose(file);
 	return true;
 }
 
@@ -627,7 +626,7 @@ bool Image::loadTGA(const char* filename)
 
 bool Image::loadPNG(const char* filename, bool flip_y)
 {
-	std::ifstream file( filename, std::ios::in | std::ios::binary | std::ios::ate);
+	std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
 
 	//get filesize
 	std::streamsize size = 0;
@@ -645,16 +644,16 @@ bool Image::loadPNG(const char* filename, bool flip_y)
 		buffer.resize((size_t)size);
 		file.read((char*)(&buffer[0]), size);
 	}
-	else 
+	else
 		buffer.clear();
 
 	std::vector<unsigned char> out_image;
 
-	if (decodePNG( out_image, width, height, buffer.empty() ? 0 : &buffer[0], (unsigned long)buffer.size(), true) != 0)
+	if (decodePNG(out_image, width, height, buffer.empty() ? 0 : &buffer[0], (unsigned long)buffer.size(), true) != 0)
 		return false;
 
-	data = new Uint8[ out_image.size() ];
-	memcpy( data, &out_image[0], out_image.size() );
+	data = new Uint8[out_image.size()];
+	memcpy(data, &out_image[0], out_image.size());
 	bytes_per_pixel = 4;
 
 	//flip pixels in Y
@@ -669,7 +668,7 @@ bool Image::saveTGA(const char* filename, bool flip_y)
 {
 	unsigned char TGAheader[12] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	FILE *file = fopen(filename, "wb");
+	FILE* file = fopen(filename, "wb");
 	if (file == NULL)
 	{
 		return false;
@@ -686,21 +685,21 @@ bool Image::saveTGA(const char* filename, bool flip_y)
 	fwrite(header, 1, 6, file);
 
 	//convert pixels to unsigned char
-	unsigned char* bytes = new unsigned char[width*height * 4];
+	unsigned char* bytes = new unsigned char[width * height * 4];
 	for (unsigned int y = 0; y < height; ++y)
 		for (unsigned int x = 0; x < width; ++x)
 		{
-			Uint8* p = data + (height - y - 1)*width*4 + x*4;
-			unsigned int pos = (y*width + x) * 4;
-			if(flip_y)
-				pos = ((height - y - 1)*width + x) * 4;
+			Uint8* p = data + (height - y - 1) * width * 4 + x * 4;
+			unsigned int pos = (y * width + x) * 4;
+			if (flip_y)
+				pos = ((height - y - 1) * width + x) * 4;
 			bytes[pos + 2] = *p;
-			bytes[pos + 1] = *(p+1);
-			bytes[pos] = *(p+2);
-			bytes[pos + 3] = *(p+3);
+			bytes[pos + 1] = *(p + 1);
+			bytes[pos] = *(p + 2);
+			bytes[pos + 3] = *(p + 3);
 		}
 
-	fwrite(bytes, 1, width*height * 4, file);
+	fwrite(bytes, 1, width * height * 4, file);
 	fclose(file);
 	return true;
 }
@@ -711,18 +710,18 @@ void Image::flipY()
 	int row_size = 4 * width;
 	uint8* temp_row = new uint8[row_size];
 #pragma omp simd
-	for (int y = 0; y < height*0.5; y += 1)
+	for (int y = 0; y < height * 0.5; y += 1)
 	{
-		uint8* pos = data + y*row_size;
+		uint8* pos = data + y * row_size;
 		memcpy(temp_row, pos, row_size);
-		uint8* pos2 = data + (height - y - 1)*row_size;
+		uint8* pos2 = data + (height - y - 1) * row_size;
 		memcpy(pos, pos2, row_size);
 		memcpy(pos2, temp_row, row_size);
 	}
 	delete[] temp_row;
 }
 
-bool isPowerOfTwo( int n )
+bool isPowerOfTwo(int n)
 {
 	return (n & (n - 1)) == 0;
 }
