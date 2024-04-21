@@ -19,7 +19,7 @@ void EntityMesh::render() {
 	material.shader->enable();
 
 	material.shader->setUniform("u_model", model);
-	material.shader->setUniform("u_viewproj", camera->viewprojection_matrix);
+	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	
 	if (material.diffuse) {
 		material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
