@@ -4,14 +4,19 @@
 #include <algorithm>
 
 
-void EntityMesh::render() {
-	if (!mesh) return;
+void EntityMesh::render(Camera* camera) {
+	if (!mesh) {
+		std::cout << "no mesh";
+		return;
+	}
 
+	// Set flags
 	glDisable(GL_BLEND);
-	glEnable(GL_BLEND); // TODO: Esto no es como deberia, pero no me ha dado tiempo a copiarlo. 
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 	
-	// Get the last camera that was activated 
-	Camera* camera = Camera::current;
+	//// Get the last camera that was activated 
+	//Camera* camera = Camera::current;
 
 	Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
 
@@ -46,10 +51,6 @@ void EntityMesh::render() {
 	//}
 	// Or just update the father one
 	Entity::render(camera);
-
-
-
-
 };
 
 
