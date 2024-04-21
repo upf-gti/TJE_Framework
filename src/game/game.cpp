@@ -22,10 +22,11 @@ float mouse_speed = 100.0f;
 
 Game* Game::instance = NULL;
 
+
+// Cosas nuevas que he añadido
 Entity* root;
-
-
 std::unordered_map<std::string, sRenderData > meshes_to_load;
+//
 
 bool parseScene(const char* filename, Entity* root)
 {
@@ -58,8 +59,9 @@ bool parseScene(const char* filename, Entity* root)
 		}
 
 		// Add model to mesh list (might be instanced!)
-		sRenderData& render_data = meshes_to_load[mesh_name];
+		sRenderData render_data;
 		render_data.models.push_back(model);
+		meshes_to_load[mesh_name] = render_data; // Why was this reversed :sob:
 		mesh_count++;
 	}
 
@@ -86,6 +88,7 @@ bool parseScene(const char* filename, Entity* root)
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
+			mat.shader = shader;
 			new_entity = new EntityMesh(mesh, mat);
 		}
 
