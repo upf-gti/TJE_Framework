@@ -30,7 +30,7 @@ std::unordered_map<std::string, sRenderData > meshes_to_load;
 
 bool parseScene(const char* filename, Entity* root)
 {
-	std::cout << " + Scene loading: " << filename << "..." << std::endl;
+	std::cout << " + Scene loading: " << filename << "..." << std::endl; 
 
 	std::ifstream file(filename);
 
