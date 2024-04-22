@@ -8,6 +8,8 @@
 #include "framework/entities/entity.h"
 #include "graphics/material.h"
 #include "framework/entities/entityMesh.h"
+#include "framework/entities/player.h"
+
 
 #include <fstream>
 #include <cmath>
@@ -21,7 +23,7 @@ float angle = 0;
 float mouse_speed = 100.0f;
 
 Game* Game::instance = NULL;
-
+Player* player = NULL;
 
 // Cosas nuevas que he añadido
 Entity* root;
@@ -130,6 +132,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	time = 0.0f;
 	elapsed_time = 0.0f;
 	mouse_locked = false;
+	player = new Player();
 
 	// OpenGL flags
 	glEnable( GL_CULL_FACE ); //render both sides of every triangle
@@ -147,7 +150,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	mesh = Mesh::Get("data/meshes/box.ASE");
 
 	// Example of shader loading using the shaders manager
-	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
@@ -174,8 +177,9 @@ void Game::render(void)
 	glDisable(GL_CULL_FACE);
    
 	// Create model matrix for cube
-	Matrix44 m;
-	m.rotate(angle*DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
+	Matrix44 m = player->getGlobalMatrix();
+
+
 
 	if(shader)
 	{
@@ -203,6 +207,7 @@ void Game::render(void)
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
+	
 
 	// Swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
@@ -211,6 +216,7 @@ void Game::render(void)
 void Game::update(double seconds_elapsed)
 {
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
+	player->update(seconds_elapsed);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
