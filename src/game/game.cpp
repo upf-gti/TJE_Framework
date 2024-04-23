@@ -90,7 +90,7 @@ bool parseScene(const char* filename, Entity* root)
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
-			mat.shader = shader;
+			if (!mat.shader) mat.shader = shader;
 			new_entity = new EntityMesh(mesh, mat);
 		}
 
