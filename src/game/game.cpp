@@ -5,8 +5,15 @@
 #include "graphics/fbo.h"
 #include "graphics/shader.h"
 #include "framework/input.h"
+#include "framework/entities/entity.h"
+#include "graphics/material.h"
+#include "framework/entities/entityMesh.h"
+#include "framework/entities/player.h"
 
+
+#include <fstream>
 #include <cmath>
+#include <unordered_map>
 
 //some globals
 Mesh* mesh = NULL;
@@ -16,6 +23,101 @@ float angle = 0;
 float mouse_speed = 100.0f;
 
 Game* Game::instance = NULL;
+Player* player = NULL;
+
+// Cosas nuevas que he añadido
+Entity* root;
+std::unordered_map<std::string, sRenderData > meshes_to_load;
+//
+
+bool parseScene(const char* filename, Entity* root)
+{
+	std::cout << " + Scene loading: " << filename << "..." << std::endl;
+
+	std::ifstream file(filename);
+
+	if (!file.good()) {
+		std::cerr << "Scene [ERROR]" << " File not found!" << std::endl;
+		return false;
+	}
+
+	std::string scene_info, mesh_name, model_data;
+	file >> scene_info; file >> scene_info;
+	int mesh_count = 0;
+
+	// Read file line by line and store mesh path and model info in separated variables
+	while (file >> mesh_name >> model_data)
+	{
+		if (mesh_name[0] == '#')
+			continue;
+
+		// Get all 16 matrix floats
+		std::vector<std::string> tokens = tokenize(model_data, ",");
+
+		// Fill matrix converting chars to floats
+		Matrix44 model;
+		for (int t = 0; t < tokens.size(); ++t) {
+			model.m[t] = (float)atof(tokens[t].c_str());
+		}
+
+		// Add model to mesh list (might be instanced!)
+		sRenderData render_data;
+		render_data.models.push_back(model);
+		meshes_to_load[mesh_name] = render_data; // Why was this reversed :sob:
+		mesh_count++;
+	}
+
+	// Iterate through meshes loaded and create corresponding entities
+	for (auto data : meshes_to_load) {
+
+		mesh_name = "data/" + data.first;
+		sRenderData& render_data = data.second;
+
+		// No transforms, nothing to do here
+		if (render_data.models.empty())
+			continue;
+
+
+		Material mat = render_data.material;
+		EntityMesh* new_entity = nullptr;
+
+		size_t tag = data.first.find("@tag");
+
+		if (tag != std::string::npos) {
+			Mesh* mesh = Mesh::Get("...");
+			// Create a different type of entity
+			// new_entity = new ...
+		}
+		else {
+			Mesh* mesh = Mesh::Get(mesh_name.c_str());
+			mat.shader = shader;
+			new_entity = new EntityMesh(mesh, mat);
+		}
+
+		if (!new_entity) {
+			continue;
+		}
+
+		new_entity->name = data.first;
+
+		// Create instanced entity
+		if (render_data.models.size() > 1) {
+			new_entity->isInstanced = true;
+			new_entity->models = render_data.models; // Add all instances
+		}
+		// Create normal entity
+		else {
+			new_entity->model = render_data.models[0];
+		}
+
+		// Add entity to scene root
+		root->addChild(new_entity);
+	}
+
+	std::cout << "Scene [OK]" << " Meshes added: " << mesh_count << std::endl;
+	return true;
+}
+
 
 Game::Game(int window_width, int window_height, SDL_Window* window)
 {
@@ -30,15 +132,16 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	time = 0.0f;
 	elapsed_time = 0.0f;
 	mouse_locked = false;
+	player = new Player();
 
 	// OpenGL flags
-	glEnable( GL_CULL_FACE ); //render both sides of every triangle
-	glEnable( GL_DEPTH_TEST ); //check the occlusions using the Z buffer
+	glEnable(GL_CULL_FACE); //render both sides of every triangle
+	glEnable(GL_DEPTH_TEST); //check the occlusions using the Z buffer
 
 	// Create our camera
 	camera = new Camera();
-	camera->lookAt(Vector3(0.f,100.f, 100.f),Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f)); //position the camera and point to 0,0,0
-	camera->setPerspective(70.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
+	camera->lookAt(Vector3(0.f, 100.f, 100.f), Vector3(0.f, 0.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
+	camera->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
 
 	// Load one texture using the Texture Manager
 	texture = Texture::Get("data/textures/texture.tga");
@@ -47,10 +150,13 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	mesh = Mesh::Get("data/meshes/box.ASE");
 
 	// Example of shader loading using the shaders manager
-	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
+
+	root = new Entity();
+	parseScene("data/myscene.scene", root);
 }
 
 //what to do when the image has to be draw
@@ -69,35 +175,39 @@ void Game::render(void)
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-   
-	// Create model matrix for cube
-	Matrix44 m;
-	m.rotate(angle*DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
-	if(shader)
+	// Create model matrix for cube
+	Matrix44 m = player->getGlobalMatrix();
+
+
+
+	if (shader)
 	{
 		// Enable shader
 		shader->enable();
 
 		// Upload uniforms
-		shader->setUniform("u_color", Vector4(1,1,1,1));
-		shader->setUniform("u_viewprojection", camera->viewprojection_matrix );
+		shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+		shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 		shader->setUniform("u_texture", texture, 0);
 		shader->setUniform("u_model", m);
 		shader->setUniform("u_time", time);
 
 		// Do the draw call
-		mesh->render( GL_TRIANGLES );
+		mesh->render(GL_TRIANGLES);
 
 		// Disable shader
 		shader->disable();
 	}
+
+	root->render(camera);
 
 	// Draw the floor grid
 	drawGrid();
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
+
 
 	// Swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
@@ -106,6 +216,7 @@ void Game::render(void)
 void Game::update(double seconds_elapsed)
 {
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
+	player->update(seconds_elapsed);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
@@ -113,25 +224,25 @@ void Game::update(double seconds_elapsed)
 	// Mouse input to rotate the cam
 	if (Input::isMousePressed(SDL_BUTTON_LEFT) || mouse_locked) //is left button pressed?
 	{
-		camera->rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f,-1.0f,0.0f));
-		camera->rotate(Input::mouse_delta.y * 0.005f, camera->getLocalVector( Vector3(-1.0f,0.0f,0.0f)));
+		camera->rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f, -1.0f, 0.0f));
+		camera->rotate(Input::mouse_delta.y * 0.005f, camera->getLocalVector(Vector3(-1.0f, 0.0f, 0.0f)));
 	}
 
 	// Async input to move the camera around
-	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT) ) speed *= 10; //move faster with left shift
+	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
 	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) camera->move(Vector3(0.0f, 0.0f, 1.0f) * speed);
-	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) camera->move(Vector3(0.0f, 0.0f,-1.0f) * speed);
+	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) camera->move(Vector3(0.0f, 0.0f, -1.0f) * speed);
 	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) camera->move(Vector3(1.0f, 0.0f, 0.0f) * speed);
-	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f,0.0f, 0.0f) * speed);
+	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f, 0.0f, 0.0f) * speed);
 }
 
 //Keyboard event handler (sync input)
-void Game::onKeyDown( SDL_KeyboardEvent event )
+void Game::onKeyDown(SDL_KeyboardEvent event)
 {
-	switch(event.keysym.sym)
+	switch (event.keysym.sym)
 	{
-		case SDLK_ESCAPE: must_exit = true; break; //ESC key, kill the app
-		case SDLK_F1: Shader::ReloadAll(); break; 
+	case SDLK_ESCAPE: must_exit = true; break; //ESC key, kill the app
+	case SDLK_F1: Shader::ReloadAll(); break;
 	}
 }
 
@@ -140,7 +251,7 @@ void Game::onKeyUp(SDL_KeyboardEvent event)
 
 }
 
-void Game::onMouseButtonDown( SDL_MouseButtonEvent event )
+void Game::onMouseButtonDown(SDL_MouseButtonEvent event)
 {
 	if (event.button == SDL_BUTTON_MIDDLE) //middle mouse
 	{
@@ -172,10 +283,9 @@ void Game::onGamepadButtonUp(SDL_JoyButtonEvent event)
 
 void Game::onResize(int width, int height)
 {
-    std::cout << "window resized: " << width << "," << height << std::endl;
-	glViewport( 0,0, width, height );
-	camera->aspect =  width / (float)height;
+	std::cout << "window resized: " << width << "," << height << std::endl;
+	glViewport(0, 0, width, height);
+	camera->aspect = width / (float)height;
 	window_width = width;
 	window_height = height;
 }
-
