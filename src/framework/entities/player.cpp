@@ -7,6 +7,7 @@
 
 float m_spd = 100.0f;
 
+
 void Player::render(Camera* camera) {
 	if (!mesh) {
 		std::cout << "no mesh";

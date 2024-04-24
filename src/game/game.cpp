@@ -22,6 +22,9 @@ Shader* shader = NULL;
 float angle = 0;
 float mouse_speed = 100.0f;
 
+float camera_angle_x = 0;
+float camera_angle_y = 100;
+
 Game* Game::instance = NULL;
 Player* player = NULL;
 
@@ -152,6 +155,10 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	// Example of shader loading using the shaders manager
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
+	// Mesh* s = Mesh::Get();
+	// 
+
+
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
@@ -220,13 +227,12 @@ void Game::update(double seconds_elapsed)
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
-
 	// Mouse input to rotate the cam
 	if (Input::isMousePressed(SDL_BUTTON_LEFT) || mouse_locked) //is left button pressed?
 	{
 		//camera->rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f, -1.0f, 0.0f));
 		//camera->rotate(Input::mouse_delta.y * 0.005f, camera->getLocalVector(Vector3(-1.0f, 0.0f, 0.0f)));
-		// camera->move(Vector3(Input::mouse_delta.x * 0.5f, Input::mouse_delta.y * 0.005f,0.0));
+		 //camera->move(Vector3(Input::mouse_delta.x * 0.5f, Input::mouse_delta.y * 0.005f,0.0));
 
 	}
 
@@ -238,8 +244,9 @@ void Game::update(double seconds_elapsed)
 	//if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f, 0.0f, 0.0f) * speed);
 
 	// camera->lookAt(player->model);
-	camera->lookAt(camera->eye, player->model.rightVector(), camera->up);
-	// camera->move(Vector3(0, 10, -200));
+	camera->lookAt(player->model.getTranslation() + Vector3(1,1,1), player->model.getTranslation(), camera->up);
+	camera->move(Vector3(0, Input::mouse_delta.y, -200));
+	// camera->move(Vector3(0, 0, -200));
 }
 
 //Keyboard event handler (sync input)

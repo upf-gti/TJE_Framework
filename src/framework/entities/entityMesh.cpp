@@ -9,6 +9,27 @@ void EntityMesh::render(Camera* camera) {
 		std::cout << "no mesh";
 		return;
 	}
+	std::vector<Matrix44>* final_models = &models;
+	std::vector<Matrix44> models_instanced;
+	if (isInstanced) {
+		for (int i = 0; i < models.size(); i++) {
+			Vector3 center_world = models[i] * mesh->box.center;
+			float aabb_radius = mesh->box.halfsize.length();
+			if (!camera->testSphereInFrustum(center_world, aabb_radius)) {
+				models_instanced.push_back(models[i]);
+			}
+		}
+
+		final_models = &models_instanced;
+	}
+
+
+	Vector3 center_world = model * mesh->box.center;
+	float aabb_radius = mesh->box.halfsize.length();
+
+	if (!camera->testSphereInFrustum(center_world, aabb_radius)) {
+		return;
+	}
 
 	// Set flags
 	glDisable(GL_BLEND);
@@ -56,4 +77,9 @@ void EntityMesh::render(Camera* camera) {
 
 void EntityMesh::update(float delta_time) {
 	Entity::update(delta_time);
+}
+
+void EntityMesh::addLOD(sMeshLOD mesh_lod) {
+	mesh_lods.push_back(mesh_lod);
+	std::sort(mesh_lods.begin(), mesh_lods.end(), [](sMeshLOD a, sMeshLOD b) { return a.distance < b.distance; });
 }
