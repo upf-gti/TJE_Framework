@@ -37,8 +37,18 @@ with open(filepath, 'w') as f:
             # Export OBJ
             object.select_set(True)
             print(folderpath+name)
+
+            # Store original mat
+            original_mat = object.matrix_world.copy()
+
+            # Set identity to export in 0,0,0 and no rotations
+            object.matrix_world.identity()
+
             bpy.ops.wm.obj_export(filepath=abs_folderpath+name, filter_glob="*.obj;*.mtl", path_mode="COPY",
                 export_selected_objects=True, export_triangulated_mesh=True, global_scale=export_scale)
+
+            # Restore transform
+            object.matrix_world = original_mat.copy()
 
             object.select_set(False)
             
@@ -53,12 +63,6 @@ with open(filepath, 'w') as f:
 
         # Store original mat        
         original_mat = object.matrix_world.copy()
-        
-        # Set identity to export in 0,0,0 and no rotations
-        object.matrix_world.identity()
-        
-        # Restore transform
-        object.matrix_world = original_mat.copy()
         
         # Export object in scene file
         f.write(folderpath + name + " ")
