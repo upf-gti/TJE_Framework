@@ -7,6 +7,7 @@
 #include "graphics/shader.h"
 #include "graphics/material.h"
 
+#define DEFAULT_SPD 200
 
 class Player : public Entity {
 
@@ -22,8 +23,16 @@ public:
 	bool isInstanced = false;
 	std::vector<Matrix44> models;
 
-	Vector3 forward = Vector3(0.0f, 0.0f, -1.0f);
-	Vector3 right = Vector3(-1.0f, 0.0f, 0.0f);
+	// Movement
+	Vector3 forward = Vector3(0.0f, 0.0f, -1.0f), right = Vector3(-1.0f, 0.0f, 0.0f);
+	Vector3 direction;
+	float stop_duration = 0.25;
+	float m_spd = DEFAULT_SPD;
+	bool is_dashing;
+	float timer_dash;
+
+	// TODO: Hitbox stuff 
+	bool can_be_hit = true;
 
 	void addInstance(const Matrix44& model);
 
@@ -47,5 +56,8 @@ public:
 	void update(float elapsed_time);
 
 	void onMouseWheel(SDL_MouseWheelEvent event);
+
+private:
+	void dash(float delta_time, float dash_duration, float invul_duration);
 };
 
