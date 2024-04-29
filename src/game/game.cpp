@@ -27,6 +27,8 @@ float camera_angle_y = 100;
 
 Game* Game::instance = NULL;
 Player* player = NULL;
+Player* e2 = NULL;
+Matrix44 camera_support;
 
 // Cosas nuevas que he añadido
 Entity* root;
@@ -136,6 +138,8 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	elapsed_time = 0.0f;
 	mouse_locked = false;
 	player = new Player();
+	e2 = new Player();
+	player->model.setTranslation(Vector3(0, 0, 10));
 
 	// OpenGL flags
 	glEnable(GL_CULL_FACE); //render both sides of every triangle
@@ -186,7 +190,27 @@ void Game::render(void)
 	// Create model matrix for cube
 	Matrix44 m = player->getGlobalMatrix();
 
+	// Create model matrix for cube
+	Matrix44 m2 = e2->getGlobalMatrix();
 
+	if (shader)
+	{
+		// Enable shader
+		shader->enable();
+
+		// Upload uniforms
+		shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+		shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+		shader->setUniform("u_texture", texture, 0);
+		shader->setUniform("u_model", m2);
+		shader->setUniform("u_time", time);
+
+		// Do the draw call
+		mesh->render(GL_TRIANGLES);
+
+		// Disable shader
+		shader->disable();
+	}
 
 	if (shader)
 	{
@@ -224,6 +248,7 @@ void Game::update(double seconds_elapsed)
 {
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 	player->update(seconds_elapsed);
+	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
@@ -244,9 +269,9 @@ void Game::update(double seconds_elapsed)
 	//if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f, 0.0f, 0.0f) * speed);
 
 	// camera->lookAt(player->model);
-	camera->lookAt(player->model.getTranslation() + Vector3(1,1,1), player->model.getTranslation(), camera->up);
-	camera->move(Vector3(0, Input::mouse_delta.y, -200));
-	// camera->move(Vector3(0, 0, -200));
+	float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;
+	float sign; zdiff >= 0 ? sign = 1 : sign = -1;
+	camera->lookAt((2/sqrt(clamp(player->distance(e2)/1000, 0.1, 4)))*(player->model.getTranslation() - e2->model.getTranslation()) + Vector3(0,500,0), e2->model.getTranslation() + Vector3(0,200,0), camera->up);
 }
 
 //Keyboard event handler (sync input)
