@@ -81,8 +81,7 @@ SDL_Window* createWindow(const char* caption, int width, int height, bool fullsc
 	return window;
 }
 
-
-//The application main loop
+// The application main loop
 void mainLoop()
 {
 	SDL_Event sdlEvent;
@@ -94,9 +93,6 @@ void mainLoop()
 	while (!game->must_exit)
 	{
 		Input::update();
-
-		//render frame
-		game->render();
 
 		//update events
 		while(SDL_PollEvent(&sdlEvent))
@@ -145,8 +141,7 @@ void mainLoop()
 			}
 		}
 
-        
-		//compute delta time
+		// Compute delta time
 		long last_time = now;
 		now = SDL_GetTicks();
 		double elapsed_time = (now - last_time) * 0.001; //0.001 converts from milliseconds to seconds
@@ -161,10 +156,13 @@ void mainLoop()
 			frames_this_second = 0;
 		}
 
-		//update game logic
-		game->update(elapsed_time); 
+		// Update game logic
+		game->update(elapsed_time);
 
-		//check errors in opengl only when working in debug
+		// Render frame
+		game->render();
+
+		// Check errors in opengl only when working in debug
 		#ifdef _DEBUG
 			checkGLErrors();
 		#endif
