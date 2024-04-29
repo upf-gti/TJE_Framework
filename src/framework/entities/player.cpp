@@ -8,10 +8,10 @@
 
 
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {
-	if (!is_dashing) {
+	if (!dashing) {
 		m_spd = 4 * DEFAULT_SPD;
 		timer_dash = Game::instance->time;
-		is_dashing = true;
+		dashing = true;
 		can_be_hit = false;
 	}
 	else if (m_spd > DEFAULT_SPD) {
@@ -19,10 +19,19 @@ void Player::dash(float delta_time, float dash_duration = 1, float invul_duratio
 	}
 	else {
 		m_spd = DEFAULT_SPD;
-		is_dashing = false;
+		dashing = false;
 	}
 	if (!can_be_hit && Game::instance->time - timer_dash > invul_duration) {
 		can_be_hit = true;
+	}
+}
+
+void Player::jump(float delta_time) {
+	if (grounded) {
+		v_spd = JUMP_SPD;
+		timer_jump = Game::instance->time;
+		grounded = false;
+		jumping = true;
 	}
 }
 
@@ -89,17 +98,24 @@ void Player::update(float delta_time) {
 	{
 		model.rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f, -1.0f, 0.0f));
 	}
-	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || is_dashing){
+	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing){
 		dash(delta_time);
 	}
-	if ((Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_D)) && !is_dashing) m_spd = DEFAULT_SPD;
-	if (!is_dashing && m_spd > 0) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_SPACE)) {
+		jump(delta_time);
+	}
+	if (!grounded && !jumping) {
+		v_spd -= GRAVITY * delta_time;
+	}
+	if ((Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing) m_spd = DEFAULT_SPD;
+	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
 	}
 
 	float speed = m_spd; //the speed is defined by the seconds_elapsed so it goes constant
-	// Async input to move the camera around
+
+	// std::cout << v_spd << " " << grounded << " " << jumping << std::endl;
 
 	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) direction = forward;
 	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) direction = -forward;
@@ -107,6 +123,11 @@ void Player::update(float delta_time) {
 	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) direction = -right;
 
 	move(direction * speed * delta_time);
+	move(Vector3(0, 1, 0) * v_spd * delta_time);
+	if (model.getTranslation().y < 0) {
+		move(Vector3(0, -model.getTranslation().y, 0));
+		grounded = true;
+	}
 
 	Entity::update(delta_time);
 }
@@ -114,4 +135,18 @@ void Player::update(float delta_time) {
 void Player::onMouseWheel(SDL_MouseWheelEvent event)
 {
 	m_spd *= event.y > 0 ? 1.1f : 0.9f;
+}
+
+void Player::onMouseButtonDown(SDL_MouseButtonEvent event)
+{
+
+}
+
+void Player::onKeyUp(SDL_KeyboardEvent event)
+{
+	if (event.keysym.sym == SDLK_SPACE)
+	{
+		std::cout << "hehe" << std::endl;
+		jumping = false;
+	}
 }

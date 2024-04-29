@@ -8,6 +8,9 @@
 #include "graphics/material.h"
 
 #define DEFAULT_SPD 200
+#define JUMP_SPD 1000
+#define JUMP_HOLDTIME 1.0f
+#define GRAVITY 3000
 
 class Player : public Entity {
 
@@ -28,8 +31,16 @@ public:
 	Vector3 direction;
 	float stop_duration = 0.25;
 	float m_spd = DEFAULT_SPD;
-	bool is_dashing;
+	float v_spd = 0;
+	// Dashing
+	bool dashing = false;
 	float timer_dash;
+	// Jumping
+	bool grounded = true;
+	bool jumping = false;
+	float timer_jump;
+	
+	
 
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
@@ -56,8 +67,11 @@ public:
 	void update(float elapsed_time);
 
 	void onMouseWheel(SDL_MouseWheelEvent event);
+	void onMouseButtonDown(SDL_MouseButtonEvent event);
+	void onKeyUp(SDL_KeyboardEvent event);
 
 private:
 	void dash(float delta_time, float dash_duration, float invul_duration);
+	void jump(float delta_time);
 };
 

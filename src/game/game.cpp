@@ -271,7 +271,8 @@ void Game::update(double seconds_elapsed)
 	// camera->lookAt(player->model);
 	float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;
 	float sign; zdiff >= 0 ? sign = 1 : sign = -1;
-	camera->lookAt((2/sqrt(clamp(player->distance(e2)/1000, 0.1, 4)))*(player->model.getTranslation() - e2->model.getTranslation()) + Vector3(0,500,0), e2->model.getTranslation() + Vector3(0,200,0), camera->up);
+	float reverse_dist = 1 / sqrt(clamp(player->distance(e2) / 1000, 0.1, 2.5));
+	camera->lookAt((2*reverse_dist)*(player->model.getTranslation() - e2->model.getTranslation()) + Vector3(0,500 - player->model.getTranslation().y * 2 * reverse_dist, 0), e2->model.getTranslation() + Vector3(0, 200, 0), camera->up);
 
 }
 
@@ -287,7 +288,7 @@ void Game::onKeyDown(SDL_KeyboardEvent event)
 
 void Game::onKeyUp(SDL_KeyboardEvent event)
 {
-
+	player->onKeyUp(event);
 }
 
 void Game::onMouseButtonDown(SDL_MouseButtonEvent event)
