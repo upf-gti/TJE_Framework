@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framework/entities/entity.h"
+#include "framework/entities/bullet.h"
 
 #include "graphics/mesh.h"
 #include "graphics/texture.h"
@@ -8,9 +9,12 @@
 #include "graphics/material.h"
 
 #define DEFAULT_SPD 200
+#define DEFAULT_MANA 100
 #define JUMP_SPD 1000
 #define JUMP_HOLDTIME 1.0f
 #define GRAVITY 3000
+#define MAX_BULLETS 1000
+
 
 class Player : public Entity {
 
@@ -40,7 +44,15 @@ public:
 	bool jumping = false;
 	float timer_jump;
 	
-	
+	// Bullets
+	float mana;
+	Bullet* bullets[MAX_BULLETS];
+	uint16 bullet_idx_first = 0;
+	uint16 bullet_idx_last = 0;
+	uint16 free_bullets = MAX_BULLETS;
+	float timer_bullet = 0;
+	float shoot_cooldown[3] = { 0.1, 2, 2 };
+	float shoot_cost[3] = { 0.5, 10, 15 };
 
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
@@ -49,12 +61,14 @@ public:
 
 	Player() {
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		this->mana = DEFAULT_MANA;
 		// this->speed = 10;
 	};
-	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 10) {
+	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
 		this->mesh = mesh;
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
+		this->mana = mana;
 		// this->speed = speed;
 	};
 	~Player() {
@@ -70,8 +84,12 @@ public:
 	void onMouseButtonDown(SDL_MouseButtonEvent event);
 	void onKeyUp(SDL_KeyboardEvent event);
 
+	Vector3 getPosition();
+	Vector3 getPositionGround();
+
 private:
 	void dash(float delta_time, float dash_duration, float invul_duration);
 	void jump(float delta_time);
+	void shoot(uint8 bullet_type);
 };
 

@@ -35,43 +35,82 @@ void Player::jump(float delta_time) {
 	}
 }
 
+void Player::shoot(uint8 bullet_type = 0) {
+	if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet > shoot_cooldown[bullet_type]) {
+		timer_bullet = Game::instance->time;
+		mana -= shoot_cost[bullet_type];
+		free_bullets--;
+		switch (bullet_type) {
+		case 0:
+			// Load one texture using the Texture Manager
+			Texture* texture = Texture::Get("data/textures/texture.tga");
+			// Example of shader loading using the shaders manager
+			Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
+
+			// Example of loading Mesh from Mesh Manager
+			Mesh* mesh = Mesh::Get("data/meshes/box.ASE");
+
+			Material mat = Material();
+			mat.diffuse = texture;
+			mat.shader = shader;
+
+
+			Bullet * b = new Bullet(mesh, mat);
+			b->direction = model.frontVector();
+			b->objective = Vector3(0, 0, 0); b->has_objective = true;
+			b->model = model;
+			bullets[bullet_idx_first] = b;
+			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
+			break;
+		}
+		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << std::endl;
+	}
+}
+Vector3 Player::getPosition() {
+	return model.getTranslation();
+}
+
+Vector3 Player::getPositionGround() {
+	return Vector3(model.getTranslation().x, 0, model.getTranslation().z);
+}
+
 void Player::render(Camera* camera) {
-	if (!mesh) {
-		std::cout << "no mesh";
-		return;
-	}
+	//if (!mesh) {
+	//	std::cout << "no mesh";
+	//	return;
+	//}
 
-	// Set flags
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
+	//// Set flags
+	//glDisable(GL_BLEND);
+	//glEnable(GL_DEPTH_TEST);
+	//glDisable(GL_CULL_FACE);
 
-	//// Get the last camera that was activated 
-	//Camera* camera = Camera::current;
+	////// Get the last camera that was activated 
+	////Camera* camera = Camera::current;
 
-	Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+	//Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
 
-	// Enable shader and pass uniforms 
-	material.shader->enable();
+	//// Enable shader and pass uniforms 
+	//material.shader->enable();
 
-	material.shader->setUniform("u_model", model);
-	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	//material.shader->setUniform("u_model", model);
+	//material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 
-	if (material.diffuse) {
-		material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
-	}
+	//if (material.diffuse) {
+	//	material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
+	//}
 
-	if (!isInstanced) {
-		material.shader->setUniform("u_model", model);
-	}
-	if (isInstanced)
-		mesh->renderInstanced(GL_TRIANGLES, models.data(), models.size());
-	else
-		// Render the mesh using the shader
-		mesh->render(GL_TRIANGLES);
+	//if (!isInstanced) {
+	//	material.shader->setUniform("u_model", model);
+	//}
+	//if (isInstanced)
+	//	mesh->renderInstanced(GL_TRIANGLES, models.data(), models.size());
+	//else
+	//	// Render the mesh using the shader
+	//	mesh->render(GL_TRIANGLES);
 
-	// Disable shader after finishing rendering
-	material.shader->disable();
+	//// Disable shader after finishing rendering
+	//material.shader->disable();
 
 
 	// Render hijos
@@ -81,6 +120,9 @@ void Player::render(Camera* camera) {
 	//	children[i]->render(camera);
 	//}
 	// Or just update the father one
+	for (int i = 0; i < MAX_BULLETS - free_bullets; i++) {
+		bullets[i + bullet_idx_last]->render(camera);
+	}
 	Entity::render(camera);
 };
 
@@ -94,7 +136,7 @@ void Player::move(Vector3 vec) {
 }
 
 void Player::update(float delta_time) {
-	if (Input::isMousePressed(SDL_BUTTON_LEFT) || Game::instance->mouse_locked) //is left button pressed?
+	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Game::instance->mouse_locked) //is left button pressed?
 	{
 		model.rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f, -1.0f, 0.0f));
 	}
@@ -104,10 +146,16 @@ void Player::update(float delta_time) {
 	if (Input::wasKeyPressed(SDL_SCANCODE_SPACE)) {
 		jump(delta_time);
 	}
+	if (Input::wasKeyPressed(SDL_SCANCODE_Q)) {
+		shoot();
+	}
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
 	}
-	if ((Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing) m_spd = DEFAULT_SPD;
+	if ((Input::isKeyPressed(SDL_SCANCODE_W) || 
+		Input::isKeyPressed(SDL_SCANCODE_S) || 
+		Input::isKeyPressed(SDL_SCANCODE_A) || 
+		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Game::instance->mouse_locked) m_spd = DEFAULT_SPD;
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
@@ -131,6 +179,8 @@ void Player::update(float delta_time) {
 
 	Entity::update(delta_time);
 }
+
+
 
 void Player::onMouseWheel(SDL_MouseWheelEvent event)
 {
