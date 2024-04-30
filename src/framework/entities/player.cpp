@@ -42,21 +42,17 @@ void Player::shoot(uint8 bullet_type = 0) {
 		free_bullets--;
 		switch (bullet_type) {
 		case 0:
-			// Load one texture using the Texture Manager
+			Material mat = Material();
 			Texture* texture = Texture::Get("data/textures/texture.tga");
-			// Example of shader loading using the shaders manager
 			Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
-
-			// Example of loading Mesh from Mesh Manager
+			
 			Mesh* mesh = Mesh::Get("data/meshes/box.ASE");
 
-			Material mat = Material();
 			mat.diffuse = texture;
 			mat.shader = shader;
 
-
 			Bullet * b = new Bullet(mesh, mat);
-			b->direction = model.frontVector();
+			b->direction = forward;
 			b->objective = Vector3(0, 0, 0); b->has_objective = true;
 			b->model = model;
 			bullets[bullet_idx_first] = b;
@@ -177,9 +173,18 @@ void Player::update(float delta_time) {
 		grounded = true;
 	}
 	for (int i = 0; i < MAX_BULLETS - free_bullets; i++) {
-		bullets[i + bullet_idx_last]->update(delta_time);
+		if (Game::instance->time - bullets[i + bullet_idx_last]->timer_spawn > 5) {
+			delete bullets[i + bullet_idx_last];
+			bullet_idx_last++;
+			free_bullets++;
+		}
+		else bullets[i + bullet_idx_last]->update(delta_time);
 	}
 	Entity::update(delta_time);
+
+	//std::cout << model.getTranslation().x << " "
+	//	<< model.getTranslation().y << " "
+	//	<< model.getTranslation().z << std::endl;
 }
 
 

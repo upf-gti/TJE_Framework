@@ -1,6 +1,10 @@
 #pragma once
+#ifndef BULLET_H
+#define BULLET_H
 
 #include "framework/entities/entity.h"
+
+
 #include "game/game.h"
 
 #include "graphics/mesh.h"
@@ -8,7 +12,8 @@
 #include "graphics/shader.h"
 #include "graphics/material.h"
 
-#define BULLET_SPD 200
+#define BULLET_SPD 50
+
 
 class Bullet : public Entity {
 
@@ -34,8 +39,6 @@ public:
 	// Despawn time
 	float timer_spawn;
 	
-	// Father
-	Entity* father;
 
 	void addInstance(const Matrix44& model);
 
@@ -43,15 +46,13 @@ public:
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->speed = BULLET_SPD;
 		this->timer_spawn = Game::instance->time;
-		this->father = nullptr;
 	};
-	Bullet(Mesh* mesh, const Material& material, Entity* father = nullptr, const std::string& name = "", float speed = BULLET_SPD) {
+	Bullet(Mesh* mesh, const Material& material, const std::string& name = "", float speed = BULLET_SPD) {
 		this->mesh = mesh;
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
 		this->speed = speed;
 		this->timer_spawn = Game::instance->time;
-		this->father = father;
 	};
 	~Bullet() {
 
@@ -70,3 +71,4 @@ public:
 
 };
 
+#endif

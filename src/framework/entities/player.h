@@ -1,4 +1,6 @@
 #pragma once
+#ifndef PLAYER_H
+#define PLAYER_H
 
 #include "framework/entities/entity.h"
 #include "framework/entities/bullet.h"
@@ -93,3 +95,6 @@ private:
 	void shoot(uint8 bullet_type);
 };
 
+
+
+#endif

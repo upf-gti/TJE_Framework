@@ -61,7 +61,7 @@ void Bullet::render(Camera* camera) {
 	//	children[i]->render(camera);
 	//}
 	// Or just update the father one
-	Entity::render(camera);
+	// Entity::render(camera);
 };
 
 void Bullet::addInstance(const Matrix44& model)
@@ -75,13 +75,19 @@ void Bullet::move(Vector3 vec) {
 
 void Bullet::update(float delta_time) {
 	if (has_objective) {
-		Vector3 change_direction = model.getTranslation() - objective;
-		direction += change_direction.normalize();
-		direction.normalize();
+		Vector3 this_pos = objective - model.getTranslation();
+		this_pos = this_pos.normalize();
+		//model.rotate(acos(this_pos.dot(objective) / (this_pos.length() * objective.length())), Vector3(0, 1, 0));
+		// model.rotate(acos(model.frontVector().dot(this_pos)), Vector3(0, 1, 0));
+		//std::cout << acos(this_pos.dot(objective) / (this_pos.length() * objective.length())) << std::endl;
+		std::cout << acos(model.rightVector().dot(this_pos)) * 360 / (2 * PI)  << std::endl;
+		
 	}
 	move(speed * delta_time * direction);
 
-	Entity::update(delta_time);
+
+
+	// Entity::update(delta_time);
 }
 
 
