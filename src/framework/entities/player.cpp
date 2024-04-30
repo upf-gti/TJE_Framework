@@ -176,7 +176,9 @@ void Player::update(float delta_time) {
 		move(Vector3(0, -model.getTranslation().y, 0));
 		grounded = true;
 	}
-
+	for (int i = 0; i < MAX_BULLETS - free_bullets; i++) {
+		bullets[i + bullet_idx_last]->update(delta_time);
+	}
 	Entity::update(delta_time);
 }
 

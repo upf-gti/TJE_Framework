@@ -76,7 +76,8 @@ void Bullet::move(Vector3 vec) {
 void Bullet::update(float delta_time) {
 	if (has_objective) {
 		Vector3 change_direction = model.getTranslation() - objective;
-		direction += change_direction.normalize() * 0.5;
+		direction += change_direction.normalize();
+		direction.normalize();
 	}
 	move(speed * delta_time * direction);
 
