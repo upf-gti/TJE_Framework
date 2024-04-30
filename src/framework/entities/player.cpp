@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-
+// cubemap
 
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {
 	if (!dashing) {
@@ -94,7 +94,7 @@ void Player::move(Vector3 vec) {
 }
 
 void Player::update(float delta_time) {
-	if (Input::isMousePressed(SDL_BUTTON_LEFT)) //is left button pressed?
+	if (Input::isMousePressed(SDL_BUTTON_LEFT) || Game::instance->mouse_locked) //is left button pressed?
 	{
 		model.rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f, -1.0f, 0.0f));
 	}
@@ -117,10 +117,10 @@ void Player::update(float delta_time) {
 
 	// std::cout << v_spd << " " << grounded << " " << jumping << std::endl;
 
-	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) direction = forward;
-	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) direction = -forward;
-	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) direction = right;
-	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) direction = -right;
+	if (Input::isKeyPressed(SDL_SCANCODE_W)) direction = forward;
+	if (Input::isKeyPressed(SDL_SCANCODE_S)) direction = -forward;
+	if (Input::isKeyPressed(SDL_SCANCODE_A)) direction = right;
+	if (Input::isKeyPressed(SDL_SCANCODE_D)) direction = -right;
 
 	move(direction * speed * delta_time);
 	move(Vector3(0, 1, 0) * v_spd * delta_time);

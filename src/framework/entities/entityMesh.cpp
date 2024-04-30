@@ -39,12 +39,16 @@ void EntityMesh::render(Camera* camera) {
 	//// Get the last camera that was activated 
 	//Camera* camera = Camera::current;
 
-	Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+	if (!material.shader) {
+		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+	}
+
+	// material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
 
 	// Enable shader and pass uniforms 
 	material.shader->enable();
 
-	material.shader->setUniform("u_model", model);
+	// material.shader->setUniform("u_model", model);
 	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	
 	if (material.diffuse) {
