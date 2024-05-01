@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <cmath>
+#include <string>
 #include <stdlib.h>
 
 #ifndef PI
@@ -124,6 +125,10 @@ public:
 	void operator *= (float v) { x *= v; y *= v; z *= v; }
 	void operator += (const Vector3& v) { x += v.x; y += v.y; z += v.z; }
 	void operator -= (const Vector3& v) { x -= v.x; y -= v.y; z -= v.z; }
+
+	std::string toString() {
+		return std::to_string(this->x) + " " + std::to_string(this->y) + " " + std::to_string(this->z);
+	}
 };
 
 Vector3 normalize(Vector3 n);

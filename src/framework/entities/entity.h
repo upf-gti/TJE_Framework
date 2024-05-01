@@ -49,6 +49,19 @@ public:
 	virtual void render(Camera* camera);
 	virtual void update(float delta_time);
 
+	Vector3 nullify_coords(Vector3 v, uint8 axis) {
+		switch (axis) {
+		case 1:
+			return v * Vector3(0, 1, 1);
+		case 2:
+			return v * Vector3(1, 0, 1);
+		case 3:
+			return v * Vector3(1, 1, 0);
+		default: 
+			return v;
+		}
+	}
+
 	// Some useful methods
 	Matrix44 getGlobalMatrix();
 	float distance(Entity* e);

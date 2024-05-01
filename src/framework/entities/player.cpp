@@ -53,9 +53,9 @@ void Player::shoot(uint8 bullet_type = 0) {
 
 			Bullet * b = new Bullet(mesh, mat);
 			b->direction = forward;
-			b->objective = Vector3(0, 0, 0); b->has_objective = true;
+			b->objective = Vector3(0, 700, 0); b->has_objective = true;
 			b->model = model;
-			bullets[bullet_idx_first] = b;
+			bullets.push_back(b);
 			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
 			break;
 		}
@@ -116,8 +116,8 @@ void Player::render(Camera* camera) {
 	//	children[i]->render(camera);
 	//}
 	// Or just update the father one
-	for (int i = 0; i < MAX_BULLETS - free_bullets; i++) {
-		bullets[i + bullet_idx_last]->render(camera);
+	for (int i = 0; i < bullets.size(); i++) {
+		bullets[i]->render(camera);
 	}
 	Entity::render(camera);
 };
@@ -172,13 +172,15 @@ void Player::update(float delta_time) {
 		move(Vector3(0, -model.getTranslation().y, 0));
 		grounded = true;
 	}
-	for (int i = 0; i < MAX_BULLETS - free_bullets; i++) {
-		if (Game::instance->time - bullets[i + bullet_idx_last]->timer_spawn > 5) {
-			delete bullets[i + bullet_idx_last];
+	for (int i = 0; i < bullets.size(); i++) {
+		Bullet* b = bullets[i];
+		if (Game::instance->time - b->timer_spawn > 5 || b->model.getTranslation().distance(b->objective) < 50) {
+			bullets.erase((bullets.begin() + i));
+			delete b;
 			bullet_idx_last++;
 			free_bullets++;
 		}
-		else bullets[i + bullet_idx_last]->update(delta_time);
+		else b->update(delta_time);
 	}
 	Entity::update(delta_time);
 

@@ -48,7 +48,7 @@ public:
 	
 	// Bullets
 	float mana;
-	Bullet* bullets[MAX_BULLETS];
+	std::vector<Bullet*> bullets;
 	uint16 bullet_idx_first = 0;
 	uint16 bullet_idx_last = 0;
 	uint16 free_bullets = MAX_BULLETS;

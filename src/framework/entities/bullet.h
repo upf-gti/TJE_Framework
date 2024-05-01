@@ -12,7 +12,7 @@
 #include "graphics/shader.h"
 #include "graphics/material.h"
 
-#define BULLET_SPD 50
+#define BULLET_SPD 1000
 
 
 class Bullet : public Entity {
