@@ -46,12 +46,12 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 
 		Mesh* mesh = Mesh::Get("data/meshes/box.ASE"); // aqui pones el modelo
 
+		mat.diffuse = texture;
+		mat.shader = shader;
+
 		Bullet* b;
 		switch (bullet_type) {
-		case 0: // esto ya lo haremos en las respectivas clases
-			mat.diffuse = texture;
-			mat.shader = shader;
-
+		case auto_aim: // esto ya lo haremos en las respectivas clases
 			b = new Bullet(mesh, mat);
 			b->direction = -forward;
 			b->objective = Vector3(0, 700, 0); b->has_objective = true;
@@ -59,10 +59,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 			bullets.push_back(b);
 			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
 			break;
-		case 1:
-			mat.diffuse = texture;
-			mat.shader = shader;
-
+		case circle:
 			for (int i = 0; i < 10; i++) {
 				b = new Bullet(mesh, mat);
 				b->direction = -forward ;
@@ -72,7 +69,24 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 				bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
 			}
 			break;
+		case shotgun:
+			for (int i = 0; i < 20; i++) {
+				b = new Bullet(mesh, mat, "", 1000 + 100*i);
+				b->direction = forward;
+				b->model = model;
+				b->model.rotate(random(-PI/8, PI/8), Vector3(0, 1, 0));
+				b->model.rotate(random(-PI/8, 0), Vector3(1, 0, 0));
+				bullets.push_back(b);
+				bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
+			}
+		case sniper:
+			b = new Bullet(mesh, mat, "", 4000);
+			b->direction = forward;
+			b->model = model;
+			bullets.push_back(b);
+			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
 		}
+
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
@@ -228,11 +242,17 @@ void Player::onKeyUp(SDL_KeyboardEvent event)
 
 void Player::onKeyDown(SDL_KeyboardEvent event)
 {
-	if (event.keysym.sym == SDLK_0)
+	if (event.keysym.sym == SDLK_1)
 	{
 		bt = auto_aim;
 	} 
-	if (event.keysym.sym == SDLK_1) {
+	if (event.keysym.sym == SDLK_2) {
 		bt = circle;
+	}
+	if (event.keysym.sym == SDLK_3) {
+		bt = shotgun;
+	}
+	if (event.keysym.sym == SDLK_4) {
+		bt = sniper;
 	}
 }

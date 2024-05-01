@@ -50,6 +50,7 @@ public:
 	enum bullet_type : uint8{
 		auto_aim,
 		circle,
+		shotgun,
 		sniper
 	};
 	bullet_type bt = auto_aim;
@@ -59,8 +60,8 @@ public:
 	uint16 bullet_idx_last = 0;
 	uint16 free_bullets = MAX_BULLETS;
 	float timer_bullet = 0;
-	float shoot_cooldown[3] = { 0.1, 2, 2 };
-	float shoot_cost[3] = { 8, 30, 20 };
+	float shoot_cooldown[4] = { 0.1, 1, 1, 1 };
+	float shoot_cost[4] = { 8, 30, 20, 20};
 
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
