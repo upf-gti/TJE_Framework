@@ -47,7 +47,7 @@ public:
 	float timer_jump;
 	
 	// Bullets
-	enum bullet_type {
+	enum bullet_type : uint8{
 		auto_aim,
 		circle,
 		sniper
