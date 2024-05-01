@@ -75,26 +75,31 @@ void Bullet::move(Vector3 vec) {
 
 void Bullet::update(float delta_time) {
 	if (has_objective) {
-		Vector3 this_pos_0 = nullify_coords(model.getTranslation() - objective, 2);
-		Vector3 front_vec_0 = nullify_coords(model.frontVector(), 2);
-		Vector3 objective_0 = nullify_coords(objective, 2);
+		//Vector3 this_pos_0 = nullify_coords(model.getTranslation() - objective, 2);
+		//Vector3 front_vec_0 = nullify_coords(model.frontVector(), 2);
+		//Vector3 objective_0 = nullify_coords(objective, 2);
 
-		Vector3 a = this_pos_0 - front_vec_0;
-		Vector3 b = objective_0 - front_vec_0;
+		//Vector3 a = this_pos_0 - front_vec_0;
+		//Vector3 b = objective_0 - front_vec_0;
 
-		this_pos_0 = this_pos_0.normalize();
+		//this_pos_0 = this_pos_0.normalize();
 
-		float azimuth = acos(clamp(front_vec_0.dot(this_pos_0), -0.999f, 0.999f));
-		if (a.cross(b).y > 0) azimuth *= -1; // We compute the cross product to check to which direction to make the rotation. Check https://math.stackexchange.com/questions/1232773/is-the-point-on-the-left-or-the-right-of-the-vector-in-2d-space
-		model.rotate(azimuth * 10 * delta_time, model.topVector());
+		//float azimuth = acos(clamp(front_vec_0.dot(this_pos_0), -0.999f, 0.999f));
+		//if (a.cross(b).y > 0) azimuth *= -1; // We compute the cross product to check to which direction to make the rotation. Check https://math.stackexchange.com/questions/1232773/is-the-point-on-the-left-or-the-right-of-the-vector-in-2d-space
+		//model.rotate(azimuth * 10 * delta_time, model.topVector());
 
-		float distance = model.getTranslation().distance(objective);
+		//float distance = model.getTranslation().distance(objective);
 
 		//float elevation = asin(clamp((model.getTranslation().y - objective.y) / distance, -0.99999f, 0.99999f));
-		//std::cout << elevation * 360 / (2 * PI) << "  " << azimuth * 360 / (2 * PI) << std::endl;
+		//elevation > 0 ? elevation = (PI / 2) - elevation : elevation = - ((PI / 2) + elevation);
+		
+		// std::cout << model.getYawRotationToAimTo(objective) * 360 / (2 * PI) << std::endl;
 
-		//model.rotate(elevation * 3 * delta_time, Vector3(1,0,0));
-		model.rotate(azimuth * 10 * delta_time, Vector3(0,1,0));
+	/*	model.rotate(delta_time * model.getYawRotationToAimTo(Vector3(0,0,0)), model.rightVector());*/
+
+		model.rotate(model.getYawRotationToAimTo(objective) * delta_time * 3, Vector3(0, 1, 0));
+		model.rotate(model.getPitchRotationToAimTo(objective) * delta_time * 3, Vector3(1, 0, 0));
+
 	}
 	move(speed * delta_time * direction);
 

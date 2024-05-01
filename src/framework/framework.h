@@ -275,6 +275,7 @@ class Matrix44
 		bool getXYZ(float* euler) const;
 
 		float getYawRotationToAimTo(const Vector3& position);
+		float getPitchRotationToAimTo(const Vector3& position);
 
 		void lookAt(Vector3& eye, Vector3& center, Vector3& up);
 		void perspective(float fov, float aspect, float near_plane, float far_plane);

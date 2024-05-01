@@ -35,31 +35,45 @@ void Player::jump(float delta_time) {
 	}
 }
 
-void Player::shoot(uint8 bullet_type = 0) {
+void Player::shoot(bullet_type bullet_type = auto_aim) {
 	if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet > shoot_cooldown[bullet_type]) {
 		timer_bullet = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets--;
-		switch (bullet_type) {
-		case 0:
-			Material mat = Material();
-			Texture* texture = Texture::Get("data/textures/texture.tga");
-			Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
-			
-			Mesh* mesh = Mesh::Get("data/meshes/box.ASE");
+		Material mat = Material();
+		Texture* texture = Texture::Get("data/textures/texture.tga");
+		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
+		Mesh* mesh = Mesh::Get("data/meshes/box.ASE"); // aqui pones el modelo
+
+		Bullet* b;
+		switch (bullet_type) {
+		case 0: // esto ya lo haremos en las respectivas clases
 			mat.diffuse = texture;
 			mat.shader = shader;
 
-			Bullet * b = new Bullet(mesh, mat);
-			b->direction = forward;
+			b = new Bullet(mesh, mat);
+			b->direction = -forward;
 			b->objective = Vector3(0, 700, 0); b->has_objective = true;
 			b->model = model;
 			bullets.push_back(b);
 			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
 			break;
+		case 1:
+			mat.diffuse = texture;
+			mat.shader = shader;
+
+			for (int i = 0; i < 10; i++) {
+				b = new Bullet(mesh, mat);
+				b->direction = -forward ;
+				b->model = model;
+				b->model.rotate(2 * PI * i/ 10, Vector3(0,1,0));
+				bullets.push_back(b);
+				bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
+			}
+			break;
 		}
-		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << std::endl;
+		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
 Vector3 Player::getPosition() {
@@ -143,7 +157,7 @@ void Player::update(float delta_time) {
 		jump(delta_time);
 	}
 	if (Input::wasKeyPressed(SDL_SCANCODE_Q)) {
-		shoot();
+		shoot(bt);
 	}
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
@@ -184,6 +198,8 @@ void Player::update(float delta_time) {
 	}
 	Entity::update(delta_time);
 
+	mana += 10 * delta_time;
+
 	//std::cout << model.getTranslation().x << " "
 	//	<< model.getTranslation().y << " "
 	//	<< model.getTranslation().z << std::endl;
@@ -207,5 +223,16 @@ void Player::onKeyUp(SDL_KeyboardEvent event)
 	{
 		std::cout << "hehe" << std::endl;
 		jumping = false;
+	}
+}
+
+void Player::onKeyDown(SDL_KeyboardEvent event)
+{
+	if (event.keysym.sym == SDLK_0)
+	{
+		bt = auto_aim;
+	} 
+	if (event.keysym.sym == SDLK_1) {
+		bt = circle;
 	}
 }

@@ -412,6 +412,21 @@ float Matrix44::getYawRotationToAimTo(const Vector3& position)
 	return angle;
 }
 
+#include <cmath>
+
+float Matrix44::getPitchRotationToAimTo(const Vector3& position)
+{
+	Vector3 dir = position - getTranslation();
+	// Dot product with upVector() instead of rightVector()
+	float dz = topVector().dot(dir);
+	float dx = frontVector().dot(dir);
+	// Use atan2f for calculating the angle
+	float angle = std::atan2f(dz, dx);
+	return angle;
+}
+
+
+
 void Matrix44::lookAt(Vector3& eye, Vector3& center, Vector3& up)
 {
 	Vector3 front = (center - eye);

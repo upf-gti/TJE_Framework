@@ -47,6 +47,12 @@ public:
 	float timer_jump;
 	
 	// Bullets
+	enum bullet_type {
+		auto_aim,
+		circle,
+		sniper
+	};
+	bullet_type bt = auto_aim;
 	float mana;
 	std::vector<Bullet*> bullets;
 	uint16 bullet_idx_first = 0;
@@ -54,7 +60,7 @@ public:
 	uint16 free_bullets = MAX_BULLETS;
 	float timer_bullet = 0;
 	float shoot_cooldown[3] = { 0.1, 2, 2 };
-	float shoot_cost[3] = { 0.5, 10, 15 };
+	float shoot_cost[3] = { 8, 30, 20 };
 
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
@@ -85,6 +91,7 @@ public:
 	void onMouseWheel(SDL_MouseWheelEvent event);
 	void onMouseButtonDown(SDL_MouseButtonEvent event);
 	void onKeyUp(SDL_KeyboardEvent event);
+	void onKeyDown(SDL_KeyboardEvent event);
 
 	Vector3 getPosition();
 	Vector3 getPositionGround();
@@ -92,7 +99,7 @@ public:
 private:
 	void dash(float delta_time, float dash_duration, float invul_duration);
 	void jump(float delta_time);
-	void shoot(uint8 bullet_type);
+	void shoot(bullet_type bullet_type);
 };
 
 
