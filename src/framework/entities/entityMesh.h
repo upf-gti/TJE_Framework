@@ -2,9 +2,6 @@
 
 #include "framework/entities/entity.h"
 
-#include "graphics/mesh.h"
-#include "graphics/texture.h"
-#include "graphics/shader.h"
 #include "graphics/material.h"
 
 
@@ -26,7 +23,9 @@ public:
 	bool isInstanced = false;
 	std::vector<Matrix44> models;
 
-	void addInstance(const Matrix44& model);
+	void addInstance(const Matrix44& model) {
+		models.push_back(model);
+	};
 
 	EntityMesh() {};
 	EntityMesh(Mesh* mesh, const Material& material, const std::string& name = "") {

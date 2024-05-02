@@ -279,6 +279,7 @@ void Matrix44::translate(const Vector3& delta)
 
 void Matrix44::rotate( float angle_in_rad, const Vector3& axis )
 {
+	if (angle_in_rad == 0) return;
 	Matrix44 R;
 	R.setRotation(angle_in_rad, axis);
 	*this = R * *this;

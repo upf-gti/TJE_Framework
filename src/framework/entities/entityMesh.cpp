@@ -1,5 +1,6 @@
 #include "entityMesh.h"
 #include "framework/camera.h"
+#include "game/game.h"
 
 #include <algorithm>
 
@@ -43,14 +44,10 @@ void EntityMesh::render(Camera* camera) {
 		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
 	}
 
-	// material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
-
-	// Enable shader and pass uniforms 
 	material.shader->enable();
-
-	// material.shader->setUniform("u_model", model);
+	material.shader->setUniform("u_color", material.color);
 	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	
+
 	if (material.diffuse) {
 		material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
 	}
@@ -58,24 +55,24 @@ void EntityMesh::render(Camera* camera) {
 	if (!isInstanced) {
 		material.shader->setUniform("u_model", model);
 	}
+
+	material.shader->setUniform("u_time", Game::instance->time);
+
 	if (isInstanced)
 		mesh->renderInstanced(GL_TRIANGLES, models.data(), models.size());
 	else
-		// Render the mesh using the shader
 		mesh->render(GL_TRIANGLES);
 
 	// Disable shader after finishing rendering
 	material.shader->disable();
 
-
 	// Render hijos
-
-	//for (size_t i = 0; i < children.size(); i++)
-	//{
-	//	children[i]->render(camera);
-	//}
+	for (size_t i = 0; i < children.size(); i++)
+	{
+		children[i]->render(camera);
+	}
 	// Or just update the father one
-	Entity::render(camera);
+	// Entity::render(camera);
 };
 
 

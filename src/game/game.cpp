@@ -108,12 +108,12 @@ bool parseScene(const char* filename, Entity* root)
 		if (render_data.models.size() > 1) {
 			new_entity->isInstanced = true;
 			new_entity->models = render_data.models; // Add all instances
-			if (!new_entity->material.shader) new_entity->material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
+			if (!new_entity->material.shader) new_entity->material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texturepixel.fs");
 		}
 		// Create normal entity
 		else {
 			new_entity->model = render_data.models[0];
-			if (!new_entity->material.shader) new_entity->material.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+			if (!new_entity->material.shader) new_entity->material.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 		}
 
 		std::cout << " " << &new_entity->material.shader << std::endl;

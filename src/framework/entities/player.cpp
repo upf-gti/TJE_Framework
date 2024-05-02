@@ -1,7 +1,5 @@
 #include "player.h"
-#include "framework/camera.h"
-#include "framework/input.h"
-#include "game/game.h"
+
 
 #include <algorithm>
 
@@ -52,16 +50,13 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		Bullet* b;
 		switch (bullet_type) {
 		case auto_aim: // esto ya lo haremos en las respectivas clases
-			b = new Bullet(mesh, mat);
-			b->direction = -forward;
-			b->objective = Vector3(0, 700, 0); b->has_objective = true;
-			b->model = model;
+			b = new BulletAuto(mesh, mat, Vector3(0, 700, 0), -forward, model);
 			bullets.push_back(b);
 			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
 			break;
 		case circle:
 			for (int i = 0; i < 10; i++) {
-				b = new Bullet(mesh, mat);
+				b = new BulletNormal(mesh, mat, forward, model);
 				b->direction = -forward ;
 				b->model = model;
 				b->model.rotate(2 * PI * i/ 10, Vector3(0,1,0));
@@ -71,22 +66,19 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 			break;
 		case shotgun:
 			for (int i = 0; i < 20; i++) {
-				b = new Bullet(mesh, mat, "", 1000 + 100*i);
-				b->direction = forward;
-				b->model = model;
+				b = new BulletNormal(mesh, mat, forward, model, 1000 + 100*i);
 				b->model.rotate(random(-PI/8, PI/8), Vector3(0, 1, 0));
 				b->model.rotate(random(-PI/8, 0), Vector3(1, 0, 0));
 				bullets.push_back(b);
 				bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
 			}
+			break;
 		case sniper:
-			b = new Bullet(mesh, mat, "", 4000);
-			b->direction = forward;
-			b->model = model;
+			b = new BulletNormal(mesh, mat, forward, model, 4000);
 			bullets.push_back(b);
 			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
+			break;
 		}
-
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
@@ -99,60 +91,14 @@ Vector3 Player::getPositionGround() {
 }
 
 void Player::render(Camera* camera) {
-	//if (!mesh) {
-	//	std::cout << "no mesh";
-	//	return;
-	//}
-
-	//// Set flags
-	//glDisable(GL_BLEND);
-	//glEnable(GL_DEPTH_TEST);
-	//glDisable(GL_CULL_FACE);
-
-	////// Get the last camera that was activated 
-	////Camera* camera = Camera::current;
-
-	//Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
-
-	//// Enable shader and pass uniforms 
-	//material.shader->enable();
-
-	//material.shader->setUniform("u_model", model);
-	//material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-
-	//if (material.diffuse) {
-	//	material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
-	//}
-
-	//if (!isInstanced) {
-	//	material.shader->setUniform("u_model", model);
-	//}
-	//if (isInstanced)
-	//	mesh->renderInstanced(GL_TRIANGLES, models.data(), models.size());
-	//else
-	//	// Render the mesh using the shader
-	//	mesh->render(GL_TRIANGLES);
-
-	//// Disable shader after finishing rendering
-	//material.shader->disable();
-
-
-	// Render hijos
-
-	//for (size_t i = 0; i < children.size(); i++)
-	//{
-	//	children[i]->render(camera);
-	//}
-	// Or just update the father one
+	EntityMesh::render(camera);
+	// Render Bullets
 	for (int i = 0; i < bullets.size(); i++) {
 		bullets[i]->render(camera);
 	}
-	Entity::render(camera);
+	// Entity::render(camera);
 };
 
-void Player::addInstance(const Matrix44& model)
-{
-}
 
 void Player::move(Vector3 vec) {
 	model.translate(vec);
@@ -202,7 +148,7 @@ void Player::update(float delta_time) {
 	}
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
-		if (Game::instance->time - b->timer_spawn > 5 || b->model.getTranslation().distance(b->objective) < 50) {
+		if (Game::instance->time - b->timer_spawn > 5) {
 			bullets.erase((bullets.begin() + i));
 			delete b;
 			bullet_idx_last++;
