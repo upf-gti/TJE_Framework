@@ -37,13 +37,13 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet > shoot_cooldown[bullet_type]) {
 		timer_bullet = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
-		free_bullets--;
+		free_bullets -= amount[bullet_type];
 
-		Bullet* b;
 		patterns[bullet_type](Vector3(0,0,0), forward, model, bullets, amount[bullet_type]);
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
+
 Vector3 Player::getPosition() {
 	return model.getTranslation();
 }
