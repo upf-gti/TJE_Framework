@@ -35,7 +35,6 @@ void Player::jump(float delta_time) {
 
 void Player::shoot(bullet_type bullet_type = auto_aim) {
 	if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet > shoot_cooldown[bullet_type]) {
-		timer_bullet = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
 
