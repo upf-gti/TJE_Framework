@@ -38,47 +38,9 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		timer_bullet = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets--;
-		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/texture.tga");
-		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
-
-		Mesh* mesh = Mesh::Get("data/meshes/box.ASE"); // aqui pones el modelo
-
-		mat.diffuse = texture;
-		mat.shader = shader;
 
 		Bullet* b;
-		switch (bullet_type) {
-		case auto_aim: // esto ya lo haremos en las respectivas clases
-			b = new BulletAuto(mesh, mat, Vector3(0, 700, 0), -forward, model);
-			bullets.push_back(b);
-			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
-			break;
-		case circle:
-			for (int i = 0; i < 10; i++) {
-				b = new BulletNormal(mesh, mat, forward, model);
-				b->direction = -forward ;
-				b->model = model;
-				b->model.rotate(2 * PI * i/ 10, Vector3(0,1,0));
-				bullets.push_back(b);
-				bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
-			}
-			break;
-		case shotgun:
-			for (int i = 0; i < 20; i++) {
-				b = new BulletNormal(mesh, mat, forward, model, 1000 + 100*i);
-				b->model.rotate(random(-PI/8, PI/8), Vector3(0, 1, 0));
-				b->model.rotate(random(-PI/8, 0), Vector3(1, 0, 0));
-				bullets.push_back(b);
-				bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
-			}
-			break;
-		case sniper:
-			b = new BulletNormal(mesh, mat, forward, model, 4000);
-			bullets.push_back(b);
-			bullet_idx_first = (bullet_idx_first + 1) % MAX_BULLETS;
-			break;
-		}
+		patterns[bullet_type](Vector3(0,0,0), forward, model, bullets, amount[bullet_type]);
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }

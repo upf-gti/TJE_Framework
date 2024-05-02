@@ -8,6 +8,7 @@
 #include "framework/camera.h"
 #include "framework/input.h"
 #include "game/game.h"
+#include "framework/entities/bullet/patterns.h"
 
 
 
@@ -52,6 +53,9 @@ public:
 	float timer_bullet = 0;
 	float shoot_cooldown[4] = { 0.1, 1, 1, 1 };
 	float shoot_cost[4] = { 8, 30, 20, 20};
+	typedef void (*PatternFunc) (Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount);
+	uint16 amount[4] = { 1, 10, 20, 1 };
+	PatternFunc patterns[4] = { Patterns::autoAim , Patterns::circle, Patterns::shotgun, Patterns::sniper };
 
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
