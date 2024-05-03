@@ -6,7 +6,6 @@
 #include "framework/entities/bullet/bulletNormal.h"
 
 static class Patterns {
-
 public:
 	static void autoAim(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
 		Material mat = Material();

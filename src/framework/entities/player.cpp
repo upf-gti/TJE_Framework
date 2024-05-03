@@ -34,7 +34,8 @@ void Player::jump(float delta_time) {
 }
 
 void Player::shoot(bullet_type bullet_type = auto_aim) {
-	if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet > shoot_cooldown[bullet_type]) {
+	if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
 
@@ -52,7 +53,7 @@ Vector3 Player::getPositionGround() {
 }
 
 void Player::render(Camera* camera) {
-	EntityMesh::render(camera);
+	// EntityMesh::render(camera);
 	// Render Bullets
 	for (int i = 0; i < bullets.size(); i++) {
 		bullets[i]->render(camera);
@@ -67,6 +68,7 @@ void Player::move(Vector3 vec) {
 }
 
 void Player::update(float delta_time) {
+	timer_bullet_general = Game::instance->time - timer_bullet[bt];
 	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Game::instance->mouse_locked) //is left button pressed?
 	{
 		model.rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f, -1.0f, 0.0f));
@@ -79,6 +81,9 @@ void Player::update(float delta_time) {
 	}
 	if (Input::wasKeyPressed(SDL_SCANCODE_Q)) {
 		shoot(bt);
+	}	
+	if (autoshoot) {
+		shoot();
 	}
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
@@ -86,13 +91,12 @@ void Player::update(float delta_time) {
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) || 
 		Input::isKeyPressed(SDL_SCANCODE_S) || 
 		Input::isKeyPressed(SDL_SCANCODE_A) || 
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Game::instance->mouse_locked) m_spd = DEFAULT_SPD;
+		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Game::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot /2;
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
 	}
-
-	float speed = m_spd; //the speed is defined by the seconds_elapsed so it goes constant
+	float speed = m_spd - DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (timer_bullet_general < knockback_time[bt]); //the speed is defined by the seconds_elapsed so it goes constant
 
 	// std::cout << v_spd << " " << grounded << " " << jumping << std::endl;
 
@@ -119,7 +123,7 @@ void Player::update(float delta_time) {
 	}
 	Entity::update(delta_time);
 
-	mana += 10 * delta_time;
+	mana += (DEFAULT_COST + 3) * delta_time /(DEFAULT_FIRERATE);
 
 	//std::cout << model.getTranslation().x << " "
 	//	<< model.getTranslation().y << " "
@@ -149,17 +153,19 @@ void Player::onKeyUp(SDL_KeyboardEvent event)
 
 void Player::onKeyDown(SDL_KeyboardEvent event)
 {
-	if (event.keysym.sym == SDLK_1)
-	{
-		bt = auto_aim;
-	} 
-	if (event.keysym.sym == SDLK_2) {
-		bt = circle;
+	if (timer_bullet_general > knockback_time[bt]) {
+		if (event.keysym.sym == SDLK_1) {
+			bt = circle;
+		}
+		if (event.keysym.sym == SDLK_2) {
+			bt = shotgun;
+		}
+		if (event.keysym.sym == SDLK_3) {
+			bt = sniper;
+		}
 	}
-	if (event.keysym.sym == SDLK_3) {
-		bt = shotgun;
-	}
-	if (event.keysym.sym == SDLK_4) {
-		bt = sniper;
+
+	if (event.keysym.sym == SDLK_e) {
+		autoshoot = !autoshoot;
 	}
 }

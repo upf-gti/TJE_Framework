@@ -18,6 +18,8 @@
 #define JUMP_HOLDTIME 1.0f
 #define GRAVITY 3000
 #define MAX_BULLETS 1000
+#define DEFAULT_FIRERATE 0.3	// Fire Rate of Autoaim
+#define DEFAULT_COST 7			// Mana Cost of Autoaim
 
 
 class Player : public EntityMesh {
@@ -44,15 +46,18 @@ public:
 		shotgun,
 		sniper
 	};
-	bullet_type bt = auto_aim;
+	bullet_type bt = circle;
 	float mana;
+	bool autoshoot = false;
 	std::vector<Bullet*> bullets;
 	uint16 bullet_idx_first = 0;
 	uint16 bullet_idx_last = 0;
 	uint16 free_bullets = MAX_BULLETS;
-	float timer_bullet = 0;
-	float shoot_cooldown[4] = { 0.1, 1, 1, 1 };
-	float shoot_cost[4] = { 8, 30, 20, 20};
+	float timer_bullet_general = 0;
+	float timer_bullet[4] = {0,0,0,0};
+	float shoot_cooldown[4] = { DEFAULT_FIRERATE, 1, 1, 1 };
+	float shoot_cost[4] = { DEFAULT_COST, 30, 20, 20};
+	float knockback[4] = { 2, 0, 10, 20 }, knockback_time[4] = { .5, 0, .5, 1 };
 	typedef void (*PatternFunc) (Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount);
 	uint16 amount[4] = { 1, 10, 20, 1 };
 	PatternFunc patterns[4] = { Patterns::autoAim , Patterns::circle, Patterns::shotgun, Patterns::sniper };
