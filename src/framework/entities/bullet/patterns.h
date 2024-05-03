@@ -16,7 +16,7 @@ public:
 
 		mat.diffuse = texture;
 		mat.shader = shader;
-		Bullet* b = new BulletAuto(mesh, mat, Vector3(0, 700, 0), -direction, model);
+		Bullet* b = new BulletAuto(mesh, mat, Vector3(0, 700, 0), direction, model);
 		bullets.push_back(b);
 	}
 

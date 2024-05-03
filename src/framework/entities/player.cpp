@@ -67,6 +67,8 @@ void Player::move(Vector3 vec) {
 
 }
 
+
+
 void Player::update(float delta_time) {
 	timer_bullet_general = Game::instance->time - timer_bullet[bt];
 	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Game::instance->mouse_locked) //is left button pressed?
@@ -123,7 +125,11 @@ void Player::update(float delta_time) {
 	}
 	Entity::update(delta_time);
 
-	mana += (DEFAULT_COST + 3) * delta_time /(DEFAULT_FIRERATE);
+	if (mana < 200) {
+		mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);
+	}
+	else mana = 200;
+
 
 	//std::cout << model.getTranslation().x << " "
 	//	<< model.getTranslation().y << " "

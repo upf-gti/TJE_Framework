@@ -14,6 +14,7 @@
 #include <fstream>
 #include <cmath>
 #include <unordered_map>
+#include <bitset>
 
 //some globals
 Mesh* mesh = NULL;
@@ -29,6 +30,14 @@ Game* Game::instance = NULL;
 Player* player = NULL;
 Player* e2 = NULL;
 Matrix44 camera_support;
+
+Mesh quad;
+
+
+
+Shader* image = NULL;
+Texture* sus = NULL;
+
 
 // Cosas nuevas que he añadido
 Entity* root;
@@ -154,17 +163,30 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	camera->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
 
 	// Load one texture using the Texture Manager
-	texture = Texture::Get("data/textures/texture.tga");
+	texture = Texture::Get("data/meshes/persono.mtl");
 
 	// Example of loading Mesh from Mesh Manager
-	mesh = Mesh::Get("data/meshes/box.ASE");
+	mesh = Mesh::Get("data/meshes/persono.obj");
 
 	// Example of shader loading using the shaders manager
-	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
+	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 
-	// Mesh* s = Mesh::Get();
-	// 
 
+	// Three vertices of the 1st triangle
+	quad.vertices.push_back(Vector3(-1, 1, 0));
+	quad.uvs.push_back(Vector2(0, 1));
+	quad.vertices.push_back(Vector3(-1, -1, 0));
+	quad.uvs.push_back(Vector2(0, 0));
+	quad.vertices.push_back(Vector3(1, -1, 0));
+	quad.uvs.push_back(Vector2(1, 0));
+
+	// Three vertices of the 2nd triangle
+	quad.vertices.push_back(Vector3(-1, 1, 0));
+	quad.uvs.push_back(Vector2(0, 1));
+	quad.vertices.push_back(Vector3(1, -1, 0));
+	quad.uvs.push_back(Vector2(1, 0));
+	quad.vertices.push_back(Vector3(1, 1, 0));
+	quad.uvs.push_back(Vector2(1, 1));
 
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
@@ -172,6 +194,11 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	root = new Entity();
 	parseScene("data/myscene.scene", root);
 }
+
+#include <vector>
+
+// Assuming you have a function to loadTGA that reads the TGA data
+
 
 //what to do when the image has to be draw
 void Game::render(void)
@@ -243,6 +270,23 @@ void Game::render(void)
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
 
+	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
+
+	//Camera camera2D;
+	//camera2D.view_matrix = Matrix44(); // Set View to identity
+	//camera2D.setOrthographic(0, window_width, 0, window_height, -1, 1);
+	//glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_CULL_FACE);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//shader->enable();
+	//shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+	//shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	//shader->setUniform("u_texture", imagetex);
+	//shader->setUniform("u_model", m);
+	//shader->disable();\
+	glDisable(GL_DEPTH_TEST);
+
 
 	// Swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
@@ -276,7 +320,7 @@ void Game::update(double seconds_elapsed)
 		Vector3 player_pos = player->getPositionGround();
 		Vector3 enemy_pos = e2->model.getTranslation();
 		Vector3 director = player_pos - enemy_pos;
-		camera->lookAt(player_pos + director.normalize() * (800) + Vector3(0, 500 , 0), enemy_pos, camera->up);
+		camera->lookAt(player_pos + director.normalize() * (800 * zoom) + Vector3(0, 500 * zoom, 0), enemy_pos, camera->up);
 	}
 	// camera->lookAt(player->model);
 	/*float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;
@@ -322,7 +366,9 @@ void Game::onMouseButtonUp(SDL_MouseButtonEvent event)
 
 void Game::onMouseWheel(SDL_MouseWheelEvent event)
 {
-	mouse_speed *= event.y > 0 ? 1.1f : 0.9f;
+	if (!mouse_locked) mouse_speed *= event.y > 0 ? 1.1f : 0.9f;
+	else zoom += event.y > 0 ? 0.05f : -0.05f;
+	
 }
 
 void Game::onGamepadButtonDown(SDL_JoyButtonEvent event)

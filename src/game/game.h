@@ -25,7 +25,7 @@ public:
 	int fps;
 	bool must_exit;
 
-
+	float zoom = 1.f;
 
 	//some vars
 	Camera* camera; //our global camera
