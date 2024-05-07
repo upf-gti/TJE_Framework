@@ -152,6 +152,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	e2 = new Player();
 	e2->model.setTranslation(Vector3(1000, 0, 500));
 	player->model.setTranslation(Vector3(0, 0, 10));
+	player->box_cam = Vector3(0, 0, 10);
 
 	// OpenGL flags
 	glEnable(GL_CULL_FACE); //render both sides of every triangle
@@ -169,7 +170,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	mesh = Mesh::Get("data/meshes/persono.obj");
 
 	// Example of shader loading using the shaders manager
-	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
 
 	// Three vertices of the 1st triangle
@@ -317,10 +318,10 @@ void Game::update(double seconds_elapsed)
 		if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f, 0.0f, 0.0f) * speed);
 	}
 	else {
-		Vector3 player_pos = player->getPositionGround();
+		Vector3 player_pos = player->box_cam;
 		Vector3 enemy_pos = e2->model.getTranslation();
 		Vector3 director = player_pos - enemy_pos;
-		camera->lookAt(player_pos + director.normalize() * (800 * zoom) + Vector3(0, 500 * zoom, 0), enemy_pos, camera->up);
+		camera->lookAt(player_pos + director.normalize() * (800 * zoom) + Vector3(0, 100 + 400 * zoom, 0), enemy_pos, camera->up);
 	}
 	// camera->lookAt(player->model);
 	/*float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;

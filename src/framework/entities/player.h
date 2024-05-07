@@ -12,7 +12,7 @@
 
 
 
-#define DEFAULT_SPD 200
+#define DEFAULT_SPD 500
 #define DEFAULT_MANA 100
 #define JUMP_SPD 1000
 #define JUMP_HOLDTIME 1.0f
@@ -28,6 +28,7 @@ public:
 	// Movement
 	Vector3 forward = Vector3(0.0f, 0.0f, 1.0f), right = Vector3(1.0f, 0.0f, 0.0f);
 	Vector3 direction;
+	Vector3 box_cam;
 	float stop_duration = 0.25;
 	float m_spd = DEFAULT_SPD;
 	float v_spd = 0;
