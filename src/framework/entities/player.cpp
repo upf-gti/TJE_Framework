@@ -71,8 +71,8 @@ void Player::move(Vector3 vec) {
 
 void Player::update(float delta_time) {
 	float box_dist = getPositionGround().distance(box_cam);
-	if (box_dist > 400) {
-		box_cam += (box_dist - 400) * (getPositionGround() - box_cam) * delta_time;
+	if (box_dist > 2) {
+		box_cam += (box_dist - 2) * (getPositionGround() - box_cam) * delta_time;
 	}
 	timer_bullet_general = Game::instance->time - timer_bullet[bt];
 	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Game::instance->mouse_locked) //is left button pressed?

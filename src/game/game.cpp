@@ -150,8 +150,8 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	mouse_locked = false;
 	player = new Player();
 	e2 = new Player();
-	e2->model.setTranslation(Vector3(1000, 0, 500));
-	player->model.setTranslation(Vector3(0, 0, 10));
+	e2->model.setTranslation(Vector3(10, 0, 5));
+	player->model.setTranslation(Vector3(1, 0, 1));
 	player->box_cam = Vector3(0, 0, 10);
 
 	// OpenGL flags
@@ -164,13 +164,13 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	camera->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
 
 	// Load one texture using the Texture Manager
-	texture = Texture::Get("data/meshes/persono.mtl");
+	texture = Texture::Get("data/meshes/character.mtl");
 
 	// Example of loading Mesh from Mesh Manager
-	mesh = Mesh::Get("data/meshes/persono.obj");
+	mesh = Mesh::Get("data/meshes/character.obj");
 
 	// Example of shader loading using the shaders manager
-	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
+	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 
 
 	// Three vertices of the 1st triangle
@@ -321,7 +321,7 @@ void Game::update(double seconds_elapsed)
 		Vector3 player_pos = player->box_cam;
 		Vector3 enemy_pos = e2->model.getTranslation();
 		Vector3 director = player_pos - enemy_pos;
-		camera->lookAt(player_pos + director.normalize() * (800 * zoom) + Vector3(0, 100 + 400 * zoom, 0), enemy_pos, camera->up);
+		camera->lookAt(player_pos + director.normalize() * (2 * zoom) + Vector3(0, 0.25 + 1 * zoom, 0), enemy_pos, camera->up);
 	}
 	// camera->lookAt(player->model);
 	/*float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;

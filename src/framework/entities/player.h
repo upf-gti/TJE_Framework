@@ -12,11 +12,11 @@
 
 
 
-#define DEFAULT_SPD 500
+#define DEFAULT_SPD 1
 #define DEFAULT_MANA 100
-#define JUMP_SPD 1000
+#define JUMP_SPD 10
 #define JUMP_HOLDTIME 1.0f
-#define GRAVITY 3000
+#define GRAVITY 30
 #define MAX_BULLETS 1000
 #define DEFAULT_FIRERATE 0.3	// Fire Rate of Autoaim
 #define DEFAULT_COST 7			// Mana Cost of Autoaim
