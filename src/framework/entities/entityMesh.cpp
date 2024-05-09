@@ -15,22 +15,22 @@ void EntityMesh::render(Camera* camera) {
 	if (isInstanced) {
 		for (int i = 0; i < models.size(); i++) {
 			Vector3 center_world = models[i] * mesh->box.center;
-			float aabb_radius = mesh->box.halfsize.length();
-			if (!camera->testSphereInFrustum(center_world, aabb_radius)) {
+			float aabb_radius = mesh->radius;
+			if (camera->testSphereInFrustum(center_world, (1 + (1 / aabb_radius)) * aabb_radius)) {
 				models_instanced.push_back(models[i]);
 			}
 		}
-
 		final_models = &models_instanced;
 	}
+	else {
+		Vector3 center_world = model * mesh->box.center;
+		float aabb_radius = mesh->box.halfsize.length();
 
-
-	Vector3 center_world = model * mesh->box.center;
-	float aabb_radius = mesh->box.halfsize.length();
-
-	if (!camera->testSphereInFrustum(center_world, aabb_radius)) {
-		return;
+		if (!camera->testSphereInFrustum(center_world, aabb_radius)) {
+			return;
+		}
 	}
+
 
 	// Set flags
 	glDisable(GL_BLEND);
@@ -59,7 +59,7 @@ void EntityMesh::render(Camera* camera) {
 	material.shader->setUniform("u_time", Game::instance->time);
 
 	if (isInstanced)
-		mesh->renderInstanced(GL_TRIANGLES, models.data(), models.size());
+		mesh->renderInstanced(GL_TRIANGLES, final_models->data(), final_models->size());
 	else
 		mesh->render(GL_TRIANGLES);
 

@@ -12,11 +12,11 @@
 
 
 
-#define DEFAULT_SPD 1
+#define DEFAULT_SPD 1.2
 #define DEFAULT_MANA 100
 #define JUMP_SPD 10
 #define JUMP_HOLDTIME 1.0f
-#define GRAVITY 30
+#define GRAVITY 40
 #define MAX_BULLETS 1000
 #define DEFAULT_FIRERATE 0.3	// Fire Rate of Autoaim
 #define DEFAULT_COST 7			// Mana Cost of Autoaim
@@ -38,7 +38,7 @@ public:
 	// Jumping
 	bool grounded = true;
 	bool jumping = false;
-	float timer_jump;
+	float timer_jump = 0;
 	
 	// Bullets
 	enum bullet_type : uint8{

@@ -149,6 +149,12 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	elapsed_time = 0.0f;
 	mouse_locked = false;
 	player = new Player();
+	Material* mat = new Material();
+	mat->color = Vector4(1, 1, 1, 1);
+	mat->shader= shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+	mat->diffuse = Texture::Get("data/meshes/character.mtl");
+	player->mesh = Mesh::Get("data/meshes/character.obj");
+	player->material = *mat;
 	e2 = new Player();
 	e2->model.setTranslation(Vector3(10, 0, 5));
 	player->model.setTranslation(Vector3(1, 0, 1));
@@ -224,43 +230,24 @@ void Game::render(void)
 	// Create model matrix for cube
 	Matrix44 m2 = e2->getGlobalMatrix();
 
-	if (shader)
-	{
-		// Enable shader
-		shader->enable();
+	//if (shader)
+	//{
+	//	// Enable shader
+	//	shader->enable();
 
-		// Upload uniforms
-		shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-		shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-		shader->setUniform("u_texture", texture, 0);
-		shader->setUniform("u_model", m2);
-		shader->setUniform("u_time", time);
+	//	// Upload uniforms
+	//	shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+	//	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	//	shader->setUniform("u_texture", texture, 0);
+	//	shader->setUniform("u_model", m);
+	//	shader->setUniform("u_time", time);
 
-		// Do the draw call
-		mesh->render(GL_TRIANGLES);
+	//	// Do the draw call
+	//	mesh->render(GL_TRIANGLES);
 
-		// Disable shader
-		shader->disable();
-	}
-
-	if (shader)
-	{
-		// Enable shader
-		shader->enable();
-
-		// Upload uniforms
-		shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-		shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-		shader->setUniform("u_texture", texture, 0);
-		shader->setUniform("u_model", m);
-		shader->setUniform("u_time", time);
-
-		// Do the draw call
-		mesh->render(GL_TRIANGLES);
-
-		// Disable shader
-		shader->disable();
-	}
+	//	// Disable shader
+	//	shader->disable();
+	//}
 
 	root->render(camera);
 	player->render(camera);

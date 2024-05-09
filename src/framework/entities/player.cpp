@@ -31,6 +31,7 @@ void Player::jump(float delta_time) {
 		grounded = false;
 		jumping = true;
 	}
+	else v_spd = JUMP_SPD * (1 - (2*(Game::instance->time - timer_jump)));
 }
 
 void Player::shoot(bullet_type bullet_type = auto_aim) {
@@ -53,7 +54,7 @@ Vector3 Player::getPositionGround() {
 }
 
 void Player::render(Camera* camera) {
-	// EntityMesh::render(camera);
+	EntityMesh::render(camera);
 	// Render Bullets
 	for (int i = 0; i < bullets.size(); i++) {
 		bullets[i]->render(camera);
@@ -70,9 +71,10 @@ void Player::move(Vector3 vec) {
 
 
 void Player::update(float delta_time) {
+	float time = Game::instance->time;
 	float box_dist = getPositionGround().distance(box_cam);
-	if (box_dist > 2) {
-		box_cam += (box_dist - 2) * (getPositionGround() - box_cam) * delta_time;
+	if (box_dist > 1) {
+		box_cam += (box_dist - 1) * (getPositionGround() - box_cam) * delta_time;
 	}
 	timer_bullet_general = Game::instance->time - timer_bullet[bt];
 	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Game::instance->mouse_locked) //is left button pressed?
@@ -82,8 +84,11 @@ void Player::update(float delta_time) {
 	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing){
 		dash(delta_time);
 	}
-	if (Input::wasKeyPressed(SDL_SCANCODE_SPACE)) {
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3))) {
 		jump(delta_time);
+	}
+	else {
+		jumping = false;
 	}
 	if (Input::wasKeyPressed(SDL_SCANCODE_Q)) {
 		shoot(bt);
@@ -174,6 +179,9 @@ void Player::onKeyDown(SDL_KeyboardEvent event)
 		if (event.keysym.sym == SDLK_3) {
 			bt = sniper;
 		}
+	}
+	if (event.keysym.sym == SDLK_SPACE && grounded) {
+		timer_jump = Game::instance->time;
 	}
 
 	if (event.keysym.sym == SDLK_e) {

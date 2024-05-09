@@ -1,12 +1,52 @@
-# Blender 4.1.1 MTL File: 'persono2.blend'
+# Blender 4.1.1 MTL File: 'pollo.blend'
 # www.blender.org
 
-newmtl Material.001
-Ns 250.000000
+newmtl 1A1A1A.003
+Ns 94.117653
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
-Ni 1.500000
+Ni 1.000000
+d 1.000000
+illum 3
+map_Kd Textures/grey.png
+
+newmtl 455A64.003
+Ns 94.117653
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+map_Kd Textures/blue.png
+
+newmtl F44336.003
+Ns 94.117653
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+map_Kd Textures/red.png
+
+newmtl FF9800.003
+Ns 94.117653
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+map_Kd Textures/orange.png
+
+newmtl FFFFFF.003
+Ns 94.117653
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
 d 1.000000
 illum 2
-map_Kd ../gus.tga
+map_Kd Textures/white.png
