@@ -248,12 +248,12 @@ void Game::render(void)
 	//	// Disable shader
 	//	shader->disable();
 	//}
-
+	drawGrid();
 	root->render(camera);
 	player->render(camera);
 
 	// Draw the floor grid
-	drawGrid();
+
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);

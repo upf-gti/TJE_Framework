@@ -17,6 +17,7 @@ public:
 	float acceleration = 0;
 	float rotation_angle_accel = 0;
 	float speed = BULLET_SPD;
+	float opacity_dec = 0;
 
 	// Despawn time
 	float timer_spawn = -1;

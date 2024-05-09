@@ -34,8 +34,9 @@ void EntityMesh::render(Camera* camera) {
 
 	// Set flags
 	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+
 	
 	//// Get the last camera that was activated 
 	//Camera* camera = Camera::current;

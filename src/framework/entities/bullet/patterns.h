@@ -55,14 +55,15 @@ public:
 
 	static void sniper(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
 		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/texture.tga");
+		Texture* texture = Texture::Get("data/textures/sniper.mtl");
 		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
-		Mesh* mesh = Mesh::Get("data/meshes/box.ASE"); // aqui pones el modelo
+		Mesh* mesh = Mesh::Get("data/meshes/sniper.obj"); // aqui pones el modelo
 
 		mat.diffuse = texture;
 		mat.shader = shader;
-		Bullet* b = new BulletNormal(mesh, mat, direction, model, 4000);
+		Bullet* b = new BulletNormal(mesh, mat, direction, model, 0);
+		b->opacity_dec = 1;
 		bullets.push_back(b);
 	}
 
