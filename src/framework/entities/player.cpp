@@ -45,6 +45,25 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	}
 }
 
+void Player::shootCharge(bullet_type bullet_type) {
+	//std::cout << "charging (telo imaginas)" << std::endl;
+	bool time = (Game::instance->time - timer_charge[bullet_type]) > charge_cooldown[bullet_type];
+
+	if (time && !charging && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+		timer_charge[bullet_type] = Game::instance->time;
+		charging = true;
+	}
+	else if (charging) {
+		if (!time) {
+			
+		}
+		else {
+			charging = false;
+			shoot(bullet_type);
+		}
+	}
+}
+
 Vector3 Player::getPosition() {
 	return model.getTranslation();
 }
@@ -58,6 +77,31 @@ void Player::render(Camera* camera) {
 	// Render Bullets
 	for (int i = bullets.size()-1; i >= 0; i--) {
 		bullets[i]->render(camera);
+	}
+
+	bool time = (Game::instance->time - timer_charge[bt]) > charge_cooldown[bt];
+	if (charging) {
+		float size = (1 - (Game::instance->time - timer_charge[bt])) / charge_cooldown[bt];
+		charge_model = model;
+		charge_model.translate(Vector3(0, 1, 0));
+		charge_model.scale(size, size, size);
+
+		if (!charge_mat.shader) {
+			charge_mat.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+		}
+
+		charge_mat.shader->enable();
+
+		charge_mat.shader->setUniform("u_color", charge_mat.color);
+		charge_mat.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+		charge_mat.shader->setTexture("u_texture", charge_mat.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
+		charge_mat.shader->setUniform("u_model", charge_model);
+		charge_mat.shader->setUniform("u_time", Game::instance->time);
+
+		charge_mesh->render(GL_TRIANGLES);
+
+		// Disable shader after finishing rendering
+		charge_mat.shader->disable();
 	}
 	// Entity::render(camera);
 };
@@ -90,9 +134,12 @@ void Player::update(float delta_time) {
 	else {
 		jumping = false;
 	}
-	if (Input::wasKeyPressed(SDL_SCANCODE_Q)) {
-		shoot(bt);
-	}	
+	if (Input::isKeyPressed(SDL_SCANCODE_Q)) {
+		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
+		if (charge_cooldown[bt]) shootCharge(bt);
+		else shoot(bt);
+	}
+	else charging = false;
 	if (autoshoot) {
 		shoot();
 	}
@@ -107,15 +154,17 @@ void Player::update(float delta_time) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
 	}
-	float speed = m_spd - DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (timer_bullet_general < knockback_time[bt]); //the speed is defined by the seconds_elapsed so it goes constant
+	bool is_knowckback = timer_bullet_general < knockback_time[bt];
+	float speed = m_spd - DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
 
-	// std::cout << v_spd << " " << grounded << " " << jumping << std::endl;
-
-	if (Input::isKeyPressed(SDL_SCANCODE_W)) direction += forward;
-	if (Input::isKeyPressed(SDL_SCANCODE_S)) direction += -forward;
-	if (Input::isKeyPressed(SDL_SCANCODE_A)) direction += right;
-	if (Input::isKeyPressed(SDL_SCANCODE_D)) direction += -right;
-	direction.normalize();
+	if (!is_knowckback) {
+		if (Input::isKeyPressed(SDL_SCANCODE_W)) direction += forward;
+		if (Input::isKeyPressed(SDL_SCANCODE_S)) direction += -forward;
+		if (Input::isKeyPressed(SDL_SCANCODE_A)) direction += right;
+		if (Input::isKeyPressed(SDL_SCANCODE_D)) direction += -right;
+		direction.normalize();
+	}
+	else direction = forward;
 
 	move(direction * speed * delta_time);
 	move(Vector3(0, 1, 0) * v_spd * delta_time);
@@ -164,6 +213,9 @@ void Player::onKeyUp(SDL_KeyboardEvent event)
 	{
 		std::cout << "hehe" << std::endl;
 		jumping = false;
+	}
+	if (event.keysym.sym == SDLK_q) {
+		canshoot = true;
 	}
 }
 
