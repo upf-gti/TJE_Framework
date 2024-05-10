@@ -14,7 +14,7 @@ Vector3 BulletNormal::getPosition() {
 
 void BulletNormal::render(Camera* camera) {
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	if (!material.shader) {
 		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");

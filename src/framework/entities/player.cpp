@@ -56,7 +56,7 @@ Vector3 Player::getPositionGround() {
 void Player::render(Camera* camera) {
 	EntityMesh::render(camera);
 	// Render Bullets
-	for (int i = 0; i < bullets.size(); i++) {
+	for (int i = bullets.size()-1; i >= 0; i--) {
 		bullets[i]->render(camera);
 	}
 	// Entity::render(camera);
