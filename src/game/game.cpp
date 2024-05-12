@@ -18,6 +18,7 @@
 
 //some globals
 Mesh* mesh = NULL;
+Mesh* sphere = NULL;
 Texture* texture = NULL;
 Shader* shader = NULL;
 float angle = 0;
@@ -33,7 +34,7 @@ Matrix44 camera_support;
 
 Mesh quad;
 
-
+Texture* cubemap = new Texture();
 
 Shader* image = NULL;
 Texture* sus = NULL;
@@ -42,6 +43,31 @@ Texture* sus = NULL;
 // Cosas nuevas que he añadido
 Entity* root;
 
+void renderSkybox(Texture* cubemap)
+{
+	Camera* camera = Camera::current;
+
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
+	Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/skybox.fs");
+	if (!shader)
+		return;
+	shader->enable();
+
+	Matrix44 m;
+	m.setTranslation(camera->eye.x, camera->eye.y, camera->eye.z);
+	m.scale(10, 10, 10);
+	shader->setUniform("u_model", m);
+	shader->setUniform("u_camera_pos", camera->eye);
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_texture", cubemap, 0);
+	sphere->render(GL_TRIANGLES);
+	shader->disable();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_DEPTH_TEST);
+}
 
 bool parseScene(const char* filename, Entity* root)
 {
@@ -200,6 +226,17 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 
 	root = new Entity();
 	parseScene("data/myscene.scene", root);
+
+	cubemap->loadCubemap("landscape", {
+		"data/textures/skybox/right.png",
+		"data/textures/skybox/left.png",
+		"data/textures/skybox/bottom.png",
+		"data/textures/skybox/top.png",
+		"data/textures/skybox/front.png",
+		"data/textures/skybox/back.png"
+	});
+	sphere = new Mesh();
+	sphere->createCube();
 }
 
 #include <vector>
@@ -223,6 +260,8 @@ void Game::render(void)
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
+
+	renderSkybox(cubemap);
 
 	// Create model matrix for cube
 	Matrix44 m = player->getGlobalMatrix();
