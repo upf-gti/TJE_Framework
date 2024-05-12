@@ -18,7 +18,7 @@
 
 //some globals
 Mesh* mesh = NULL;
-Mesh* sphere = NULL;
+Mesh* cube = NULL;
 Texture* texture = NULL;
 Shader* shader = NULL;
 float angle = 0;
@@ -60,10 +60,11 @@ void renderSkybox(Texture* cubemap)
 	m.setTranslation(camera->eye.x, camera->eye.y, camera->eye.z);
 	m.scale(10, 10, 10);
 	shader->setUniform("u_model", m);
+
 	shader->setUniform("u_camera_pos", camera->eye);
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	shader->setUniform("u_texture", cubemap, 0);
-	sphere->render(GL_TRIANGLES);
+	cube->render(GL_TRIANGLES);
 	shader->disable();
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_DEPTH_TEST);
@@ -235,8 +236,8 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 		"data/textures/skybox/front.png",
 		"data/textures/skybox/back.png"
 	});
-	sphere = new Mesh();
-	sphere->createCube();
+	cube = new Mesh();
+	cube->createCube();
 }
 
 #include <vector>
