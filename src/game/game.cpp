@@ -5,7 +5,6 @@
 #include "graphics/fbo.h"
 #include "graphics/shader.h"
 #include "framework/input.h"
-#include "framework/entities/entity.h"
 #include "graphics/material.h"
 #include "framework/entities/entityMesh.h"
 #include "framework/entities/player.h"
@@ -41,7 +40,7 @@ Texture* sus = NULL;
 
 
 // Cosas nuevas que he añadido
-Entity* root;
+
 
 void renderSkybox(Texture* cubemap)
 {

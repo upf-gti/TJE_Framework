@@ -7,7 +7,7 @@
 #include "framework/includes.h"
 #include "framework/camera.h"
 #include "framework/utils.h"
-
+#include "framework/entities/entity.h"
 
 class Game
 {
@@ -27,6 +27,8 @@ public:
 	bool must_exit;
 
 	float zoom = 1.f;
+
+	Entity* root;
 
 	//some vars
 	Camera* camera; //our global camera

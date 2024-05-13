@@ -2,7 +2,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "framework/entities/entityMesh.h"
+#include "framework/entities/entityCollider.h"
 #include "framework/entities/bullet/bulletAuto.h"
 #include "framework/entities/bullet/bulletNormal.h"
 #include "framework/camera.h"
@@ -20,6 +20,8 @@
 #define MAX_BULLETS 1000
 #define DEFAULT_FIRERATE 0.3	// Fire Rate of Autoaim
 #define DEFAULT_COST 7			// Mana Cost of Autoaim
+#define HITBOX_RAD 0.2
+#define PLAYER_HEIGHT 0.6
 
 
 class Player : public EntityMesh {
@@ -37,8 +39,11 @@ public:
 	float timer_dash;
 	// Jumping
 	bool grounded = true;
+	bool touching_ground = false;
 	bool jumping = false;
+	bool colliding = false;
 	float timer_jump = 0;
+	float player_height = PLAYER_HEIGHT;
 	
 	// Bullets
 	enum bullet_type : uint8{

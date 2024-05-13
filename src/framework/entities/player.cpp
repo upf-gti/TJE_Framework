@@ -103,18 +103,45 @@ void Player::render(Camera* camera) {
 		// Disable shader after finishing rendering
 		charge_mat.shader->disable();
 	}
+
+	// Render sphere
+
+	Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
+	Mesh* mesh = Mesh::Get("data/meshes/sphere.obj");
+	Matrix44 m = model;
+
+	material.shader->enable();
+
+	float sphere_radius = HITBOX_RAD;
+	m.translate(0.0f, player_height, 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	material.shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	material.shader->setUniform("u_model", m);
+
+	mesh->render(GL_LINES);
+
+	material.shader->disable();
 	// Entity::render(camera);
 };
+
+struct sCollisionData {
+	Vector3 colPoint;
+	Vector3 colNormal;
+};
+
 
 
 void Player::move(Vector3 vec) {
 	model.translate(vec);
-
 }
 
 
 
 void Player::update(float delta_time) {
+	std::cout << grounded << std::endl;
+	if (grounded && !jumping) v_spd = 0;
 	float time = Game::instance->time;
 	float box_dist = getPositionGround().distance(box_cam);
 	if (box_dist > 1) {
@@ -146,6 +173,7 @@ void Player::update(float delta_time) {
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
 	}
+
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) || 
 		Input::isKeyPressed(SDL_SCANCODE_S) || 
 		Input::isKeyPressed(SDL_SCANCODE_A) || 
@@ -165,13 +193,7 @@ void Player::update(float delta_time) {
 		direction.normalize();
 	}
 	else direction = forward;
-
 	move(direction * speed * delta_time);
-	move(Vector3(0, 1, 0) * v_spd * delta_time);
-	if (model.getTranslation().y < 0) {
-		move(Vector3(0, -model.getTranslation().y, 0));
-		grounded = true;
-	}
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
 		if (Game::instance->time - b->timer_spawn > 5) {
@@ -188,6 +210,73 @@ void Player::update(float delta_time) {
 		mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);
 	}
 	else mana = 200;
+
+	std::vector<sCollisionData> collisions;
+
+	//for (Entity* e : Game::instance->root->children)
+	//{
+	//	EntityMesh* ee = (EntityMesh*)e;
+	//	sCollisionData data;
+	//	if (ee->mesh->testSphereCollision(
+	//		e->model,
+	//		model.getTranslation() + Vector3(0, player_height, 0),
+	//		0.5,
+	//		data.colPoint,
+	//		data.colNormal
+	//	)) {
+	//		std::cout << "Collision!" << Game::instance->time << std::endl;
+	//		collisions.push_back(data);
+	//	}
+	//}
+	colliding = false;
+	touching_ground = false;
+
+	for (int i = 0; i < Game::instance->root->children.size(); ++i) {
+		EntityMesh* ee = (EntityMesh*)Game::instance->root->children[i];
+		sCollisionData data;
+		if (ee->isInstanced) {
+			for (Matrix44 instanced_model : ee->models) {
+				if (ee->mesh->testSphereCollision(instanced_model, model.getTranslation() + Vector3(0, player_height, 0), HITBOX_RAD, data.colPoint, data.colNormal)) {
+					colliding = true;
+					collisions.push_back(data);
+				}
+				if (ee->mesh->testRayCollision(
+					instanced_model,
+					model.getTranslation() + Vector3(0, player_height, 0),
+					Vector3(0,-1,0),
+					data.colPoint,
+					data.colNormal,
+					player_height + 0.1,
+					false
+				)) {
+					touching_ground = true;
+				}
+			}
+		}
+		else {
+			if (ee->mesh->testSphereCollision(ee->model, model.getTranslation() + Vector3(0, player_height, 0), HITBOX_RAD, data.colPoint, data.colNormal)) {
+				colliding = true;
+				collisions.push_back(data);
+			}
+			if (ee->mesh->testRayCollision(
+				ee->model,
+				model.getTranslation() + Vector3(0, player_height, 0),
+				Vector3(0, -1, 0),
+				data.colPoint,
+				data.colNormal,
+				player_height + 0.1,
+				false
+			)) {
+				touching_ground = true;
+			}
+		}
+	}
+
+	move(Vector3(0, 1, 0)* v_spd* delta_time);
+	grounded = touching_ground;
+	//for (sCollisionData sCol : collisions) {
+	//	
+	//}
 
 
 	//std::cout << model.getTranslation().x << " "
@@ -235,7 +324,6 @@ void Player::onKeyDown(SDL_KeyboardEvent event)
 	if (event.keysym.sym == SDLK_SPACE && grounded) {
 		timer_jump = Game::instance->time;
 	}
-
 	if (event.keysym.sym == SDLK_e) {
 		autoshoot = !autoshoot;
 	}
