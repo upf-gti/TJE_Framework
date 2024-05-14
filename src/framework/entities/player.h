@@ -7,7 +7,7 @@
 #include "framework/entities/bullet/bulletNormal.h"
 #include "framework/camera.h"
 #include "framework/input.h"
-#include "game/game.h"
+#include "game/stage.h"
 #include "framework/entities/bullet/patterns.h"
 
 
@@ -31,12 +31,15 @@ public:
 	Vector3 forward = Vector3(0.0f, 0.0f, 1.0f), right = Vector3(1.0f, 0.0f, 0.0f);
 	Vector3 direction;
 	Vector3 box_cam;
+	Vector3 velocity = Vector3(0.0f, 0.0f, 0.0f);
 	float stop_duration = 0.25;
 	float m_spd = DEFAULT_SPD;
 	float v_spd = 0;
+
 	// Dashing
 	bool dashing = false;
 	float timer_dash;
+
 	// Jumping
 	bool grounded = true;
 	bool touching_ground = false;
@@ -71,6 +74,13 @@ public:
 	Material charge_mat;
 	Mesh* charge_mesh;
 	Matrix44 charge_model;
+
+	float ground_below_y = 10000;
+
+	Shader* flat_shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
+
+	Mesh* hitbox_mesh = Mesh::Get("data/meshes/sphere.obj");
+	Mesh* shadow_mesh = Mesh::Get("data/meshes/shadow.obj");
 
 
 	// TODO: Hitbox stuff 

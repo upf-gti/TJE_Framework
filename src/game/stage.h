@@ -8,18 +8,11 @@
 #include "framework/camera.h"
 #include "framework/utils.h"
 #include "framework/entities/entity.h"
-#include "stage.h"
 
-class Game
+class Stage
 {
 public:
-	static Game* instance;
-	Stage* stage;
-
-	//window
-	SDL_Window* window;
-	int window_width;
-	int window_height;
+	static Stage* instance;
 
 	//some globals
 	long frame;
@@ -30,15 +23,18 @@ public:
 
 	float zoom = 1.f;
 
+	Entity* root;
+
 	//some vars
 	Camera* camera; //our global camera
 	bool mouse_locked; //tells if the mouse is locked (not seen)
 
-	Game( int window_width, int window_height, SDL_Window* window );
+	Stage();
 
 	//main functions
 	void render( void );
 	void update( double dt );
+
 
 	//events
 	void onKeyDown( SDL_KeyboardEvent event );
@@ -48,5 +44,4 @@ public:
 	void onMouseWheel(SDL_MouseWheelEvent event);
 	void onGamepadButtonDown(SDL_JoyButtonEvent event);
 	void onGamepadButtonUp(SDL_JoyButtonEvent event);
-	void onResize(int width, int height);
 };

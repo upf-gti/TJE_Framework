@@ -73,7 +73,7 @@ Vector3 Player::getPositionGround() {
 }
 
 void Player::render(Camera* camera) {
-	EntityMesh::render(camera);
+
 	// Render Bullets
 	for (int i = bullets.size()-1; i >= 0; i--) {
 		bullets[i]->render(camera);
@@ -106,24 +106,48 @@ void Player::render(Camera* camera) {
 
 	// Render sphere
 
-	Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
-	Mesh* mesh = Mesh::Get("data/meshes/sphere.obj");
 	Matrix44 m = model;
 
-	material.shader->enable();
+	flat_shader->enable();
 
 	float sphere_radius = HITBOX_RAD;
 	m.translate(0.0f, player_height, 0.0f);
 	m.scale(sphere_radius, sphere_radius, sphere_radius);
 
-	material.shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
-	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	material.shader->setUniform("u_model", m);
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
 
-	mesh->render(GL_LINES);
+	hitbox_mesh->render(GL_LINES);
 
-	material.shader->disable();
+	flat_shader->disable();
+
+	Matrix44 squash = model;
+	squash.translate(0, -ground_below_y, 0);
+	squash.scale(1 / (1 + ground_below_y), 1 / (1 + ground_below_y), 1 / (1 + ground_below_y));
+
+	glDepthFunc(GL_GREATER);
+	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CW);
+	glDepthMask(false);
+	flat_shader->enable();
+
+
+	flat_shader->setUniform("u_color", Vector4(0.0f, 0.0f, 0.0f, 0.5f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", squash);
+
+	shadow_mesh->render(GL_TRIANGLES);
+
+	flat_shader->disable();
+	glDisable(GL_BLEND);
+	glFrontFace(GL_CCW);
+	glDisable(GL_CULL_FACE);
+	glDepthFunc(GL_LESS);
+	glDepthMask(true);
 	// Entity::render(camera);
+	EntityMesh::render(camera);
 };
 
 struct sCollisionData {
@@ -140,7 +164,7 @@ void Player::move(Vector3 vec) {
 
 
 void Player::update(float delta_time) {
-	std::cout << grounded << std::endl;
+	// std::cout << grounded << std::endl;
 	if (grounded && !jumping) v_spd = 0;
 	float time = Game::instance->time;
 	float box_dist = getPositionGround().distance(box_cam);
@@ -148,7 +172,7 @@ void Player::update(float delta_time) {
 		box_cam += (box_dist - 1) * (getPositionGround() - box_cam) * delta_time;
 	}
 	timer_bullet_general = Game::instance->time - timer_bullet[bt];
-	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Game::instance->mouse_locked) //is left button pressed?
+	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Stage::instance->mouse_locked) //is left button pressed?
 	{
 		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
@@ -177,7 +201,7 @@ void Player::update(float delta_time) {
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) || 
 		Input::isKeyPressed(SDL_SCANCODE_S) || 
 		Input::isKeyPressed(SDL_SCANCODE_A) || 
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Game::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot /2;
+		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot /2;
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
@@ -212,6 +236,7 @@ void Player::update(float delta_time) {
 	else mana = 200;
 
 	std::vector<sCollisionData> collisions;
+	std::vector<sCollisionData> ground;
 
 	//for (Entity* e : Game::instance->root->children)
 	//{
@@ -231,8 +256,10 @@ void Player::update(float delta_time) {
 	colliding = false;
 	touching_ground = false;
 
-	for (int i = 0; i < Game::instance->root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*)Game::instance->root->children[i];
+	ground_below_y = 10000;
+
+	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
+		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
 		sCollisionData data;
 		if (ee->isInstanced) {
 			for (Matrix44 instanced_model : ee->models) {
@@ -246,10 +273,26 @@ void Player::update(float delta_time) {
 					Vector3(0,-1,0),
 					data.colPoint,
 					data.colNormal,
-					player_height + 0.1,
+					player_height + 0.01,
 					false
 				)) {
+					ground.push_back(data);
 					touching_ground = true;
+				}
+				if (ee->mesh->testRayCollision(
+					instanced_model,
+					model.getTranslation() + Vector3(0, player_height, 0),
+					Vector3(0, -1, 0),
+					data.colPoint,
+					data.colNormal,
+					100,
+					false
+				)) {
+					float diff = model.getTranslation().y - data.colPoint.y;
+					if (diff < ground_below_y && diff >= -0.3) {
+						ground_below_y = diff;
+					}
+					std::cout << data.colPoint.y<<std::endl;
 				}
 			}
 		}
@@ -264,16 +307,42 @@ void Player::update(float delta_time) {
 				Vector3(0, -1, 0),
 				data.colPoint,
 				data.colNormal,
-				player_height + 0.1,
+				player_height + 0.01,
 				false
 			)) {
+				ground.push_back(data);
 				touching_ground = true;
+			}
+			if (ee->mesh->testRayCollision(
+				ee->model,
+				model.getTranslation() + Vector3(0, player_height, 0),
+				Vector3(0, -1, 0),
+				data.colPoint,
+				data.colNormal,
+				100,
+				false
+			)) {
+				float diff = model.getTranslation().y - data.colPoint.y;
+				if (diff < ground_below_y && diff >= -0.3) {
+					ground_below_y = diff;
+				}
+				std::cout << data.colPoint.y << std::endl;
 			}
 		}
 	}
 
+	//for (sCollisionData d : ground) {
+	//	Vector3 collisionNormal = d.colNormal;
+	//	float newDir = model.frontVector().dot(collisionNormal);
+	//	//collisionNormal *= newDir;
+	//	v_spd += collisionNormal.y;
+	//	std::cout << collisionNormal.toString();
+	//}
+
+
 	move(Vector3(0, 1, 0)* v_spd* delta_time);
 	grounded = touching_ground;
+
 	//for (sCollisionData sCol : collisions) {
 	//	
 	//}
