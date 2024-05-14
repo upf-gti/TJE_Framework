@@ -123,7 +123,8 @@ void Player::render(Camera* camera) {
 	flat_shader->disable();
 
 	Matrix44 squash = model;
-	squash.translate(0, -ground_below_y, 0);
+	
+	squash.setTranslation(Vector3(model.getTranslation().x, ground_y, model.getTranslation().z));
 	squash.scale(1 / (1 + ground_below_y), 1 / (1 + ground_below_y), 1 / (1 + ground_below_y));
 
 	glDepthFunc(GL_GREATER);
@@ -150,10 +151,6 @@ void Player::render(Camera* camera) {
 	EntityMesh::render(camera);
 };
 
-struct sCollisionData {
-	Vector3 colPoint;
-	Vector3 colNormal;
-};
 
 
 
@@ -165,7 +162,7 @@ void Player::move(Vector3 vec) {
 
 void Player::update(float delta_time) {
 	// std::cout << grounded << std::endl;
-	if (grounded && !jumping) v_spd = 0;
+	
 	float time = Game::instance->time;
 	float box_dist = getPositionGround().distance(box_cam);
 	if (box_dist > 1) {
@@ -179,12 +176,7 @@ void Player::update(float delta_time) {
 	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing){
 		dash(delta_time);
 	}
-	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3))) {
-		jump(delta_time);
-	}
-	else {
-		jumping = false;
-	}
+
 	if (Input::isKeyPressed(SDL_SCANCODE_Q)) {
 		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
 		if (charge_cooldown[bt]) shootCharge(bt);
@@ -194,9 +186,7 @@ void Player::update(float delta_time) {
 	if (autoshoot) {
 		shoot();
 	}
-	if (!grounded && !jumping) {
-		v_spd -= GRAVITY * delta_time;
-	}
+
 
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) || 
 		Input::isKeyPressed(SDL_SCANCODE_S) || 
@@ -235,8 +225,8 @@ void Player::update(float delta_time) {
 	}
 	else mana = 200;
 
-	std::vector<sCollisionData> collisions;
-	std::vector<sCollisionData> ground;
+	std::vector<sCollisionData*> collisions;
+	std::vector<sCollisionData*> ground;
 
 	//for (Entity* e : Game::instance->root->children)
 	//{
@@ -253,84 +243,25 @@ void Player::update(float delta_time) {
 	//		collisions.push_back(data);
 	//	}
 	//}
-	colliding = false;
-	touching_ground = false;
+	Vector3 player_center = model.getTranslation() + Vector3(0,player_height,0);
+	colliding = Stage::instance->sphere_collided(&collisions, player_center, HITBOX_RAD);
+
 
 	ground_below_y = 10000;
+	ground_y = 10000;
 
-	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
-		sCollisionData data;
-		if (ee->isInstanced) {
-			for (Matrix44 instanced_model : ee->models) {
-				if (ee->mesh->testSphereCollision(instanced_model, model.getTranslation() + Vector3(0, player_height, 0), HITBOX_RAD, data.colPoint, data.colNormal)) {
-					colliding = true;
-					collisions.push_back(data);
-				}
-				if (ee->mesh->testRayCollision(
-					instanced_model,
-					model.getTranslation() + Vector3(0, player_height, 0),
-					Vector3(0,-1,0),
-					data.colPoint,
-					data.colNormal,
-					player_height + 0.01,
-					false
-				)) {
-					ground.push_back(data);
-					touching_ground = true;
-				}
-				if (ee->mesh->testRayCollision(
-					instanced_model,
-					model.getTranslation() + Vector3(0, player_height, 0),
-					Vector3(0, -1, 0),
-					data.colPoint,
-					data.colNormal,
-					100,
-					false
-				)) {
-					float diff = model.getTranslation().y - data.colPoint.y;
-					if (diff < ground_below_y && diff >= -0.3) {
-						ground_below_y = diff;
-					}
-					std::cout << data.colPoint.y<<std::endl;
-				}
-			}
+	touching_ground = false;
+	Stage::instance->ray_collided(&ground, player_center, -Vector3::UP, 100);
+	for (sCollisionData* g : ground) {
+		ground_below_y = player_center.y - g->colPoint.y;
+		if (player_center.y - g->colPoint.y < player_height + 0.03) {
+			touching_ground = true;
+			v_spd = g->colNormal.y * ground_below_y * ground_below_y;
 		}
-		else {
-			if (ee->mesh->testSphereCollision(ee->model, model.getTranslation() + Vector3(0, player_height, 0), HITBOX_RAD, data.colPoint, data.colNormal)) {
-				colliding = true;
-				collisions.push_back(data);
-			}
-			if (ee->mesh->testRayCollision(
-				ee->model,
-				model.getTranslation() + Vector3(0, player_height, 0),
-				Vector3(0, -1, 0),
-				data.colPoint,
-				data.colNormal,
-				player_height + 0.01,
-				false
-			)) {
-				ground.push_back(data);
-				touching_ground = true;
-			}
-			if (ee->mesh->testRayCollision(
-				ee->model,
-				model.getTranslation() + Vector3(0, player_height, 0),
-				Vector3(0, -1, 0),
-				data.colPoint,
-				data.colNormal,
-				100,
-				false
-			)) {
-				float diff = model.getTranslation().y - data.colPoint.y;
-				if (diff < ground_below_y && diff >= -0.3) {
-					ground_below_y = diff;
-				}
-				std::cout << data.colPoint.y << std::endl;
-			}
-		}
+		ground_y = g->colPoint.y;
+		ground_normal = g->colNormal;
 	}
-
+	grounded = touching_ground;
 	//for (sCollisionData d : ground) {
 	//	Vector3 collisionNormal = d.colNormal;
 	//	float newDir = model.frontVector().dot(collisionNormal);
@@ -339,9 +270,18 @@ void Player::update(float delta_time) {
 	//	std::cout << collisionNormal.toString();
 	//}
 
-
-	move(Vector3(0, 1, 0)* v_spd* delta_time);
-	grounded = touching_ground;
+	//if (grounded && !jumping) v_spd = 0;
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3))) {
+		jump(delta_time);
+	}
+	else {
+		jumping = false;
+	}
+	if (!grounded && !jumping) {
+		v_spd -= GRAVITY * delta_time;
+	}
+	move(Vector3(0, 1, 0) * v_spd * delta_time);
+	
 
 	//for (sCollisionData sCol : collisions) {
 	//	

@@ -8,6 +8,7 @@
 #include "framework/camera.h"
 #include "framework/utils.h"
 #include "framework/entities/entity.h"
+#include "framework/entities/entityCollider.h"
 
 class Stage
 {
@@ -44,4 +45,7 @@ public:
 	void onMouseWheel(SDL_MouseWheelEvent event);
 	void onGamepadButtonDown(SDL_JoyButtonEvent event);
 	void onGamepadButtonUp(SDL_JoyButtonEvent event);
+	bool ray_collided(std::vector<EntityCollider::sCollisionData*>* ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false);
+	bool sphere_collided(std::vector<EntityCollider::sCollisionData*>* collisions, Vector3 position, float radius);
+
 };

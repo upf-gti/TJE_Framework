@@ -161,6 +161,62 @@ bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
+bool Stage::ray_collided(std::vector<EntityCollider::sCollisionData*>* ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space) {
+	for (int i = 0; i < root->children.size(); ++i) {
+		EntityMesh* ee = (EntityMesh*)root->children[i];
+		EntityCollider::sCollisionData* data = new EntityCollider::sCollisionData();
+		if (ee->isInstanced) {
+			for (Matrix44 instanced_model : ee->models) {
+				if (ee->mesh->testRayCollision(
+					instanced_model,
+					position,
+					direction,
+					data->colPoint,
+					data->colNormal,
+					dist,
+					in_object_space
+				)) {
+					ray_collisions->push_back(data);
+				}
+			}
+		}
+		else {
+			if (ee->mesh->testRayCollision(
+				ee->model,
+				position,
+				direction,
+				data->colPoint,
+				data->colNormal,
+				dist,
+				in_object_space
+			)) {
+				ray_collisions->push_back(data);
+			}
+		}
+	}
+	return (!ray_collisions->empty());
+}
+
+bool Stage::sphere_collided(std::vector<EntityCollider::sCollisionData*>* collisions, Vector3 position, float radius) {
+	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
+		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
+		EntityCollider::sCollisionData* data = new EntityCollider::sCollisionData();
+		if (ee->isInstanced) {
+			for (Matrix44 instanced_model : ee->models) {
+				if (ee->mesh->testSphereCollision(instanced_model, position, radius, data->colPoint, data->colNormal)) {
+					collisions->push_back(data);
+				}
+			}
+		}
+		else {
+			if (ee->mesh->testSphereCollision(ee->model, position, radius, data->colPoint, data->colNormal)) {
+				collisions->push_back(data);
+			}
+		}
+	}
+	return (!collisions->empty());
+}
+
 Stage::Stage()
 {
 	instance = this;

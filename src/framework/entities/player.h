@@ -24,7 +24,7 @@
 #define PLAYER_HEIGHT 0.6
 
 
-class Player : public EntityMesh {
+class Player : public EntityCollider {
 
 public:
 	// Movement
@@ -76,6 +76,8 @@ public:
 	Matrix44 charge_model;
 
 	float ground_below_y = 10000;
+	float ground_y = 10000;
+	Vector3 ground_normal;
 
 	Shader* flat_shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
 
