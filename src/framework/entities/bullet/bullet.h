@@ -5,7 +5,7 @@
 #include "framework/entities/entityMesh.h"
 #include "game/game.h"
 
-#define BULLET_SPD 1000
+#define BULLET_SPD 10
 
 
 class Bullet : public EntityMesh {

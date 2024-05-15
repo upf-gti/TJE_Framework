@@ -9,11 +9,11 @@ static class Patterns {
 public:
 	static void autoAim(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
 		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/texture.tga");
+		Texture* texture = Texture::Get("data/textures/bullet.mtl");
 		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
-		Mesh* mesh = Mesh::Get("data/meshes/box.ASE"); // aqui pones el modelo
-
+		Mesh* mesh = Mesh::Get("data/meshes/bullet.obj"); // aqui pones el modelo
+		model.translate(Vector3(0,1,0));
 		mat.diffuse = texture;
 		mat.shader = shader;
 		Bullet* b = new BulletAuto(mesh, mat, Vector3(0, 700, 0), direction, model);
@@ -22,10 +22,10 @@ public:
 
 	static void circle(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
 		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/texture.tga");
+		Texture* texture = Texture::Get("data/textures/bullet.mtl");
 		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
-		Mesh* mesh = Mesh::Get("data/meshes/box.ASE"); // aqui pones el modelo
+		Mesh* mesh = Mesh::Get("data/meshes/bullet.obj"); // aqui pones el modelo
 
 		mat.diffuse = texture;
 		mat.shader = shader;
@@ -38,10 +38,10 @@ public:
 
 	static void shotgun(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
 		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/texture.tga");
+		Texture* texture = Texture::Get("data/textures/bullet.mtl");
 		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
 
-		Mesh* mesh = Mesh::Get("data/meshes/box.ASE"); // aqui pones el modelo
+		Mesh* mesh = Mesh::Get("data/meshes/bullet.obj"); // aqui pones el modelo
 
 		mat.diffuse = texture;
 		mat.shader = shader;
