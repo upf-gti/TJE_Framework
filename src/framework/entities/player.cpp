@@ -207,7 +207,7 @@ void Player::update(float delta_time) {
 		direction.normalize();
 	}
 	else direction = forward;
-	move(direction * speed * delta_time);
+	
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
 		if (Game::instance->time - b->timer_spawn > 5) {
@@ -225,8 +225,8 @@ void Player::update(float delta_time) {
 	}
 	else mana = 200;
 
-	std::vector<sCollisionData*> collisions;
-	std::vector<sCollisionData*> ground;
+	std::vector<sCollisionData> collisions;
+	std::vector<sCollisionData> ground;
 
 	//for (Entity* e : Game::instance->root->children)
 	//{
@@ -244,31 +244,37 @@ void Player::update(float delta_time) {
 	//	}
 	//}
 	Vector3 player_center = model.getTranslation() + Vector3(0,player_height,0);
-	colliding = Stage::instance->sphere_collided(&collisions, player_center, HITBOX_RAD);
+	colliding = Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD);
 
 
 	ground_below_y = 10000;
 	ground_y = 10000;
 
 	touching_ground = false;
-	Stage::instance->ray_collided(&ground, player_center, -Vector3::UP, 100);
-	for (sCollisionData* g : ground) {
-		ground_below_y = player_center.y - g->colPoint.y;
-		if (player_center.y - g->colPoint.y < player_height + 0.03) {
+	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 100);
+	for (sCollisionData& g : ground) {
+		ground_below_y = player_center.y - g.colPoint.y;
+		if (player_center.y - g.colPoint.y < player_height + 0.03) {
 			touching_ground = true;
-			v_spd = g->colNormal.y * ground_below_y * ground_below_y;
+			v_spd = g.colNormal.y * ground_below_y * ground_below_y;
 		}
-		ground_y = g->colPoint.y;
-		ground_normal = g->colNormal;
+		ground_y = g.colPoint.y;
+		ground_normal = g.colNormal;
 	}
+
+	Matrix44 inv_matrix = model;
+	inv_matrix.inverse();
+
+	for (sCollisionData& g : collisions) {
+		Vector3 localNormal;
+		localNormal = inv_matrix.rotateVector(g.colNormal);
+		direction += localNormal * 10;
+		direction.y = 0;
+	}
+
+	move(direction * speed * delta_time);
+
 	grounded = touching_ground;
-	//for (sCollisionData d : ground) {
-	//	Vector3 collisionNormal = d.colNormal;
-	//	float newDir = model.frontVector().dot(collisionNormal);
-	//	//collisionNormal *= newDir;
-	//	v_spd += collisionNormal.y;
-	//	std::cout << collisionNormal.toString();
-	//}
 
 	//if (grounded && !jumping) v_spd = 0;
 	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3))) {
