@@ -155,25 +155,22 @@ void Player::render(Camera* camera) {
 
 
 void Player::move(Vector3 vec) {
-	model.translate(vec);
+	//model.translate(vec);
+	model.translateGlobal(vec);
 }
 
 
 
 void Player::update(float delta_time) {
 	// std::cout << grounded << std::endl;
-	
+
 	float time = Game::instance->time;
 	float box_dist = getPositionGround().distance(box_cam);
 	if (box_dist > 1) {
 		box_cam += (box_dist - 1) * (getPositionGround() - box_cam) * delta_time;
 	}
 	timer_bullet_general = Game::instance->time - timer_bullet[bt];
-	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Stage::instance->mouse_locked) //is left button pressed?
-	{
-		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
-	}
-	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing){
+	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing) {
 		dash(delta_time);
 	}
 
@@ -187,11 +184,11 @@ void Player::update(float delta_time) {
 		shoot();
 	}
 
+	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
+		Input::isKeyPressed(SDL_SCANCODE_S) ||
+		Input::isKeyPressed(SDL_SCANCODE_A) ||
+		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot / 2;
 
-	if ((Input::isKeyPressed(SDL_SCANCODE_W) || 
-		Input::isKeyPressed(SDL_SCANCODE_S) || 
-		Input::isKeyPressed(SDL_SCANCODE_A) || 
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot /2;
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
@@ -199,15 +196,12 @@ void Player::update(float delta_time) {
 	bool is_knowckback = timer_bullet_general < knockback_time[bt];
 	float speed = m_spd - DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
 
-	if (!is_knowckback) {
-		if (Input::isKeyPressed(SDL_SCANCODE_W)) direction += forward;
-		if (Input::isKeyPressed(SDL_SCANCODE_S)) direction += -forward;
-		if (Input::isKeyPressed(SDL_SCANCODE_A)) direction += right;
-		if (Input::isKeyPressed(SDL_SCANCODE_D)) direction += -right;
-		direction.normalize();
+	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Stage::instance->mouse_locked) //is left button pressed?
+	{
+		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
-	else direction = forward;
-	
+	direction = model.frontVector();
+
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
 		if (Game::instance->time - b->timer_spawn > 5) {
@@ -228,55 +222,32 @@ void Player::update(float delta_time) {
 	std::vector<sCollisionData> collisions;
 	std::vector<sCollisionData> ground;
 
-	//for (Entity* e : Game::instance->root->children)
-	//{
-	//	EntityMesh* ee = (EntityMesh*)e;
-	//	sCollisionData data;
-	//	if (ee->mesh->testSphereCollision(
-	//		e->model,
-	//		model.getTranslation() + Vector3(0, player_height, 0),
-	//		0.5,
-	//		data.colPoint,
-	//		data.colNormal
-	//	)) {
-	//		std::cout << "Collision!" << Game::instance->time << std::endl;
-	//		collisions.push_back(data);
-	//	}
-	//}
-	Vector3 player_center = model.getTranslation() + Vector3(0,player_height,0);
-	colliding = Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD);
+	Vector3 player_center = model.getTranslation() + Vector3(0, player_height, 0);
 
+	colliding = Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD);
+	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 100);
+
+	for (sCollisionData& g : collisions) {
+		direction += g.colNormal * 10;
+		direction.y = 0;
+		direction.normalize();
+	}
 
 	ground_below_y = 10000;
 	ground_y = 10000;
 
 	touching_ground = false;
-	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 100);
+
 	for (sCollisionData& g : ground) {
 		ground_below_y = player_center.y - g.colPoint.y;
-		if (player_center.y - g.colPoint.y < player_height + 0.03) {
+		if (player_center.y - g.colPoint.y < player_height + 0.01) {
 			touching_ground = true;
 			v_spd = g.colNormal.y * ground_below_y * ground_below_y;
 		}
 		ground_y = g.colPoint.y;
 		ground_normal = g.colNormal;
 	}
-
-	Matrix44 inv_matrix = model;
-	inv_matrix.inverse();
-
-	for (sCollisionData& g : collisions) {
-		Vector3 localNormal;
-		localNormal = inv_matrix.rotateVector(g.colNormal);
-		direction += localNormal * 10;
-		direction.y = 0;
-	}
-
-	move(direction * speed * delta_time);
-
 	grounded = touching_ground;
-
-	//if (grounded && !jumping) v_spd = 0;
 	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3))) {
 		jump(delta_time);
 	}
@@ -286,17 +257,11 @@ void Player::update(float delta_time) {
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
 	}
-	move(Vector3(0, 1, 0) * v_spd * delta_time);
-	
-
-	//for (sCollisionData sCol : collisions) {
-	//	
-	//}
-
-
-	//std::cout << model.getTranslation().x << " "
-	//	<< model.getTranslation().y << " "
-	//	<< model.getTranslation().z << std::endl;
+	move(direction * speed * delta_time);
+	if (!grounded)
+		move(Vector3::UP * v_spd * delta_time);
+	else
+		move(Vector3::UP * (ground_y - getPosition().y));
 }
 
 
