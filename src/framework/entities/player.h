@@ -123,8 +123,8 @@ public:
 	void onKeyUp(SDL_KeyboardEvent event);
 	void onKeyDown(SDL_KeyboardEvent event);
 
-	Vector3 getPosition();
-	Vector3 getPositionGround();
+	Vector3 getPosition() const { return model.getTranslation(); };
+	Vector3 getPositionGround() { Vector3 res = getPosition(); res.y = 0; return res; }
 
 private:
 	void dash(float delta_time, float dash_duration, float invul_duration);

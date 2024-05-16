@@ -64,14 +64,6 @@ void Player::shootCharge(bullet_type bullet_type) {
 	}
 }
 
-Vector3 Player::getPosition() {
-	return model.getTranslation();
-}
-
-Vector3 Player::getPositionGround() {
-	return Vector3(model.getTranslation().x, 0, model.getTranslation().z);
-}
-
 void Player::render(Camera* camera) {
 
 	// Render Bullets
@@ -151,15 +143,10 @@ void Player::render(Camera* camera) {
 	EntityMesh::render(camera);
 };
 
-
-
-
 void Player::move(Vector3 vec) {
 	//model.translate(vec);
 	model.translateGlobal(vec);
 }
-
-
 
 void Player::update(float delta_time) {
 	// std::cout << grounded << std::endl;

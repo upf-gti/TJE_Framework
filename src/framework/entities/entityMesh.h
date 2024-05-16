@@ -4,14 +4,14 @@
 
 #include "graphics/material.h"
 
+struct sMeshLOD {
+	Mesh* mesh; // .ASE File or .OBJ File
+	float distance;
+};
 
 class EntityMesh : public Entity {
 
 public:
-	struct sMeshLOD {
-		Mesh* mesh; // .ASE File or .OBJ File
-		float distance;
-	};
 	std::vector<sMeshLOD> mesh_lods;
 	// Attributes of the derived class  
 	Mesh* mesh = nullptr;
