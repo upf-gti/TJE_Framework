@@ -10,6 +10,8 @@
 #include "framework/entities/entity.h"
 #include "framework/entities/entityCollider.h"
 
+class Enemy;
+
 class Stage
 {
 public:
@@ -25,6 +27,7 @@ public:
 	float zoom = 1.f;
 
 	Entity* root;
+	Enemy* enemy;
 
 	//some vars
 	Camera* camera; //our global camera

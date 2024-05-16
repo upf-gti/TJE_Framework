@@ -215,6 +215,11 @@ bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 pos
 			}
 		}
 	}
+	sCollisionData data;
+	Enemy* enemy = Stage::instance->enemy;
+	if (enemy->mesh->testSphereCollision(enemy->model, position, radius, data.colPoint, data.colNormal)) {
+		collisions.push_back(data);
+	}
 	return (!collisions.empty());
 }
 
@@ -236,6 +241,7 @@ Stage::Stage()
 	player->box_cam = Vector3(0, 0, 10);
 
 	enemy = new Enemy(player->mesh, *mat, "Francisco", true);
+	this->enemy = enemy;
 
 	// OpenGL flags
 	glEnable(GL_CULL_FACE); //render both sides of every triangle
@@ -395,7 +401,7 @@ void Stage::update(double seconds_elapsed)
 	}
 	else {
 		Vector3 player_pos = player->box_cam;
-		Vector3 enemy_pos = enemy->model.getTranslation();
+		Vector3 enemy_pos = enemy->getPosition();
 		Vector3 director = player_pos - enemy_pos;
 		camera->lookAt(player_pos + director.normalize() * (2 * zoom) + Vector3(0, 0.25 + 1 * zoom, 0), enemy_pos, camera->up);
 	}
