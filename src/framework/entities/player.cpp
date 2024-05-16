@@ -261,7 +261,7 @@ void Player::update(float delta_time) {
 	if (!grounded)
 		move(Vector3::UP * v_spd * delta_time);
 	else
-		move(Vector3::UP * (ground_y - getPosition().y));
+		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
 }
 
 

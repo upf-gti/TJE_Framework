@@ -121,10 +121,12 @@ bool parseScene(const char* filename, Entity* root)
 		Material mat = render_data.material;
 		EntityMesh* new_entity = nullptr;
 
-		size_t tag = data.first.find("@tag");
+		size_t tag = data.first.find("@stairs");
 
 		if (tag != std::string::npos) {
-			Mesh* mesh = Mesh::Get("...");
+			Mesh* mesh = Mesh::Get(mesh_name.c_str());
+			new_entity = new EntityMesh(mesh, mat);
+			std::cout << std::endl << std::endl << std::endl << "STAIRS" << std::endl << std::endl << std::endl;
 			// Create a different type of entity
 			// new_entity = new ...
 		}
@@ -273,7 +275,7 @@ Stage::Stage()
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
 	root = new Entity();
-	parseScene("data/myscene.scene", root);
+	parseScene("data/bigscene.scene", root);
 
 	cubemap->loadCubemap("landscape", {
 		"data/textures/skybox/right.png",
