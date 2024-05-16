@@ -275,7 +275,7 @@ Stage::Stage()
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
 	root = new Entity();
-	parseScene("data/myscene.scene", root);
+	parseScene("data/bigscene.scene", root);
 
 	cubemap->loadCubemap("landscape", {
 		"data/textures/skybox/right.png",
