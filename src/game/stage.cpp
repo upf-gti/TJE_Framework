@@ -240,8 +240,9 @@ Stage::Stage()
 	player->model.setTranslation(Vector3(1, 0, 1));
 	player->box_cam = Vector3(0, 0, 10);
 
-	enemy = new Enemy(player->mesh, *mat, "Francisco", true);
+	enemy = new Enemy(player->mesh, *mat, "Francisco", true, 1);
 	this->enemy = enemy;
+	this->player = player;
 
 	// OpenGL flags
 	glEnable(GL_CULL_FACE); //render both sides of every triangle
@@ -356,6 +357,8 @@ void Stage::render(void)
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
 
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
+
+	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
 	//Camera camera2D;
 	//camera2D.view_matrix = Matrix44(); // Set View to identity

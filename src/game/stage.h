@@ -11,6 +11,7 @@
 #include "framework/entities/entityCollider.h"
 
 class Enemy;
+class Player;
 
 class Stage
 {
@@ -28,6 +29,7 @@ public:
 
 	Entity* root;
 	Enemy* enemy;
+	Player* player;
 
 	//some vars
 	Camera* camera; //our global camera
