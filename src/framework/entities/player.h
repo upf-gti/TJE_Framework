@@ -47,9 +47,9 @@ public:
 	bool colliding = false;
 	float timer_jump = 0;
 	float player_height = PLAYER_HEIGHT;
-	
+
 	// Bullets
-	enum bullet_type : uint8{
+	enum bullet_type : uint8 {
 		auto_aim,
 		circle,
 		shotgun,
@@ -63,12 +63,13 @@ public:
 	uint16 bullet_idx_last = 0;
 	uint16 free_bullets = MAX_BULLETS;
 	float timer_bullet_general = 0;
-	float timer_bullet[4] = {0,0,0,0}, timer_charge[4] = { 0,0,0,0 };
-	float shoot_cooldown[4] = { DEFAULT_FIRERATE, 1, 1, 1 }, shoot_cost[4] = { DEFAULT_COST, 30, 60, 80};
+	float timer_bullet[4] = { 0,0,0,0 }, timer_charge[4] = { 0,0,0,0 };
+	float shoot_cooldown[4] = { DEFAULT_FIRERATE, 1, 1, 1 }, shoot_cost[4] = { DEFAULT_COST, 30, 60, 80 };
 	float knockback[4] = { 2, 0, 10, 20 }, knockback_time[4] = { .5, 0, .5, 1 };
 	float charge_cooldown[4] = { 0,0,0,1 }; bool charging = false;
+	Shader* bullet_shaders[4]; Texture* bullet_textures[4]; Mesh* bullet_meshes[4];
 	bool canshoot = true;
-	typedef void (*PatternFunc) (Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount);
+	typedef void (*PatternFunc) (Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh);
 	uint16 amount[4] = { 1, 10, 20, 1 };
 	PatternFunc patterns[4] = { Patterns::autoAim , Patterns::circle, Patterns::shotgun, Patterns::sniper };
 	Material charge_mat;
@@ -88,14 +89,12 @@ public:
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
 
+
+
 	Player() {
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->mana = DEFAULT_MANA;
-		// this->speed = 10;
-		charge_mat.color = Vector4(1, 1, 1, 1);
-		charge_mat.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-		charge_mat.diffuse = Texture::Get("data/meshes/charge.mtl");
-		charge_mesh = Mesh::Get("data/meshes/charge.obj");
+		loadTextures();
 	};
 	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
 		this->mesh = mesh;
@@ -103,11 +102,7 @@ public:
 		this->material = material;
 		this->mana = mana;
 
-		charge_mat.color = Vector4(1, 1, 1, 1);
-		charge_mat.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-		charge_mat.diffuse = Texture::Get("data/meshes/charge.mtl");
-		charge_mesh = Mesh::Get("data/meshes/charge.obj");
-		// this->speed = speed;
+		loadTextures();
 	};
 	~Player() {
 
@@ -127,10 +122,29 @@ public:
 	Vector3 getPositionGround();
 
 private:
+	void loadTextures() {
+		charge_mat.color = Vector4(1, 1, 1, 1);
+		charge_mat.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+		charge_mat.diffuse = Texture::Get("data/meshes/charge.mtl");
+		charge_mesh = Mesh::Get("data/meshes/charge.obj");
+
+		Shader* s = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+		bullet_shaders[0] = bullet_shaders[1] = bullet_shaders[2] = bullet_shaders[3] = s;
+		Texture* t1 = Texture::Get("data/meshes/bullet.mtl");
+		Texture* t2 = Texture::Get("data/meshes/sniper.mtl");
+		bullet_textures[0] = bullet_textures[1] = bullet_textures[2] = t1;
+		bullet_textures[3] = t1;
+		Mesh* m1 = Mesh::Get("data/meshes/bullet.obj");
+		Mesh* m2 = Mesh::Get("data/meshes/sniper.obj");
+		bullet_meshes[0] = bullet_meshes[1] = bullet_meshes[2] = m1;
+		bullet_meshes[3] = m1;
+	}
 	void dash(float delta_time, float dash_duration, float invul_duration);
 	void jump(float delta_time);
 	void shootCharge(bullet_type bullet_type);
 	void shoot(bullet_type bullet_type);
+	void showHitbox(Camera* camera);
+	void chargingShot(Camera* camera);
 };
 
 

@@ -5,14 +5,11 @@
 #include "framework/entities/bullet/bulletAuto.h"
 #include "framework/entities/bullet/bulletNormal.h"
 
+
 static class Patterns {
 public:
-	static void autoAim(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
+	static void autoAim(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh) {
 		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/bullet.mtl");
-		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
-
-		Mesh* mesh = Mesh::Get("data/meshes/bullet.obj"); // aqui pones el modelo
 		model.translate(Vector3(0,1,0));
 		mat.diffuse = texture;
 		mat.shader = shader;
@@ -20,12 +17,8 @@ public:
 		bullets.push_back(b);
 	}
 
-	static void circle(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
+	static void circle(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh) {
 		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/bullet.mtl");
-		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
-
-		Mesh* mesh = Mesh::Get("data/meshes/bullet.obj"); // aqui pones el modelo
 
 		mat.diffuse = texture;
 		mat.shader = shader;
@@ -36,12 +29,8 @@ public:
 		}
 	}
 
-	static void shotgun(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
+	static void shotgun(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh) {
 		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/bullet.mtl");
-		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
-
-		Mesh* mesh = Mesh::Get("data/meshes/bullet.obj"); // aqui pones el modelo
 
 		mat.diffuse = texture;
 		mat.shader = shader;
@@ -53,12 +42,8 @@ public:
 		}
 	}
 
-	static void sniper(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount) {
+	static void sniper(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh) {
 		Material mat = Material();
-		Texture* texture = Texture::Get("data/textures/sniper.mtl");
-		Shader* shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
-
-		Mesh* mesh = Mesh::Get("data/meshes/sniper.obj"); // aqui pones el modelo
 
 		mat.diffuse = texture;
 		mat.shader = shader;

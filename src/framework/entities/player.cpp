@@ -40,7 +40,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
 
-		patterns[bullet_type](Vector3(0,0,0), forward, model, bullets, amount[bullet_type]);
+		patterns[bullet_type](Vector3(0,0,0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
@@ -64,6 +64,8 @@ void Player::shootCharge(bullet_type bullet_type) {
 	}
 }
 
+
+
 Vector3 Player::getPosition() {
 	return model.getTranslation();
 }
@@ -72,38 +74,7 @@ Vector3 Player::getPositionGround() {
 	return Vector3(model.getTranslation().x, 0, model.getTranslation().z);
 }
 
-void Player::render(Camera* camera) {
-
-	// Render Bullets
-	for (int i = bullets.size()-1; i >= 0; i--) {
-		bullets[i]->render(camera);
-	}
-
-	bool time = (Game::instance->time - timer_charge[bt]) > charge_cooldown[bt];
-	if (charging) {
-		float size = (1 - (Game::instance->time - timer_charge[bt])) / charge_cooldown[bt];
-		charge_model = model;
-		charge_model.translate(Vector3(0, 1, 0));
-		charge_model.scale(size, size, size);
-
-		if (!charge_mat.shader) {
-			charge_mat.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
-		}
-
-		charge_mat.shader->enable();
-
-		charge_mat.shader->setUniform("u_color", charge_mat.color);
-		charge_mat.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-		charge_mat.shader->setTexture("u_texture", charge_mat.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
-		charge_mat.shader->setUniform("u_model", charge_model);
-		charge_mat.shader->setUniform("u_time", Game::instance->time);
-
-		charge_mesh->render(GL_TRIANGLES);
-
-		// Disable shader after finishing rendering
-		charge_mat.shader->disable();
-	}
-
+void Player::showHitbox(Camera* camera) {
 	// Render sphere
 
 	Matrix44 m = model;
@@ -121,9 +92,45 @@ void Player::render(Camera* camera) {
 	hitbox_mesh->render(GL_LINES);
 
 	flat_shader->disable();
+}
 
+void Player::chargingShot(Camera* camera) {
+	float size = (1 - (Game::instance->time - timer_charge[bt])) / charge_cooldown[bt];
+	charge_model = model;
+	charge_model.translate(Vector3(0, 1, 0));
+	charge_model.scale(size, size, size);
+
+	if (!charge_mat.shader) {
+		charge_mat.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+	}
+
+	charge_mat.shader->enable();
+
+	charge_mat.shader->setUniform("u_color", charge_mat.color);
+	charge_mat.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	charge_mat.shader->setTexture("u_texture", charge_mat.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
+	charge_mat.shader->setUniform("u_model", charge_model);
+	charge_mat.shader->setUniform("u_time", Game::instance->time);
+
+	charge_mesh->render(GL_TRIANGLES);
+
+	// Disable shader after finishing rendering
+	charge_mat.shader->disable();
+}
+
+void Player::render(Camera* camera) {
+	bool time = (Game::instance->time - timer_charge[bt]) > charge_cooldown[bt];
+	// Render Bullets
+	for (int i = bullets.size()-1; i >= 0; i--) 
+		bullets[i]->render(camera);
+
+
+	// Render the charging
+	if (charging) 
+		chargingShot(camera);
+
+	// Render the Shadow
 	Matrix44 squash = model;
-	
 	squash.setTranslation(Vector3(model.getTranslation().x, ground_y, model.getTranslation().z));
 	squash.scale(1 / (1 + ground_below_y), 0.01, 1 / (1 + ground_below_y));
 
@@ -147,7 +154,7 @@ void Player::render(Camera* camera) {
 	glDisable(GL_CULL_FACE);
 	glDepthFunc(GL_LESS);
 	glDepthMask(true);
-	// Entity::render(camera);
+
 	EntityMesh::render(camera);
 };
 
