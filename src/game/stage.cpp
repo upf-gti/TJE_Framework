@@ -119,22 +119,22 @@ bool parseScene(const char* filename, Entity* root)
 
 
 		Material mat = render_data.material;
-		EntityMesh* new_entity = nullptr;
+		EntityCollider* new_entity = nullptr;
 
-		size_t tag = data.first.find("@stairs");
+		size_t tag = data.first.find("@tag");
 
 		if (tag != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
-			new_entity = new EntityMesh(mesh, mat);
+			new_entity = new EntityCollider(mesh, mat);
 			std::cout << std::endl << std::endl << std::endl << "STAIRS" << std::endl << std::endl << std::endl;
 			// Create a different type of entity
 			// new_entity = new ...
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
-			new_entity = new EntityMesh(mesh, mat);
+			new_entity = new EntityCollider(mesh, mat);
 		}
-
+		std::cout << std::endl << "Tag: " << tag << std::endl;
 		if (!new_entity) {
 			continue;
 		}
@@ -165,10 +165,10 @@ bool parseScene(const char* filename, Entity* root)
 
 bool Stage::ray_collided(std::vector<EntityCollider::sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space) {
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*)root->children[i];
+		EntityCollider* ee = (EntityCollider*)root->children[i];
 		EntityCollider::sCollisionData data;
 		if (ee->isInstanced) {
-			for (Matrix44 instanced_model : ee->models) {
+			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testRayCollision(
 					instanced_model,
 					position,
@@ -201,10 +201,10 @@ bool Stage::ray_collided(std::vector<EntityCollider::sCollisionData>& ray_collis
 
 bool Stage::sphere_collided(std::vector<EntityCollider::sCollisionData>& collisions, Vector3 position, float radius) {
 	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
+		EntityCollider* ee = (EntityCollider*)Stage::instance->root->children[i];
 		EntityCollider::sCollisionData data;
 		if (ee->isInstanced) {
-			for (Matrix44 instanced_model : ee->models) {
+			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 					collisions.push_back(data);
 				}
@@ -275,7 +275,7 @@ Stage::Stage()
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
 	root = new Entity();
-	parseScene("data/bigscene.scene", root);
+	parseScene("data/myscene.scene", root);
 
 	cubemap->loadCubemap("landscape", {
 		"data/textures/skybox/right.png",
@@ -338,9 +338,10 @@ void Stage::render(void)
 	//	shader->disable();
 	//}
 	drawGrid();
+	
+		
 	root->render(camera);
 	player->render(camera);
-
 	// Draw the floor grid
 
 

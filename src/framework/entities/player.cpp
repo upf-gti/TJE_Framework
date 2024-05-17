@@ -125,13 +125,13 @@ void Player::render(Camera* camera) {
 	Matrix44 squash = model;
 	
 	squash.setTranslation(Vector3(model.getTranslation().x, ground_y, model.getTranslation().z));
-	squash.scale(1 / (1 + ground_below_y), 1 / (1 + ground_below_y), 1 / (1 + ground_below_y));
+	squash.scale(1 / (1 + ground_below_y), 0.01, 1 / (1 + ground_below_y));
 
-	glDepthFunc(GL_GREATER);
+	//glDepthFunc(GL_GREATER);
 	glEnable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CW);
-	glDepthMask(false);
+	//glFrontFace(GL_CW);
+	//glDepthMask(false);
 	flat_shader->enable();
 
 
@@ -200,7 +200,8 @@ void Player::update(float delta_time) {
 	{
 		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
-	direction = model.frontVector();
+	if (Input::isKeyPressed(SDL_SCANCODE_W)) direction = model.frontVector();
+	
 
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
@@ -225,43 +226,41 @@ void Player::update(float delta_time) {
 	Vector3 player_center = model.getTranslation() + Vector3(0, player_height, 0);
 
 	colliding = Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD);
-	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 100);
+	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000);
 
 	for (sCollisionData& g : collisions) {
-		direction += g.colNormal * 10;
+		direction += g.colNormal * 1000;
 		direction.y = 0;
 		direction.normalize();
 	}
 
 	ground_below_y = 10000;
-	ground_y = 10000;
+	ground_y = -10000;
 
 	touching_ground = false;
 
 	for (sCollisionData& g : ground) {
-		ground_below_y = player_center.y - g.colPoint.y;
+		if (ground_y < g.colPoint.y) {
+			ground_y = g.colPoint.y;
+			ground_below_y = player_center.y - g.colPoint.y;
+			ground_normal = g.colNormal;
+		}
 		if (player_center.y - g.colPoint.y < player_height + 0.01) {
 			touching_ground = true;
 			v_spd = g.colNormal.y * ground_below_y * ground_below_y;
 		}
-		ground_y = g.colPoint.y;
-		ground_normal = g.colNormal;
 	}
 	grounded = touching_ground;
-	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3))) {
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3)))
 		jump(delta_time);
-	}
-	else {
+	else
 		jumping = false;
-	}
+
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
 	}
-	move(direction * speed * delta_time);
-	if (!grounded)
-		move(Vector3::UP * v_spd * delta_time);
-	else
-		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
+	Vector3 movement = (direction * speed + Vector3::UP * (grounded? (ground_y - getPosition().y) * 20 : v_spd)) * delta_time;
+	move(movement);
 }
 
 
