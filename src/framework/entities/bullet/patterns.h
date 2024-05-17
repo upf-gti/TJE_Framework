@@ -47,7 +47,8 @@ public:
 
 		mat.diffuse = texture;
 		mat.shader = shader;
-		Bullet* b = new BulletNormal(mesh, mat, direction, model, 0);
+		Bullet* b = new BulletSniper(mesh, mat, direction, model, 0.001);
+		b->acceleration = 0;
 		b->opacity_dec = 1;
 		bullets.push_back(b);
 	}

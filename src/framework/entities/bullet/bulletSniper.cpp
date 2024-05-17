@@ -41,12 +41,16 @@ void BulletSniper::move(Vector3 vec) {
 }
 
 void BulletSniper::update(float delta_time) {
-	scale += 20 * delta_time;
-	Matrix44 m = model;
-	model.scale(1, 1, scale);
-	//if (material.color.w > 0)
-	//	material.color.w -= opacity_dec * delta_time;
-	//else material.color.w = 0;
+	acceleration += 0.5 * delta_time;
+	speed += acceleration;
+	scale += speed * delta_time;
+	model = model_base;
+	model.scale(1, 1, scale/10);
+	if (Game::instance->time - timer_spawn > 0.5) {
+		if (material.color.w > 0)
+			material.color.w -= opacity_dec * delta_time;
+		else material.color.w = 0;
+	}
 	//move(Vector3(20 * delta_time, 0, 0));
 }
 

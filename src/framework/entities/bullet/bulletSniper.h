@@ -9,6 +9,7 @@ class BulletSniper : public Bullet {
 
 public:
 	float scale = 0.1;
+	Matrix44 model_base;
 	BulletSniper() {
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->speed = BULLET_SPD;
@@ -21,6 +22,7 @@ public:
 		this->speed = speed;
 		this->direction = direction;
 		this->model = model;
+		this->model_base = model;
 		this->timer_spawn = Game::instance->time;
 	};
 	~BulletSniper() {

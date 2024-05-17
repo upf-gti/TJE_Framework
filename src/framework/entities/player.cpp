@@ -207,7 +207,7 @@ void Player::update(float delta_time) {
 	{
 		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
-	if (Input::isKeyPressed(SDL_SCANCODE_W)) direction = model.frontVector();
+	direction = model.frontVector();
 	
 
 	for (int i = 0; i < bullets.size(); i++) {
