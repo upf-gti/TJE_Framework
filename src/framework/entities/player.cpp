@@ -190,25 +190,26 @@ void Player::update(float delta_time) {
 	if (autoshoot) {
 		shoot();
 	}
-
+	direction = model.frontVector();
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
 		Input::isKeyPressed(SDL_SCANCODE_S) ||
 		Input::isKeyPressed(SDL_SCANCODE_A) ||
 		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot / 2;
-
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
 	}
+	direction *= m_spd;
 	bool is_knowckback = timer_bullet_general < knockback_time[bt];
-	float speed = m_spd - DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
+	float knockback_speed = DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
 
 	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Stage::instance->mouse_locked) //is left button pressed?
 	{
 		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
-	direction = model.frontVector();
-	
+	direction -= knockback_speed * model.frontVector();
+	direction.normalize();
+	float total_spd = abs(m_spd - knockback_speed);
 
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
@@ -236,11 +237,10 @@ void Player::update(float delta_time) {
 	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000);
 
 	for (sCollisionData& g : collisions) {
-		direction += g.colNormal * 1000;
+		direction += g.colNormal * 10000;
 		direction.y = 0;
-		direction.normalize();
 	}
-
+	direction.normalize();
 	ground_below_y = 10000;
 	ground_y = -10000;
 
@@ -252,7 +252,7 @@ void Player::update(float delta_time) {
 			ground_below_y = player_center.y - g.colPoint.y;
 			ground_normal = g.colNormal;
 		}
-		if (player_center.y - g.colPoint.y < player_height + 0.01) {
+		if (player_center.y - g.colPoint.y < player_height + 0.01 && player_center.y - g.colPoint.y > player_height - 0.3) {
 			touching_ground = true;
 			v_spd = g.colNormal.y * ground_below_y * ground_below_y;
 		}
@@ -266,7 +266,7 @@ void Player::update(float delta_time) {
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
 	}
-	Vector3 movement = (direction * speed + Vector3::UP * (grounded? (ground_y - getPosition().y) * 20 : v_spd)) * delta_time;
+	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
 	move(movement);
 }
 
