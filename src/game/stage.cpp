@@ -228,8 +228,8 @@ Stage::Stage()
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
 	mat->shader= shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-	mat->diffuse = Texture::Get("data/meshes/character.mtl");
-	player->mesh = Mesh::Get("data/meshes/character.obj");
+	mat->diffuse = Texture::Get("data/meshes/toilet.mtl");
+	player->mesh = Mesh::Get("data/meshes/toilet.obj");
 	player->material = *mat;
 	e2 = new Player();
 	e2->model.setTranslation(Vector3(10, 0, 5));
@@ -246,10 +246,10 @@ Stage::Stage()
 	camera->setPerspective(70.f, Game::instance->window_width / (float)Game::instance->window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
 
 	// Load one texture using the Texture Manager
-	texture = Texture::Get("data/meshes/character.mtl");
+	texture = Texture::Get("data/meshes/Toilet_01.mtl");
 
 	// Example of loading Mesh from Mesh Manager
-	mesh = Mesh::Get("data/meshes/character.obj");
+	mesh = Mesh::Get("data/meshes/Toilet_01.obj");
 
 	// Example of shader loading using the shaders manager
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");

@@ -65,7 +65,7 @@ public:
 	float timer_bullet_general = 0;
 	float timer_bullet[4] = { 0,0,0,0 }, timer_charge[4] = { 0,0,0,0 };
 	float shoot_cooldown[4] = { DEFAULT_FIRERATE, 1, 1, 1 }, shoot_cost[4] = { DEFAULT_COST, 30, 60, 80 };
-	float knockback[4] = { 2, 0, 10, 20 }, knockback_time[4] = { .5, 0, .5, 1 };
+	float knockback[4] = { 2, 0, 10, 10 }, knockback_time[4] = { .5, 0, .5, 1 };
 	float charge_cooldown[4] = { 0,0,0,1 }; bool charging = false;
 	Shader* bullet_shaders[4]; Texture* bullet_textures[4]; Mesh* bullet_meshes[4];
 	bool canshoot = true;
@@ -133,11 +133,11 @@ private:
 		Texture* t1 = Texture::Get("data/meshes/bullet.mtl");
 		Texture* t2 = Texture::Get("data/meshes/sniper.mtl");
 		bullet_textures[0] = bullet_textures[1] = bullet_textures[2] = t1;
-		bullet_textures[3] = t1;
+		bullet_textures[3] = t2;
 		Mesh* m1 = Mesh::Get("data/meshes/bullet.obj");
 		Mesh* m2 = Mesh::Get("data/meshes/sniper.obj");
 		bullet_meshes[0] = bullet_meshes[1] = bullet_meshes[2] = m1;
-		bullet_meshes[3] = m1;
+		bullet_meshes[3] = m2;
 	}
 	void dash(float delta_time, float dash_duration, float invul_duration);
 	void jump(float delta_time);

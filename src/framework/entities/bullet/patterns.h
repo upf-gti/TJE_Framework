@@ -4,6 +4,7 @@
 
 #include "framework/entities/bullet/bulletAuto.h"
 #include "framework/entities/bullet/bulletNormal.h"
+#include "framework/entities/bullet/bulletSniper.h"
 
 
 static class Patterns {
@@ -31,7 +32,6 @@ public:
 
 	static void shotgun(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh) {
 		Material mat = Material();
-
 		mat.diffuse = texture;
 		mat.shader = shader;
 		for (int i = 0; i < amount; i++) {

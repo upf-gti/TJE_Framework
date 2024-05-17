@@ -141,7 +141,6 @@ void Player::render(Camera* camera) {
 	//glDepthMask(false);
 	flat_shader->enable();
 
-
 	flat_shader->setUniform("u_color", Vector4(0.0f, 0.0f, 0.0f, 0.5f));
 	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	flat_shader->setUniform("u_model", squash);
@@ -156,6 +155,7 @@ void Player::render(Camera* camera) {
 	glDepthMask(true);
 
 	EntityMesh::render(camera);
+	showHitbox(camera);
 };
 
 
