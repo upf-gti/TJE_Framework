@@ -12,6 +12,27 @@ Vector3 BulletSniper::getPosition() {
 	return model.getTranslation();
 }
 
+void BulletSniper::drawHitBox(Camera* camera) {
+	// Disable shader after finishing rendering
+	material.shader->disable();
+	glDisable(GL_BLEND);
+
+	Matrix44 m = model_base;
+
+	material.shader->enable();
+	m.setTranslation(model_base.getTranslation() + model_base.frontVector() * (scale / 10));
+	float sphere_radius = 0.8;
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	material.shader->setUniform("u_color", Vector4(0.f, 1.0f, 0.f, 1.0f));
+	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	material.shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	material.shader->disable();
+}
+
 void BulletSniper::render(Camera* camera) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -30,9 +51,7 @@ void BulletSniper::render(Camera* camera) {
 
 	mesh->render(GL_TRIANGLES);
 
-	// Disable shader after finishing rendering
-	material.shader->disable();
-	glDisable(GL_BLEND);
+	drawHitBox(camera);
 };
 
 
@@ -41,16 +60,18 @@ void BulletSniper::move(Vector3 vec) {
 }
 
 void BulletSniper::update(float delta_time) {
-	acceleration += 0.5 * delta_time;
-	speed += acceleration;
-	scale += speed * delta_time;
-	model = model_base;
-	model.scale(1, 1, scale/10);
-	if (Game::instance->time - timer_spawn > 0.5) {
-		if (material.color.w > 0)
-			material.color.w -= opacity_dec * delta_time;
-		else material.color.w = 0;
+	std::vector<sCollisionData> collisions;
+	if (active) {
+		Vector3 bullet_center = model_base.getTranslation() + model_base.frontVector() * (scale/10);
+		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.8);
+		if (colliding) active = false;
+		acceleration += 0.5 * delta_time;
+		speed += acceleration;
+		scale += speed * delta_time;
+		model = model_base;
+		model.scale(0.5, 0.5, scale / 10);
 	}
+	else despawning(delta_time);
 	//move(Vector3(0, 0, speed * delta_time));
 }
 

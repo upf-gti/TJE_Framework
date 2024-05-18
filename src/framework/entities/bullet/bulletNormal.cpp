@@ -43,8 +43,8 @@ void BulletNormal::move(Vector3 vec) {
 void BulletNormal::update(float delta_time) {
 	std::vector<sCollisionData> collisions;
 	if (active){
-		Vector3 player_center = model.getTranslation();
-		bool colliding = Stage::instance->sphere_collided(collisions, player_center, 0.05);
+		Vector3 bullet_center = model.getTranslation();
+		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.05);
 		if (colliding) active = false;
 		speed += acceleration * delta_time;
 		rotation_angle += rotation_angle_accel * delta_time;
@@ -52,12 +52,7 @@ void BulletNormal::update(float delta_time) {
 		move(speed * delta_time * direction);
 	}
 	else {
-		if (material.color.w > 0)
-			material.color.w -= 3 * delta_time;
-		else { 
-			material.color.w = 0;
-			to_delete = true;
-		}
+		despawning(delta_time);
 	}
 
 }

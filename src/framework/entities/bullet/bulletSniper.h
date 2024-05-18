@@ -9,6 +9,7 @@ class BulletSniper : public Bullet {
 
 public:
 	float scale = 0.1;
+	Mesh* hitbox_mesh = Mesh::Get("data/meshes/sphere.obj");
 	Matrix44 model_base;
 	BulletSniper() {
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
@@ -39,7 +40,8 @@ public:
 	void onKeyUp(SDL_KeyboardEvent event);
 
 	Vector3 getPosition();
-
+private:
+	void drawHitBox(Camera* camera);
 };
 
 #endif

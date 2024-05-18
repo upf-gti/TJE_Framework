@@ -22,7 +22,7 @@ public:
 	int fps;
 	bool must_exit;
 
-	float zoom = 1.f;
+	float zoom = 2.f;
 
 	Entity* root;
 
