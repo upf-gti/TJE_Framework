@@ -8,6 +8,20 @@
 class EntityMesh : public Entity {
 
 public:
+	enum col_type : int32{
+		NONE = 0,
+		FLOOR = 1 << 0,
+		WALL = 1 << 1,
+		PLAYER = 1 << 2,
+		ENEMY = 1 << 3,
+		// Both WALL and FLOOR are considered SCENARIO
+		// using OR operator
+		SCENARIO = WALL | FLOOR,
+		ALL = 0xFF
+	};
+
+	col_type type;
+
 	struct sMeshLOD {
 		Mesh* mesh; // .ASE File or .OBJ File
 		float distance;

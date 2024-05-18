@@ -17,10 +17,9 @@ void EntityMesh::render(Camera* camera) {
 		for (int i = 0; i < models.size(); i++) {
 			float max = model._11 > model._22 ? model._11 : model._22;
 			max = max > model._33 ? max : model._33;
-			float sphere_radius = mesh->radius	;
+			float sphere_radius = mesh->radius;
 			Vector3 center_world = models[i] * mesh->box.center;
-			float aabb_radius = mesh->radius;
-			if (camera->testSphereInFrustum(center_world, sphere_radius)) {
+			if (camera->testSphereInFrustum(center_world, sphere_radius) && camera->eye.distance(center_world) > 2) {
 				models_instanced.push_back(models[i]);
 			}
 		}
@@ -28,19 +27,29 @@ void EntityMesh::render(Camera* camera) {
 	}
 	else {
 		Vector3 center_world = model * mesh->box.center;
-		float aabb_radius = mesh->box.halfsize.length();
-
-		if (!camera->testSphereInFrustum(center_world, aabb_radius)) {
+		float sphere_radius = mesh->box.halfsize.length();
+		float dist = camera->eye.distance(center_world);
+		if (!camera->testSphereInFrustum(center_world, sphere_radius)) {
 			return;
 		}
+		int is_wall = (type & EntityMesh::WALL);
+		if (dist < 7 && (is_wall != 0)) material.color.w = clamp(((dist - 2)/ 5), 0, 1);
+		else material.color.w = 1;
 	}
 
 
 	// Set flags
-	glDisable(GL_BLEND);
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
-
+	if (material.color.w != 1) {
+		glEnable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	else {
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+	}
 	
 	//// Get the last camera that was activated 
 	//Camera* camera = Camera::current;
@@ -70,6 +79,12 @@ void EntityMesh::render(Camera* camera) {
 
 	// Disable shader after finishing rendering
 	material.shader->disable();
+
+	if (material.color.w != 1) {
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+	}
 
 	// Render hijos
 	for (size_t i = 0; i < children.size(); i++)
