@@ -143,7 +143,7 @@ void Player::render(Camera* camera) {
 	EntityMesh::render(camera);
 };
 
-void Player::move(Vector3 vec) {
+void Player::move(const Vector3& vec) {
 	//model.translate(vec);
 	model.translateGlobal(vec);
 }
@@ -157,9 +157,6 @@ void Player::update(float delta_time) {
 		box_cam += (box_dist - 1) * (getPositionGround() - box_cam) * delta_time;
 	}
 	timer_bullet_general = Game::instance->time - timer_bullet[bt];
-	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing) {
-		dash(delta_time);
-	}
 
 	if (Input::isKeyPressed(SDL_SCANCODE_Q)) {
 		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
@@ -171,10 +168,17 @@ void Player::update(float delta_time) {
 		shoot();
 	}
 
-	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
-		Input::isKeyPressed(SDL_SCANCODE_S) ||
-		Input::isKeyPressed(SDL_SCANCODE_A) ||
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot / 2;
+	direction = Vector3(0.0f);
+
+	if (Input::isKeyPressed(SDL_SCANCODE_W)) direction += getFront();
+	if (Input::isKeyPressed(SDL_SCANCODE_S)) direction -= getFront();
+	if (Input::isKeyPressed(SDL_SCANCODE_A)) direction += getRight();
+	if (Input::isKeyPressed(SDL_SCANCODE_D)) direction -= getRight();
+
+	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing) {
+		dash(delta_time);
+	}
+	else m_spd = DEFAULT_SPD;
 
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
@@ -183,11 +187,11 @@ void Player::update(float delta_time) {
 	bool is_knowckback = timer_bullet_general < knockback_time[bt];
 	float speed = m_spd - DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
 
+	std::cout << speed << std::endl;
 	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Stage::instance->mouse_locked) //is left button pressed?
 	{
 		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
-	direction = model.frontVector();
 
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
@@ -244,6 +248,7 @@ void Player::update(float delta_time) {
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
 	}
+
 	move(direction * speed * delta_time);
 	if (!grounded)
 		move(Vector3::UP * v_spd * delta_time);
