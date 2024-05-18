@@ -14,6 +14,9 @@
 #include <cmath>
 #include <unordered_map>
 #include <bitset>
+#include <algorithm>
+#include <vector>
+
 
 //some globals
 Mesh* mesh = NULL;
@@ -123,18 +126,20 @@ static bool parseScene(const char* filename, Entity* root)
 		Material mat = render_data.material;
 		EntityCollider* new_entity = nullptr;
 
-		size_t tag = data.first.find("@tag");
+		size_t tag = data.first.find("@wall");
 
 		if (tag != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
-			std::cout << std::endl << std::endl << std::endl << "STAIRS" << std::endl << std::endl << std::endl;
+			new_entity->type = EntityCollider::WALL;
+			std::cout << "\n\nWALL FOUND\n\n";
 			// Create a different type of entity
 			// new_entity = new ...
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
+			new_entity->type = EntityCollider::FLOOR;
 		}
 		std::cout << std::endl << "Tag: " << tag << std::endl;
 		if (!new_entity) {
@@ -167,9 +172,11 @@ static bool parseScene(const char* filename, Entity* root)
 
 bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, EntityCollider::col_type collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
+
 		EntityMesh* ee = (EntityMesh*)root->children[i];
     if (ee->type & collision_type) continue;
 		sCollisionData data;
+
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testRayCollision(
@@ -205,9 +212,11 @@ bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 po
 
 bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, EntityCollider::col_type collision_type) {
 	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
+
 		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
     if (ee->type & collision_type) continue;
 		sCollisionData data;
+
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
@@ -304,9 +313,9 @@ Stage::Stage()
 	sus = Texture::Get("data/gus.tga");
 	quad = new Mesh();
 	quad->createQuad(300, 300, 100, 100, false);
+	root->addChild(player);
 }
 
-#include <vector>
 
 // Assuming you have a function to loadTGA that reads the TGA data
 
@@ -330,19 +339,12 @@ void Stage::render(void)
 
 	renderSkybox(cubemap);
 
-	// Create model matrix for cube
-	Matrix44 m = player->getGlobalMatrix();
-
-	// Create model matrix for cube
-	Matrix44 m2 = e2->getGlobalMatrix();
-
 	drawGrid();
 	
 		
 	root->render(camera);
 	player->render(camera);
 	enemy->render(camera);
-
 	// Draw the floor grid
 
 
@@ -393,11 +395,22 @@ void Stage::render(void)
 
 }
 
+bool Stage::comparefunction(const Entity *e1, const Entity *e2) {
+	EntityMesh* em1 = (EntityMesh*) e1;
+	EntityMesh* em2 = (EntityMesh*) e2;
+	Vector3 center_e1 = e1->model * em1->mesh->box.center;
+	Vector3 center_e2 = e2->model * em2->mesh->box.center;
+	return Stage::instance->camera->eye.distance(center_e1) > Stage::instance->camera->eye.distance(center_e2);
+}
+
 void Stage::update(double seconds_elapsed)
 {
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 	player->update(seconds_elapsed);
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
+
+
+	std::sort(root->children.begin(), root->children.end(), Stage::comparefunction);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
@@ -421,7 +434,7 @@ void Stage::update(double seconds_elapsed)
 		Vector3 player_pos = player->box_cam;
 		Vector3 enemy_pos = enemy->getPosition();
 		Vector3 director = player_pos - enemy_pos;
-		camera->lookAt(player_pos + director.normalize() * (2 * zoom) + Vector3(0, 0.25 + 1 * zoom, 0), enemy_pos, camera->up);
+		camera->lookAt(player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0), enemy_pos, camera->up);
 	}
 	// camera->lookAt(player->model);
 	/*float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;

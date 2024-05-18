@@ -25,7 +25,7 @@ public:
 	int fps;
 	bool must_exit;
 
-	float zoom = 2.f;
+	float zoom = 5.f;
 
 	Entity* root;
 	Enemy* enemy;
@@ -51,8 +51,9 @@ public:
 	void onGamepadButtonDown(SDL_JoyButtonEvent event);
 	void onGamepadButtonUp(SDL_JoyButtonEvent event);
 
+
 	bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, EntityCollider::col_type collision_type = EntityCollider::SCENARIO);
 	bool sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, EntityCollider::col_type collision_type = EntityCollider::SCENARIO);
-
+	static bool comparefunction(const Entity* e1, const Entity* e2);
 
 };

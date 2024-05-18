@@ -242,7 +242,7 @@ void Player::update(float delta_time) {
 	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
 
 	colliding = Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD);
-	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000);
+	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
 
 	for (sCollisionData& g : collisions) {
 		direction += g.colNormal * 10000;

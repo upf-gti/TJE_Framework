@@ -9,15 +9,28 @@ struct sMeshLOD {
 	float distance;
 };
 
+enum col_type : int32{
+  NONE = 0,
+  FLOOR = 1 << 0,
+  WALL = 1 << 1,
+  PLAYER = 1 << 2,
+  ENEMY = 1 << 3,
+  // Both WALL and FLOOR are considered SCENARIO
+  // using OR operator
+  SCENARIO = WALL | FLOOR,
+  ALL = 0xFF
+};
+
 class EntityMesh : public Entity {
 
 public:
+  col_type type;
 	std::vector<sMeshLOD> mesh_lods;
 	// Attributes of the derived class  
 	Mesh* mesh = nullptr;
 
 	Vector4 color;
-
+  
 	Material material;
 
 	bool isInstanced = false;
