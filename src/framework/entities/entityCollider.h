@@ -25,7 +25,16 @@ enum {
 class EntityCollider : public EntityMesh {
 
 public:
-	EntityCollider() {}
+	EntityCollider() {
+		type = NONE;
+	};
+  EntityCollider(Mesh* mesh, const Material& material, col_type type = SCENARIO, const std::string& name = "") {
+		this->type = type;
+		this->mesh = mesh;
+		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		this->material = material;
+	};
 	EntityCollider(Mesh* mesh, const Material& material, const std::string& name = "", bool is_dynamic=false);
+  ~EntityCollider() {};
 	bool is_dynamic = false;
 };

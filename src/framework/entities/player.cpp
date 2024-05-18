@@ -40,7 +40,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
 
-		patterns[bullet_type](Vector3(0,0,0), forward, model, bullets, amount[bullet_type]);
+		patterns[bullet_type](Vector3(0,0,0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
@@ -64,39 +64,17 @@ void Player::shootCharge(bullet_type bullet_type) {
 	}
 }
 
-void Player::render(Camera* camera) {
 
-	// Render Bullets
-	for (int i = bullets.size()-1; i >= 0; i--) {
-		bullets[i]->render(camera);
-	}
+Vector3 Player::getPosition() {
+	return model.getTranslation();
+}
 
-	bool time = (Game::instance->time - timer_charge[bt]) > charge_cooldown[bt];
-	if (charging) {
-		float size = (1 - (Game::instance->time - timer_charge[bt])) / charge_cooldown[bt];
-		charge_model = model;
-		charge_model.translate(Vector3(0, 1, 0));
-		charge_model.scale(size, size, size);
+Vector3 Player::getPositionGround() {
+	return Vector3(model.getTranslation().x, 0, model.getTranslation().z);
+}
 
-		if (!charge_mat.shader) {
-			charge_mat.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
-		}
+void Player::showHitbox(Camera* camera) {
 
-		charge_mat.shader->enable();
-
-		charge_mat.shader->setUniform("u_color", charge_mat.color);
-		charge_mat.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-		charge_mat.shader->setTexture("u_texture", charge_mat.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
-		charge_mat.shader->setUniform("u_model", charge_model);
-		charge_mat.shader->setUniform("u_time", Game::instance->time);
-
-		charge_mesh->render(GL_TRIANGLES);
-
-		// Disable shader after finishing rendering
-		charge_mat.shader->disable();
-	}
-
-	// Render sphere
 
 	Matrix44 m = model;
 
@@ -113,19 +91,54 @@ void Player::render(Camera* camera) {
 	hitbox_mesh->render(GL_LINES);
 
 	flat_shader->disable();
+}
 
+void Player::chargingShot(Camera* camera) {
+	float size = (1 - (Game::instance->time - timer_charge[bt])) / charge_cooldown[bt];
+	charge_model = model;
+	charge_model.translate(Vector3(0, 1, 0));
+	charge_model.scale(size, size, size);
+
+	if (!charge_mat.shader) {
+		charge_mat.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+	}
+
+	charge_mat.shader->enable();
+
+	charge_mat.shader->setUniform("u_color", charge_mat.color);
+	charge_mat.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	charge_mat.shader->setTexture("u_texture", charge_mat.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
+	charge_mat.shader->setUniform("u_model", charge_model);
+	charge_mat.shader->setUniform("u_time", Game::instance->time);
+
+	charge_mesh->render(GL_TRIANGLES);
+
+	// Disable shader after finishing rendering
+	charge_mat.shader->disable();
+}
+
+void Player::render(Camera* camera) {
+	bool time = (Game::instance->time - timer_charge[bt]) > charge_cooldown[bt];
+	// Render Bullets
+	for (int i = bullets.size()-1; i >= 0; i--) 
+		bullets[i]->render(camera);
+
+
+	// Render the charging
+	if (charging) 
+		chargingShot(camera);
+
+	// Render the Shadow
 	Matrix44 squash = model;
-	
 	squash.setTranslation(Vector3(model.getTranslation().x, ground_y, model.getTranslation().z));
-	squash.scale(1 / (1 + ground_below_y), 1 / (1 + ground_below_y), 1 / (1 + ground_below_y));
+	squash.scale(1 / (1 + ground_below_y), 0.01, 1 / (1 + ground_below_y));
 
-	glDepthFunc(GL_GREATER);
+	//glDepthFunc(GL_GREATER);
 	glEnable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CW);
-	glDepthMask(false);
+	//glFrontFace(GL_CW);
+	//glDepthMask(false);
 	flat_shader->enable();
-
 
 	flat_shader->setUniform("u_color", Vector4(0.0f, 0.0f, 0.0f, 0.5f));
 	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
@@ -139,8 +152,9 @@ void Player::render(Camera* camera) {
 	glDisable(GL_CULL_FACE);
 	glDepthFunc(GL_LESS);
 	glDepthMask(true);
-	// Entity::render(camera);
+
 	EntityMesh::render(camera);
+	showHitbox(camera);
 };
 
 void Player::move(const Vector3& vec) {
@@ -168,6 +182,13 @@ void Player::update(float delta_time) {
 		shoot();
 	}
 
+//	direction = model.frontVector();
+//	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
+//		Input::isKeyPressed(SDL_SCANCODE_S) ||
+//		Input::isKeyPressed(SDL_SCANCODE_A) ||
+//		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot / 2;
+
+
 	direction = Vector3(0.0f);
 
 	if (Input::isKeyPressed(SDL_SCANCODE_W)) direction += getFront();
@@ -184,8 +205,9 @@ void Player::update(float delta_time) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
 	}
+	direction *= m_spd;
 	bool is_knowckback = timer_bullet_general < knockback_time[bt];
-	float speed = m_spd - DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
+	float knockback_speed = DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
 
 	std::cout << speed << std::endl;
 	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Stage::instance->mouse_locked) //is left button pressed?
@@ -193,9 +215,13 @@ void Player::update(float delta_time) {
 		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
 
+	direction -= knockback_speed * model.frontVector();
+	direction.normalize();
+	float total_spd = abs(m_spd - knockback_speed);
+
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
-		if (Game::instance->time - b->timer_spawn > 5) {
+		if (Game::instance->time - b->timer_spawn > 5 || b->to_delete) {
 			bullets.erase((bullets.begin() + i));
 			delete b;
 			bullet_idx_last++;
@@ -216,44 +242,47 @@ void Player::update(float delta_time) {
 	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
 
 	colliding = Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD);
-	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 100);
+	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000);
 
 	for (sCollisionData& g : collisions) {
-		direction += g.colNormal * 10;
+		direction += g.colNormal * 10000;
 		direction.y = 0;
-		direction.normalize();
 	}
-
+	direction.normalize();
 	ground_below_y = 10000;
-	ground_y = 10000;
+	ground_y = -10000;
 
 	touching_ground = false;
 
 	for (sCollisionData& g : ground) {
-		ground_below_y = player_center.y - g.colPoint.y;
-		if (player_center.y - g.colPoint.y < player_height + 0.01) {
+		if (ground_y < g.colPoint.y) {
+			ground_y = g.colPoint.y;
+			ground_below_y = player_center.y - g.colPoint.y;
+			ground_normal = g.colNormal;
+		}
+		if (player_center.y - g.colPoint.y < player_height + 0.01 && player_center.y - g.colPoint.y > player_height - 0.3) {
 			touching_ground = true;
 			v_spd = g.colNormal.y * ground_below_y * ground_below_y;
 		}
-		ground_y = g.colPoint.y;
-		ground_normal = g.colNormal;
 	}
 	grounded = touching_ground;
-	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3))) {
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) && (grounded || ((time - timer_jump) < .3)))
 		jump(delta_time);
-	}
-	else {
+	else
 		jumping = false;
-	}
+
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
 	}
 
-	move(direction * speed * delta_time);
-	if (!grounded)
-		move(Vector3::UP * v_spd * delta_time);
-	else
-		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
+	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
+	move(movement);
+
+//	move(direction * speed * delta_time);
+//	if (!grounded)
+//		move(Vector3::UP * v_spd * delta_time);
+//	else
+//		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
 }
 
 

@@ -32,12 +32,13 @@ Player* e2 = NULL;
 Enemy* enemy = NULL;
 Matrix44 camera_support;
 
-Mesh quad;
+Mesh* quad;
 
 Texture* cubemap = new Texture();
 
 Shader* image = NULL;
-Texture* sus = NULL;
+Texture* sus;
+
 
 
 // Cosas nuevas que he añadido
@@ -120,22 +121,22 @@ static bool parseScene(const char* filename, Entity* root)
 
 
 		Material mat = render_data.material;
-		EntityMesh* new_entity = nullptr;
+		EntityCollider* new_entity = nullptr;
 
-		size_t tag = data.first.find("@stairs");
+		size_t tag = data.first.find("@tag");
 
 		if (tag != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
-			new_entity = new EntityMesh(mesh, mat);
+			new_entity = new EntityCollider(mesh, mat);
 			std::cout << std::endl << std::endl << std::endl << "STAIRS" << std::endl << std::endl << std::endl;
 			// Create a different type of entity
 			// new_entity = new ...
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
-			new_entity = new EntityMesh(mesh, mat);
+			new_entity = new EntityCollider(mesh, mat);
 		}
-
+		std::cout << std::endl << "Tag: " << tag << std::endl;
 		if (!new_entity) {
 			continue;
 		}
@@ -164,9 +165,10 @@ static bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
-bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space) {
+bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, EntityCollider::col_type collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
 		EntityMesh* ee = (EntityMesh*)root->children[i];
+    if (ee->type & collision_type) continue;
 		sCollisionData data;
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
@@ -200,9 +202,11 @@ bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 po
 	return (!ray_collisions.empty());
 }
 
-bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius) {
+
+bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, EntityCollider::col_type collision_type) {
 	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
 		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
+    if (ee->type & collision_type) continue;
 		sCollisionData data;
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
@@ -234,8 +238,8 @@ Stage::Stage()
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
 	mat->shader= shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-	mat->diffuse = Texture::Get("data/meshes/character.mtl");
-	player->mesh = Mesh::Get("data/meshes/character.obj");
+	mat->diffuse = Texture::Get("data/meshes/toilet.mtl");
+	player->mesh = Mesh::Get("data/meshes/toilet.obj");
 	player->material = *mat;
 	e2 = new Player();
 	e2->model.setTranslation(Vector3(10, 0, 5));
@@ -256,36 +260,36 @@ Stage::Stage()
 	camera->setPerspective(70.f, Game::instance->window_width / (float)Game::instance->window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
 
 	// Load one texture using the Texture Manager
-	texture = Texture::Get("data/meshes/character.mtl");
+	texture = Texture::Get("data/meshes/Toilet_01.mtl");
 
 	// Example of loading Mesh from Mesh Manager
-	mesh = Mesh::Get("data/meshes/character.obj");
+	mesh = Mesh::Get("data/meshes/Toilet_01.obj");
 
 	// Example of shader loading using the shaders manager
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 
 
-	// Three vertices of the 1st triangle
-	quad.vertices.push_back(Vector3(-1, 1, 0));
-	quad.uvs.push_back(Vector2(0, 1));
-	quad.vertices.push_back(Vector3(-1, -1, 0));
-	quad.uvs.push_back(Vector2(0, 0));
-	quad.vertices.push_back(Vector3(1, -1, 0));
-	quad.uvs.push_back(Vector2(1, 0));
+	//// Three vertices of the 1st triangle
+	//quad.vertices.push_back(Vector3(-1, 1, 0));
+	//quad.uvs.push_back(Vector2(0, 1));
+	//quad.vertices.push_back(Vector3(-1, -1, 0));
+	//quad.uvs.push_back(Vector2(0, 0));
+	//quad.vertices.push_back(Vector3(1, -1, 0));
+	//quad.uvs.push_back(Vector2(1, 0));
 
-	// Three vertices of the 2nd triangle
-	quad.vertices.push_back(Vector3(-1, 1, 0));
-	quad.uvs.push_back(Vector2(0, 1));
-	quad.vertices.push_back(Vector3(1, -1, 0));
-	quad.uvs.push_back(Vector2(1, 0));
-	quad.vertices.push_back(Vector3(1, 1, 0));
-	quad.uvs.push_back(Vector2(1, 1));
+	//// Three vertices of the 2nd triangle
+	//quad.vertices.push_back(Vector3(-1, 1, 0));
+	//quad.uvs.push_back(Vector2(0, 1));
+	//quad.vertices.push_back(Vector3(1, -1, 0));
+	//quad.uvs.push_back(Vector2(1, 0));
+	//quad.vertices.push_back(Vector3(1, 1, 0));
+	//quad.uvs.push_back(Vector2(1, 1));
 
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
 	root = new Entity();
-	parseScene("data/bigscene.scene", root);
+	parseScene("data/myscene.scene", root);
 
 	cubemap->loadCubemap("landscape", {
 		"data/textures/skybox/right.png",
@@ -297,6 +301,9 @@ Stage::Stage()
 	});
 	cube = new Mesh();
 	cube->createCube();
+	sus = Texture::Get("data/gus.tga");
+	quad = new Mesh();
+	quad->createQuad(300, 300, 100, 100, false);
 }
 
 #include <vector>
@@ -329,25 +336,9 @@ void Stage::render(void)
 	// Create model matrix for cube
 	Matrix44 m2 = e2->getGlobalMatrix();
 
-	//if (shader)
-	//{
-	//	// Enable shader
-	//	shader->enable();
-
-	//	// Upload uniforms
-	//	shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-	//	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	//	shader->setUniform("u_texture", texture, 0);
-	//	shader->setUniform("u_model", m);
-	//	shader->setUniform("u_time", time);
-
-	//	// Do the draw call
-	//	mesh->render(GL_TRIANGLES);
-
-	//	// Disable shader
-	//	shader->disable();
-	//}
 	drawGrid();
+	
+		
 	root->render(camera);
 	player->render(camera);
 	enemy->render(camera);
@@ -357,10 +348,14 @@ void Stage::render(void)
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
+  drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
-	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
+	Camera camera2D;
+	camera2D.enable();
+	camera2D.view_matrix = Matrix44(); // Set View to identity
+	camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
+
 
 	//Camera camera2D;
 	//camera2D.view_matrix = Matrix44(); // Set View to identity
@@ -376,6 +371,24 @@ void Stage::render(void)
 	//shader->setUniform("u_model", m);
 	//shader->disable();\
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	shader->enable();
+	shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+	shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
+
+	quad->render(GL_TRIANGLES);
+
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	shader->disable();
+	
+	
+	// glDisable(GL_DEPTH_TEST);
 
 
 }
