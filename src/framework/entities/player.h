@@ -94,6 +94,7 @@ public:
 	Player() {
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->mana = DEFAULT_MANA;
+		this->type = PLAYER;
 		loadTextures();
 	};
 	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
@@ -101,7 +102,7 @@ public:
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
 		this->mana = mana;
-
+		this->type = PLAYER;
 		loadTextures();
 	};
 	~Player() {
@@ -110,7 +111,7 @@ public:
 	
 	void move(const Vector3& vec);
 	// Methods overwritten from base class
-	void render(Camera* camera);
+	void render(Camera* camera);	
 	void update(float elapsed_time);
 
 	void onMouseWheel(SDL_MouseWheelEvent event);

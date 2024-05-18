@@ -44,7 +44,7 @@ void BulletNormal::update(float delta_time) {
 	std::vector<sCollisionData> collisions;
 	if (active){
 		Vector3 bullet_center = model.getTranslation();
-		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.05);
+		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.05, SCENARIO);
 		if (colliding) active = false;
 		speed += acceleration * delta_time;
 		rotation_angle += rotation_angle_accel * delta_time;

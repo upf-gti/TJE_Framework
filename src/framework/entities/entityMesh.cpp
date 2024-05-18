@@ -32,7 +32,7 @@ void EntityMesh::render(Camera* camera) {
 		if (!camera->testSphereInFrustum(center_world, sphere_radius)) {
 			return;
 		}
-		int is_wall = (type & EntityMesh::WALL);
+		int is_wall = (type & WALL);
 		if (dist < 7 && (is_wall != 0)) material.color.w = clamp(((dist - 2)/ 5), 0, 1);
 		else material.color.w = 1;
 	}

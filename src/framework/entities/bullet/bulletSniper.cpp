@@ -38,7 +38,7 @@ void BulletSniper::render(Camera* camera) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	if (!material.shader) {
-		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+		material.shader = Shader::Get(isInstanced ? "data/shaders/basic.vs" : "data/shaders/basic.vs");
 	}
 
 	material.shader->enable();
@@ -69,7 +69,7 @@ void BulletSniper::update(float delta_time) {
 		model.scale(0.5, 0.5, scale / 10);
 		model.translateGlobal(model_base.frontVector() * (scale / 10));
 		Vector3 bullet_center = model.getTranslation() + model_base.frontVector() * (scale / 10);
-		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.8);
+		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.8, SCENARIO);
 		if (colliding) active = false;
 	}
 	else despawning(delta_time);

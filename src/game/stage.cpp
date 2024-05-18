@@ -131,7 +131,7 @@ static bool parseScene(const char* filename, Entity* root)
 		if (tag != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
-			new_entity->type = EntityCollider::WALL;
+			new_entity->type = WALL;
 			std::cout << "\n\nWALL FOUND\n\n";
 			// Create a different type of entity
 			// new_entity = new ...
@@ -139,7 +139,7 @@ static bool parseScene(const char* filename, Entity* root)
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
-			new_entity->type = EntityCollider::FLOOR;
+			new_entity->type = FLOOR;
 		}
 		std::cout << std::endl << "Tag: " << tag << std::endl;
 		if (!new_entity) {
@@ -170,11 +170,10 @@ static bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
-bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, EntityCollider::col_type collision_type) {
+bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, col_type collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
-
 		EntityMesh* ee = (EntityMesh*)root->children[i];
-    if (ee->type & collision_type) continue;
+		if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
 
 		if (ee->isInstanced) {
@@ -210,11 +209,11 @@ bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 po
 }
 
 
-bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, EntityCollider::col_type collision_type) {
+bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, col_type collision_type) {
 	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
 
 		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
-    if (ee->type & collision_type) continue;
+		if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
 
 		if (ee->isInstanced) {
@@ -313,6 +312,7 @@ Stage::Stage()
 	sus = Texture::Get("data/gus.tga");
 	quad = new Mesh();
 	quad->createQuad(300, 300, 100, 100, false);
+	player->type = PLAYER;
 	root->addChild(player);
 }
 
@@ -343,7 +343,6 @@ void Stage::render(void)
 	
 		
 	root->render(camera);
-	player->render(camera);
 	enemy->render(camera);
 	// Draw the floor grid
 
@@ -351,43 +350,29 @@ void Stage::render(void)
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
-  drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
-
-	Camera camera2D;
-	camera2D.enable();
-	camera2D.view_matrix = Matrix44(); // Set View to identity
-	camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
-
+	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
 	//Camera camera2D;
+	//camera2D.enable();
 	//camera2D.view_matrix = Matrix44(); // Set View to identity
-	//camera2D.setOrthographic(0, window_width, 0, window_height, -1, 1);
-	//glDisable(GL_DEPTH_TEST);
+	//camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
+
+
 	//glDisable(GL_CULL_FACE);
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	//shader->enable();
 	//shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-	//shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	//shader->setUniform("u_texture", imagetex);
-	//shader->setUniform("u_model", m);
-	//shader->disable();\
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
 
-	shader->enable();
-	shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-	shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
-
-	quad->render(GL_TRIANGLES);
+	//quad->render(GL_TRIANGLES);
 
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	shader->disable();
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_CULL_FACE);
+	//glDisable(GL_BLEND);
+	//shader->disable();
 	
 	
 	// glDisable(GL_DEPTH_TEST);

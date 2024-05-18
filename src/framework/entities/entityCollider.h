@@ -13,16 +13,16 @@ struct sCollisionData {
 class EntityCollider : public EntityMesh {
 
 public:
+	bool is_dynamic = false;
 	EntityCollider() {
 		type = NONE;
 	};
-  EntityCollider(Mesh* mesh, const Material& material, col_type type = SCENARIO, const std::string& name = "") {
+	EntityCollider(Mesh* mesh, const Material& material, col_type type = SCENARIO, const std::string& name = "", bool is_dynamic = false) {
 		this->type = type;
 		this->mesh = mesh;
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
+		this->is_dynamic = is_dynamic;
 	};
-	EntityCollider(Mesh* mesh, const Material& material, const std::string& name = "", bool is_dynamic=false);
-  ~EntityCollider() {};
-	bool is_dynamic = false;
+	~EntityCollider() {};
 };
