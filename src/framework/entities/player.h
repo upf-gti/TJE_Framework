@@ -108,7 +108,7 @@ public:
 
 	}
 	
-	void move(Vector3 vec);
+	void move(const Vector3& vec);
 	// Methods overwritten from base class
 	void render(Camera* camera);
 	void update(float elapsed_time);
@@ -118,8 +118,10 @@ public:
 	void onKeyUp(SDL_KeyboardEvent event);
 	void onKeyDown(SDL_KeyboardEvent event);
 
-	Vector3 getPosition();
-	Vector3 getPositionGround();
+	Vector3 getPosition() const { return model.getTranslation(); };
+	Vector3 getPositionGround() const { Vector3 res = getPosition(); res.y = 0; return res; }
+	Vector3 getFront() { return model.frontVector(); }
+	Vector3 getRight() { return model.rightVector(); }
 
 private:
 	void loadTextures() {

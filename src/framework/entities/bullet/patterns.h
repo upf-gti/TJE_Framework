@@ -4,7 +4,9 @@
 
 #include "framework/entities/bullet/bulletAuto.h"
 #include "framework/entities/bullet/bulletNormal.h"
+
 #include "framework/entities/bullet/bulletSniper.h"
+#include "framework/entities/enemy.h"
 
 
 static class Patterns {
@@ -14,7 +16,8 @@ public:
 		model.translate(Vector3(0,1,0));
 		mat.diffuse = texture;
 		mat.shader = shader;
-		Bullet* b = new BulletAuto(mesh, mat, Vector3(0, 700, 0), direction, model);
+		Stage* stage = Stage::instance;
+		Bullet* b = new BulletAuto(mesh, mat, stage->enemy->getPosition(), direction, model);
 		bullets.push_back(b);
 	}
 

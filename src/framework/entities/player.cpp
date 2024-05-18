@@ -65,7 +65,6 @@ void Player::shootCharge(bullet_type bullet_type) {
 }
 
 
-
 Vector3 Player::getPosition() {
 	return model.getTranslation();
 }
@@ -75,7 +74,7 @@ Vector3 Player::getPositionGround() {
 }
 
 void Player::showHitbox(Camera* camera) {
-	// Render sphere
+
 
 	Matrix44 m = model;
 
@@ -158,15 +157,10 @@ void Player::render(Camera* camera) {
 	showHitbox(camera);
 };
 
-
-
-
-void Player::move(Vector3 vec) {
+void Player::move(const Vector3& vec) {
 	//model.translate(vec);
 	model.translateGlobal(vec);
 }
-
-
 
 void Player::update(float delta_time) {
 	// std::cout << grounded << std::endl;
@@ -177,9 +171,6 @@ void Player::update(float delta_time) {
 		box_cam += (box_dist - 1) * (getPositionGround() - box_cam) * delta_time;
 	}
 	timer_bullet_general = Game::instance->time - timer_bullet[bt];
-	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing) {
-		dash(delta_time);
-	}
 
 	if (Input::isKeyPressed(SDL_SCANCODE_Q)) {
 		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
@@ -190,11 +181,26 @@ void Player::update(float delta_time) {
 	if (autoshoot) {
 		shoot();
 	}
-	direction = model.frontVector();
-	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
-		Input::isKeyPressed(SDL_SCANCODE_S) ||
-		Input::isKeyPressed(SDL_SCANCODE_A) ||
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot / 2;
+
+//	direction = model.frontVector();
+//	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
+//		Input::isKeyPressed(SDL_SCANCODE_S) ||
+//		Input::isKeyPressed(SDL_SCANCODE_A) ||
+//		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD + DEFAULT_SPD * autoshoot / 2;
+
+
+	direction = Vector3(0.0f);
+
+	if (Input::isKeyPressed(SDL_SCANCODE_W)) direction += getFront();
+	if (Input::isKeyPressed(SDL_SCANCODE_S)) direction -= getFront();
+	if (Input::isKeyPressed(SDL_SCANCODE_A)) direction += getRight();
+	if (Input::isKeyPressed(SDL_SCANCODE_D)) direction -= getRight();
+
+	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing) {
+		dash(delta_time);
+	}
+	else m_spd = DEFAULT_SPD;
+
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
 		if (m_spd < 0) m_spd = 0;
@@ -203,10 +209,12 @@ void Player::update(float delta_time) {
 	bool is_knowckback = timer_bullet_general < knockback_time[bt];
 	float knockback_speed = DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
 
+	std::cout << speed << std::endl;
 	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Stage::instance->mouse_locked) //is left button pressed?
 	{
 		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
+
 	direction -= knockback_speed * model.frontVector();
 	direction.normalize();
 	float total_spd = abs(m_spd - knockback_speed);
@@ -231,7 +239,7 @@ void Player::update(float delta_time) {
 	std::vector<sCollisionData> collisions;
 	std::vector<sCollisionData> ground;
 
-	Vector3 player_center = model.getTranslation() + Vector3(0, player_height, 0);
+	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
 
 	colliding = Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD);
 	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
@@ -266,8 +274,15 @@ void Player::update(float delta_time) {
 	if (!grounded && !jumping) {
 		v_spd -= GRAVITY * delta_time;
 	}
+
 	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
 	move(movement);
+
+//	move(direction * speed * delta_time);
+//	if (!grounded)
+//		move(Vector3::UP * v_spd * delta_time);
+//	else
+//		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
 }
 
 

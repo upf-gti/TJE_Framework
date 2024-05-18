@@ -6,7 +6,7 @@
 #include "graphics/shader.h"
 #include "framework/input.h"
 #include "graphics/material.h"
-#include "framework/entities/entityMesh.h"
+#include "framework/entities/enemy.h"
 #include "framework/entities/player.h"
 
 
@@ -32,6 +32,7 @@ float camera_angle_y = 100;
 Stage* Stage::instance = NULL;
 Player* player = NULL;
 Player* e2 = NULL;
+Enemy* enemy = NULL;
 Matrix44 camera_support;
 
 Mesh* quad;
@@ -46,7 +47,7 @@ Texture* sus;
 // Cosas nuevas que he añadido
 
 
-void renderSkybox(Texture* cubemap)
+static void renderSkybox(Texture* cubemap)
 {
 	Camera* camera = Camera::current;
 
@@ -73,7 +74,7 @@ void renderSkybox(Texture* cubemap)
 	glEnable(GL_DEPTH_TEST);
 }
 
-bool parseScene(const char* filename, Entity* root)
+static bool parseScene(const char* filename, Entity* root)
 {
 	std::cout << " + Scene loading: " << filename << "..." << std::endl;
 
@@ -169,13 +170,13 @@ bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
-bool Stage::ray_collided(std::vector<EntityCollider::sCollisionData>& ray_collisions, 
-						Vector3 position, Vector3 direction, float dist, bool in_object_space, 
-						EntityCollider::col_type collision_type) {
+bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, EntityCollider::col_type collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityCollider* ee = (EntityCollider*)root->children[i];
-		if (!(ee->type && collision_type)) continue;
-		EntityCollider::sCollisionData data;
+
+		EntityMesh* ee = (EntityMesh*)root->children[i];
+    if (ee->type & collision_type) continue;
+		sCollisionData data;
+
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testRayCollision(
@@ -208,12 +209,14 @@ bool Stage::ray_collided(std::vector<EntityCollider::sCollisionData>& ray_collis
 	return (!ray_collisions.empty());
 }
 
-bool Stage::sphere_collided(std::vector<EntityCollider::sCollisionData>& collisions, Vector3 position, 
-							float radius, EntityCollider::col_type collision_type) {
+
+bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, EntityCollider::col_type collision_type) {
 	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
-		EntityCollider* ee = (EntityCollider*)Stage::instance->root->children[i];
-		if (!(ee->type && collision_type)) continue;
-		EntityCollider::sCollisionData data;
+
+		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
+    if (ee->type & collision_type) continue;
+		sCollisionData data;
+
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
@@ -226,6 +229,11 @@ bool Stage::sphere_collided(std::vector<EntityCollider::sCollisionData>& collisi
 				collisions.push_back(data);
 			}
 		}
+	}
+	sCollisionData data;
+	Enemy* enemy = Stage::instance->enemy;
+	if (enemy->mesh->testSphereCollision(enemy->model, position, radius, data.colPoint, data.colNormal)) {
+		collisions.push_back(data);
 	}
 	return (!collisions.empty());
 }
@@ -246,6 +254,10 @@ Stage::Stage()
 	e2->model.setTranslation(Vector3(10, 0, 5));
 	player->model.setTranslation(Vector3(1, 0, 1));
 	player->box_cam = Vector3(0, 0, 10);
+
+	enemy = new Enemy(player->mesh, *mat, "Francisco", true, 1);
+	this->enemy = enemy;
+	this->player = player;
 
 	// OpenGL flags
 	glEnable(GL_CULL_FACE); //render both sides of every triangle
@@ -331,18 +343,35 @@ void Stage::render(void)
 	
 		
 	root->render(camera);
+	player->render(camera);
+	enemy->render(camera);
 	// Draw the floor grid
 
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
+  drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
 	Camera camera2D;
 	camera2D.enable();
 	camera2D.view_matrix = Matrix44(); // Set View to identity
 	camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
+
+
+	//Camera camera2D;
+	//camera2D.view_matrix = Matrix44(); // Set View to identity
+	//camera2D.setOrthographic(0, window_width, 0, window_height, -1, 1);
+	//glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_CULL_FACE);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//shader->enable();
+	//shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+	//shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	//shader->setUniform("u_texture", imagetex);
+	//shader->setUniform("u_model", m);
+	//shader->disable();\
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -403,7 +432,7 @@ void Stage::update(double seconds_elapsed)
 	}
 	else {
 		Vector3 player_pos = player->box_cam;
-		Vector3 enemy_pos = e2->model.getTranslation();
+		Vector3 enemy_pos = enemy->getPosition();
 		Vector3 director = player_pos - enemy_pos;
 		camera->lookAt(player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0), enemy_pos, camera->up);
 	}

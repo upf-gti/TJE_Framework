@@ -4,34 +4,33 @@
 
 #include "graphics/material.h"
 
+struct sMeshLOD {
+	Mesh* mesh; // .ASE File or .OBJ File
+	float distance;
+};
+
+enum col_type : int32{
+  NONE = 0,
+  FLOOR = 1 << 0,
+  WALL = 1 << 1,
+  PLAYER = 1 << 2,
+  ENEMY = 1 << 3,
+  // Both WALL and FLOOR are considered SCENARIO
+  // using OR operator
+  SCENARIO = WALL | FLOOR,
+  ALL = 0xFF
+};
 
 class EntityMesh : public Entity {
 
 public:
-	enum col_type : int32{
-		NONE = 0,
-		FLOOR = 1 << 0,
-		WALL = 1 << 1,
-		PLAYER = 1 << 2,
-		ENEMY = 1 << 3,
-		// Both WALL and FLOOR are considered SCENARIO
-		// using OR operator
-		SCENARIO = WALL | FLOOR,
-		ALL = 0xFF
-	};
-
-	col_type type;
-
-	struct sMeshLOD {
-		Mesh* mesh; // .ASE File or .OBJ File
-		float distance;
-	};
+  col_type type;
 	std::vector<sMeshLOD> mesh_lods;
 	// Attributes of the derived class  
 	Mesh* mesh = nullptr;
 
 	Vector4 color;
-
+  
 	Material material;
 
 	bool isInstanced = false;
@@ -49,7 +48,7 @@ public:
 	};
 	~EntityMesh() {}
 	
-
+	Vector3 getPosition() const { return model.getTranslation(); };
 	// Methods overwritten from base class
 	void render(Camera* camera);
 	void update(float elapsed_time);
