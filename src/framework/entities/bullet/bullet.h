@@ -2,13 +2,13 @@
 #ifndef BULLET_H
 #define BULLET_H
 
-#include "framework/entities/entityMesh.h"
+#include "framework/entities/entityCollider.h"
 #include "game/game.h"
 
 #define BULLET_SPD 10
 
 
-class Bullet : public EntityMesh {
+class Bullet : public EntityCollider {
 
 public:
 	// Movement
@@ -18,6 +18,9 @@ public:
 	float rotation_angle_accel = 0;
 	float speed = BULLET_SPD;
 	float opacity_dec = 0;
+
+	bool active = true;
+	bool to_delete = false;
 
 	// Despawn time
 	float timer_spawn = -1;

@@ -51,7 +51,7 @@ void BulletSniper::update(float delta_time) {
 			material.color.w -= opacity_dec * delta_time;
 		else material.color.w = 0;
 	}
-	//move(Vector3(20 * delta_time, 0, 0));
+	//move(Vector3(0, 0, speed * delta_time));
 }
 
 

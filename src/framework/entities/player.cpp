@@ -213,7 +213,7 @@ void Player::update(float delta_time) {
 
 	for (int i = 0; i < bullets.size(); i++) {
 		Bullet* b = bullets[i];
-		if (Game::instance->time - b->timer_spawn > 5) {
+		if (Game::instance->time - b->timer_spawn > 5 || b->to_delete) {
 			bullets.erase((bullets.begin() + i));
 			delete b;
 			bullet_idx_last++;
