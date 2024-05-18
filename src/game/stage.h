@@ -10,6 +10,9 @@
 #include "framework/entities/entity.h"
 #include "framework/entities/entityCollider.h"
 
+class Enemy;
+class Player;
+
 class Stage
 {
 public:
@@ -25,6 +28,8 @@ public:
 	float zoom = 2.f;
 
 	Entity* root;
+	Enemy* enemy;
+	Player* player;
 
 	//some vars
 	Camera* camera; //our global camera
@@ -45,7 +50,9 @@ public:
 	void onMouseWheel(SDL_MouseWheelEvent event);
 	void onGamepadButtonDown(SDL_JoyButtonEvent event);
 	void onGamepadButtonUp(SDL_JoyButtonEvent event);
-	bool ray_collided(std::vector<EntityCollider::sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, EntityCollider::col_type collision_type = EntityCollider::SCENARIO);
-	bool sphere_collided(std::vector<EntityCollider::sCollisionData>& collisions, Vector3 position, float radius, EntityCollider::col_type collision_type = EntityCollider::SCENARIO);
+
+	bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, EntityCollider::col_type collision_type = EntityCollider::SCENARIO);
+	bool sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, EntityCollider::col_type collision_type = EntityCollider::SCENARIO);
+
 
 };

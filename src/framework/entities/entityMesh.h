@@ -4,14 +4,14 @@
 
 #include "graphics/material.h"
 
+struct sMeshLOD {
+	Mesh* mesh; // .ASE File or .OBJ File
+	float distance;
+};
 
 class EntityMesh : public Entity {
 
 public:
-	struct sMeshLOD {
-		Mesh* mesh; // .ASE File or .OBJ File
-		float distance;
-	};
 	std::vector<sMeshLOD> mesh_lods;
 	// Attributes of the derived class  
 	Mesh* mesh = nullptr;
@@ -35,7 +35,7 @@ public:
 	};
 	~EntityMesh() {}
 	
-
+	Vector3 getPosition() const { return model.getTranslation(); };
 	// Methods overwritten from base class
 	void render(Camera* camera);
 	void update(float elapsed_time);
