@@ -1,6 +1,62 @@
-# Created by Kenney (www.kenney.nl)
+# Blender 4.1.1 MTL File: 'escenitacosa2.blend'
+# www.blender.org
 
 newmtl colormap
-Kd 1 1 1
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd C:/Users/kirag/Downloads/kenney_mini-arena/Models/OBJ format/Textures/colormap.png
+
+newmtl colormap.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd C:/Users/kirag/Downloads/kenney_mini-arena/Models/OBJ format/Textures/colormap.png
+
+newmtl colormap.002
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd C:/Users/kirag/Downloads/kenney_mini-arena/Models/OBJ format/Textures/colormap.png
+
+newmtl colormap.003
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd C:/Users/kirag/Downloads/kenney_mini-arena/Models/OBJ format/Textures/colormap.png
+
+newmtl colormap.004
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
 map_Kd Textures/colormap.png
 
+newmtl colormap.023
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd Textures/colormap.png
