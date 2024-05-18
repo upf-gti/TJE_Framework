@@ -20,7 +20,7 @@ void BulletSniper::drawHitBox(Camera* camera) {
 	Matrix44 m = model_base;
 
 	material.shader->enable();
-	m.setTranslation(model_base.getTranslation() + model_base.frontVector() * (scale / 10));
+	m.setTranslation(model.getTranslation() + model_base.frontVector() * (scale / 10));
 	float sphere_radius = 0.8;
 	m.scale(sphere_radius, sphere_radius, sphere_radius);
 
@@ -62,14 +62,15 @@ void BulletSniper::move(Vector3 vec) {
 void BulletSniper::update(float delta_time) {
 	std::vector<sCollisionData> collisions;
 	if (active) {
-		Vector3 bullet_center = model_base.getTranslation() + model_base.frontVector() * (scale/10);
-		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.8);
-		if (colliding) active = false;
-		acceleration += 0.5 * delta_time;
+		acceleration += 2 * delta_time;
 		speed += acceleration;
 		scale += speed * delta_time;
 		model = model_base;
 		model.scale(0.5, 0.5, scale / 10);
+		model.translateGlobal(model_base.frontVector() * (scale / 10));
+		Vector3 bullet_center = model.getTranslation() + model_base.frontVector() * (scale / 10);
+		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.8);
+		if (colliding) active = false;
 	}
 	else despawning(delta_time);
 	//move(Vector3(0, 0, speed * delta_time));

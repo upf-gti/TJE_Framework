@@ -31,12 +31,13 @@ Player* player = NULL;
 Player* e2 = NULL;
 Matrix44 camera_support;
 
-Mesh quad;
+Mesh* quad;
 
 Texture* cubemap = new Texture();
 
 Shader* image = NULL;
-Texture* sus = NULL;
+Texture* sus;
+
 
 
 // Cosas nuevas que he añadido
@@ -260,21 +261,21 @@ Stage::Stage()
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 
 
-	// Three vertices of the 1st triangle
-	quad.vertices.push_back(Vector3(-1, 1, 0));
-	quad.uvs.push_back(Vector2(0, 1));
-	quad.vertices.push_back(Vector3(-1, -1, 0));
-	quad.uvs.push_back(Vector2(0, 0));
-	quad.vertices.push_back(Vector3(1, -1, 0));
-	quad.uvs.push_back(Vector2(1, 0));
+	//// Three vertices of the 1st triangle
+	//quad.vertices.push_back(Vector3(-1, 1, 0));
+	//quad.uvs.push_back(Vector2(0, 1));
+	//quad.vertices.push_back(Vector3(-1, -1, 0));
+	//quad.uvs.push_back(Vector2(0, 0));
+	//quad.vertices.push_back(Vector3(1, -1, 0));
+	//quad.uvs.push_back(Vector2(1, 0));
 
-	// Three vertices of the 2nd triangle
-	quad.vertices.push_back(Vector3(-1, 1, 0));
-	quad.uvs.push_back(Vector2(0, 1));
-	quad.vertices.push_back(Vector3(1, -1, 0));
-	quad.uvs.push_back(Vector2(1, 0));
-	quad.vertices.push_back(Vector3(1, 1, 0));
-	quad.uvs.push_back(Vector2(1, 1));
+	//// Three vertices of the 2nd triangle
+	//quad.vertices.push_back(Vector3(-1, 1, 0));
+	//quad.uvs.push_back(Vector2(0, 1));
+	//quad.vertices.push_back(Vector3(1, -1, 0));
+	//quad.uvs.push_back(Vector2(1, 0));
+	//quad.vertices.push_back(Vector3(1, 1, 0));
+	//quad.uvs.push_back(Vector2(1, 1));
 
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
@@ -292,6 +293,9 @@ Stage::Stage()
 	});
 	cube = new Mesh();
 	cube->createCube();
+	sus = Texture::Get("data/gus.tga");
+	quad = new Mesh();
+	quad->createQuad(300, 300, 100, 100, false);
 }
 
 #include <vector>
@@ -324,24 +328,6 @@ void Stage::render(void)
 	// Create model matrix for cube
 	Matrix44 m2 = e2->getGlobalMatrix();
 
-	//if (shader)
-	//{
-	//	// Enable shader
-	//	shader->enable();
-
-	//	// Upload uniforms
-	//	shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-	//	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	//	shader->setUniform("u_texture", texture, 0);
-	//	shader->setUniform("u_model", m);
-	//	shader->setUniform("u_time", time);
-
-	//	// Do the draw call
-	//	mesh->render(GL_TRIANGLES);
-
-	//	// Disable shader
-	//	shader->disable();
-	//}
 	drawGrid();
 	
 		
@@ -355,20 +341,29 @@ void Stage::render(void)
 
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 
-	//Camera camera2D;
-	//camera2D.view_matrix = Matrix44(); // Set View to identity
-	//camera2D.setOrthographic(0, window_width, 0, window_height, -1, 1);
-	//glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_CULL_FACE);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//shader->enable();
-	//shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-	//shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	//shader->setUniform("u_texture", imagetex);
-	//shader->setUniform("u_model", m);
-	//shader->disable();\
+	Camera camera2D;
+	camera2D.enable();
+	camera2D.view_matrix = Matrix44(); // Set View to identity
+	camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	shader->enable();
+	shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+	shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
+
+	quad->render(GL_TRIANGLES);
+
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	shader->disable();
+	
+	
+	// glDisable(GL_DEPTH_TEST);
 
 
 }
