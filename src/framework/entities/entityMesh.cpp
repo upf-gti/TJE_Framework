@@ -17,10 +17,10 @@ void EntityMesh::render(Camera* camera) {
 		for (int i = 0; i < models.size(); i++) {
 			float max = model._11 > model._22 ? model._11 : model._22;
 			max = max > model._33 ? max : model._33;
-			float sphere_radius = mesh->radius;
+			float sphere_radius = mesh->radius	;
 			Vector3 center_world = models[i] * mesh->box.center;
 			float aabb_radius = mesh->radius;
-			if (camera->testSphereInFrustum(center_world, 100 * sphere_radius)) {
+			if (camera->testSphereInFrustum(center_world, sphere_radius)) {
 				models_instanced.push_back(models[i]);
 			}
 		}

@@ -163,9 +163,12 @@ bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
-bool Stage::ray_collided(std::vector<EntityCollider::sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space) {
+bool Stage::ray_collided(std::vector<EntityCollider::sCollisionData>& ray_collisions, 
+						Vector3 position, Vector3 direction, float dist, bool in_object_space, 
+						EntityCollider::col_type collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
 		EntityCollider* ee = (EntityCollider*)root->children[i];
+		if (ee->type != collision_type) continue;
 		EntityCollider::sCollisionData data;
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
@@ -199,9 +202,11 @@ bool Stage::ray_collided(std::vector<EntityCollider::sCollisionData>& ray_collis
 	return (!ray_collisions.empty());
 }
 
-bool Stage::sphere_collided(std::vector<EntityCollider::sCollisionData>& collisions, Vector3 position, float radius) {
+bool Stage::sphere_collided(std::vector<EntityCollider::sCollisionData>& collisions, Vector3 position, 
+							float radius, EntityCollider::col_type collision_type) {
 	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
 		EntityCollider* ee = (EntityCollider*)Stage::instance->root->children[i];
+		if (ee->type != collision_type) continue;
 		EntityCollider::sCollisionData data;
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
