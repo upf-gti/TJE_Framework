@@ -264,7 +264,7 @@ void Player::update(float delta_time) {
 		v_spd -= GRAVITY * delta_time;
 	}
 
-	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
+	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded ? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
 	move(movement);
 
 //	move(direction * speed * delta_time);

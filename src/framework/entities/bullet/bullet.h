@@ -18,6 +18,7 @@ public:
 	float rotation_angle_accel = 0;
 	float speed = BULLET_SPD;
 	float opacity_dec = 3;
+	float damage;
 
 	bool active = true;
 	bool to_delete = false;
@@ -26,7 +27,7 @@ public:
 	float timer_spawn = -1;
 	
 
-	Bullet() {};
+	Bullet() { type = COL_TYPE::BULLET; damage = 1; };
 	~Bullet() {};
 	
 	void move(Vector3 vec) {};

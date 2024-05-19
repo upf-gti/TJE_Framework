@@ -52,8 +52,8 @@ public:
 	void onGamepadButtonUp(SDL_JoyButtonEvent event);
 
 
-	bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, col_type collision_type = SCENARIO);
-	bool sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, col_type collision_type = SCENARIO);
-	static bool comparefunction(const Entity* e1, const Entity* e2);
+	bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, COL_TYPE collision_type = SCENARIO);
+	bool sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO);
+	static bool compareFunction(const Entity* e1, const Entity* e2);
 
 };

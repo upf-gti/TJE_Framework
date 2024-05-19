@@ -17,10 +17,10 @@ public:
 	EntityCollider() {
 		type = NONE;
 	};
-	EntityCollider(Mesh* mesh, const Material& material, col_type type = SCENARIO, const std::string& name = "", bool is_dynamic = false) {
+	EntityCollider(Mesh* mesh, const Material& material, COL_TYPE type = SCENARIO, const std::string& name = "", bool is_dynamic = false) {
 		this->type = type;
 		this->mesh = mesh;
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
 		this->is_dynamic = is_dynamic;
 	};
