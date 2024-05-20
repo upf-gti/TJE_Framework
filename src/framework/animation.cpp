@@ -22,29 +22,29 @@ Skeleton::Bone* Skeleton::getBone(const char* name)
 	return &bones[it->second];
 }
 
-Matrix44& Skeleton::getBoneMatrix(const char* name, bool local )
+Matrix44& Skeleton::getBoneMatrix(const char* name, bool local)
 {
 	static Matrix44 none;
 	auto it = bones_by_name.find(name);
 	if (it == bones_by_name.end())
 		return none;
 	if (local)
-		return bones[ it->second ].model;
-	return global_bone_matrices[ it->second ];
+		return bones[it->second].model;
+	return global_bone_matrices[it->second];
 }
 
-void Skeleton::computeFinalBoneMatrices( std::vector<Matrix44>& bone_matrices, Mesh* mesh )
+void Skeleton::computeFinalBoneMatrices(std::vector<Matrix44>& bone_matrices, Mesh* mesh)
 {
 	assert(mesh);
 
 	updateGlobalMatrices();
 
 	bone_matrices.resize(mesh->bones_info.size());
-	#pragma omp for  
+#pragma omp for  
 	for (int i = 0; i < (int)mesh->bones_info.size(); ++i)
 	{
 		BoneInfo& bone_info = mesh->bones_info[i];
-		bone_matrices[i] = mesh->bind_matrix * bone_info.bind_pose * getBoneMatrix( bone_info.name, false ); //use globals
+		bone_matrices[i] = mesh->bind_matrix * bone_info.bind_pose * getBoneMatrix(bone_info.name, false); //use globals
 	}
 }
 
@@ -59,7 +59,7 @@ void blendSkeleton(Skeleton* a, Skeleton* b, float w, Skeleton* result, uint8 la
 	{
 		if (w == 0.0f)
 		{
-			if(result == a) //nothing to do
+			if (result == a) //nothing to do
 				return;
 			*result = *a; //copy A in Result
 			return;
@@ -79,17 +79,17 @@ void blendSkeleton(Skeleton* a, Skeleton* b, float w, Skeleton* result, uint8 la
 	}
 
 	//blend bones locally
-	#pragma omp for  
+#pragma omp for  
 	for (int i = 0; i < result->num_bones; ++i)
 	{
 		Skeleton::Bone& bone = result->bones[i];
 		Skeleton::Bone& boneA = a->bones[i];
 		Skeleton::Bone& boneB = b->bones[i];
-		if ( layer != 0xFF && !(bone.layer & layer) ) //not in the same layer
+		if (layer != 0xFF && !(bone.layer & layer)) //not in the same layer
 			continue;
-		#pragma omp for  
+#pragma omp for  
 		for (int j = 0; j < 16; ++j)
-			bone.model.m[j] = lerp( boneA.model.m[j], boneB.model.m[j], w);
+			bone.model.m[j] = lerp(boneA.model.m[j], boneB.model.m[j], w);
 	}
 }
 
@@ -102,7 +102,7 @@ void Skeleton::renderSkeleton(Camera* camera, Matrix44 model, Vector4 color, boo
 		Bone& bone = bones[i];
 		Vector3 v1;
 		Vector3 v2;
-		Matrix44 parent_global_matrix = global_bone_matrices[ bone.parent ];
+		Matrix44 parent_global_matrix = global_bone_matrices[bone.parent];
 		Matrix44 global_matrix = global_bone_matrices[i];
 		v1 = global_matrix * v1;
 		v2 = parent_global_matrix * v2;
@@ -142,15 +142,15 @@ void Skeleton::updateGlobalMatrices()
 	for (int i = 1; i < num_bones; ++i)
 	{
 		Skeleton::Bone& bone = bones[i];
-		global_bone_matrices[i] = bone.model * global_bone_matrices[ bone.parent ];
+		global_bone_matrices[i] = bone.model * global_bone_matrices[bone.parent];
 	}
 }
 
-void Skeleton::assignLayer( Bone* bone, uint8 layer )
+void Skeleton::assignLayer(Bone* bone, uint8 layer)
 {
 	if (!bone)
 		return;
-	if(layer)
+	if (layer)
 		bone->layer |= layer;
 	else
 		bone->layer = 0;
@@ -186,9 +186,9 @@ void Animation::assignTime(float t, bool loop, bool interpolate, uint8 layers)
 			t = duration + t;
 	}
 	else
-		t = clamp( t, 0.0f, duration - (1.0f/samples_per_second) );
+		t = clamp(t, 0.0f, duration - (1.0f / samples_per_second));
 	float v = samples_per_second * t;
-	int index = (int)clamp( floor(v), 0.0f, (float)(num_keyframes - 1));
+	int index = (int)clamp(floor(v), 0.0f, (float)(num_keyframes - 1));
 	int index2 = index + 1;
 	if (index2 >= num_keyframes)
 		index2 = 0;
@@ -198,7 +198,7 @@ void Animation::assignTime(float t, bool loop, bool interpolate, uint8 layers)
 	Matrix44* k2 = keyframes + index2 * num_animated_bones;
 
 	//compute local bones
-	#pragma omp for  
+#pragma omp for  
 	for (int i = 0; i < num_animated_bones; ++i)
 	{
 		int bone_index = bones_map[i];
@@ -229,7 +229,7 @@ bool Animation::load(const char* filename)
 	std::string ext = name.substr(name.find_last_of(".") + 1);
 	if (ext == "abin" || ext == "ABIN")
 	{
-		if( !loadABIN(filename) )
+		if (!loadABIN(filename))
 			return false;
 	}
 	else //not a bin, try to load in ASCII
@@ -283,7 +283,7 @@ bool Animation::writeABIN(const char* filename)
 	header.num_animated_bones = num_animated_bones;
 	header.num_keyframes = num_keyframes;
 	header.num_bones = skeleton.num_bones;
-	memcpy( header.bones_map, bones_map, sizeof(bones_map)  );
+	memcpy(header.bones_map, bones_map, sizeof(bones_map));
 
 	//write header
 	fwrite((void*)&header, sizeof(sAnimHeader), 1, f);
@@ -300,7 +300,7 @@ bool Animation::writeABIN(const char* filename)
 
 bool Animation::loadABIN(const char* filename)
 {
-	FILE *f;
+	FILE* f;
 	assert(filename);
 
 	struct stat stbuffer;
@@ -342,18 +342,18 @@ bool Animation::loadABIN(const char* filename)
 	memcpy(bones_map, header.bones_map, sizeof(bones_map));
 
 	//extract skeleton
-	memcpy( skeleton.bones, pos, sizeof(skeleton.bones) );
+	memcpy(skeleton.bones, pos, sizeof(skeleton.bones));
 	pos += sizeof(skeleton.bones);
 
 	//extract keyframes
 	assert(keyframes == NULL);
 	keyframes = new Matrix44[num_keyframes * num_animated_bones];
-	memcpy( keyframes, pos, sizeof(Matrix44)*num_keyframes * num_animated_bones );
+	memcpy(keyframes, pos, sizeof(Matrix44) * num_keyframes * num_animated_bones);
 	pos += sizeof(Matrix44) * num_keyframes * num_animated_bones;
 
 	//compute bone names map
 	for (int i = 0; i < skeleton.num_bones; ++i)
-		skeleton.bones_by_name[ skeleton.bones[i].name ] = i;
+		skeleton.bones_by_name[skeleton.bones[i].name] = i;
 
 	delete[] data;
 	return true;
@@ -498,32 +498,20 @@ Animator::~Animator()
 
 void Animator::playAnimation(const char* path, bool loop, float transition, bool reset_time)
 {
+	Animation* new_animation = Animation::Get(path);
+
 	if (current_animation) {
 
-		if (target_animation)
-			delete target_animation;
-
-		target_animation = new Animation();
-		if (!target_animation->load(path)) {
-			assert(0 && "No animation found!");
-			delete target_animation;
+		if (new_animation == current_animation) {
 			target_animation = nullptr;
+			return;
 		}
 
+		target_animation = new_animation;
 		must_play_loop = loop;
 	}
 	else {
-
-		if (current_animation)
-			delete current_animation;
-
-		current_animation = new Animation();
-		if (!current_animation->load(path)) {
-			assert(0 && "No animation found!");
-			delete current_animation;
-			current_animation = nullptr;
-		}
-
+		current_animation = new_animation;
 		playing_loop = loop;
 	}
 
@@ -541,10 +529,6 @@ void Animator::playAnimation(const char* path, bool loop, float transition, bool
 
 void Animator::stopAnimation()
 {
-	delete current_animation;
-	delete target_animation;
-	delete last_loop_animation;
-
 	current_animation = nullptr;
 	target_animation = nullptr;
 	last_loop_animation = nullptr;
@@ -582,7 +566,6 @@ void Animator::update(float delta_time)
 			current_animation = target_animation;
 			playing_loop = must_play_loop;
 			time = transition_counter; // continue where the transition ended..
-			delete target_animation;
 			target_animation = nullptr;
 			return;
 		}
@@ -643,5 +626,9 @@ void Animator::addCallback(const std::string& filename, std::function<void(float
 
 Skeleton& Animator::getCurrentSkeleton()
 {
+	if (target_animation) {
+		return blended_skeleton;
+	}
+
 	return current_animation->skeleton;
 }
