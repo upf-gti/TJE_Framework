@@ -7,12 +7,20 @@
 
 #define BULLET_SPD 10
 
+// Bullets
+enum bullet_type : uint8 {
+	auto_aim,
+	circle,
+	shotgun,
+	sniper
+};
 
 class Bullet : public EntityCollider {
 
 public:
 	// Movement
 	Vector3 direction;
+	bool fromPlayer;
 	float rotation_angle = 0;
 	float acceleration = 0;
 	float rotation_angle_accel = 0;
@@ -26,8 +34,8 @@ public:
 	// Despawn time
 	float timer_spawn = -1;
 	
-
-	Bullet() { type = COL_TYPE::BULLET; damage = 1; };
+	Bullet() { type = COL_TYPE::PBULLET; damage = 1; };
+	Bullet(bool fromPlayer) { type = COL_TYPE::PBULLET; damage = 1; this->fromPlayer = fromPlayer; }
 	~Bullet() {};
 	
 	void move(Vector3 vec) {};

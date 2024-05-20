@@ -48,13 +48,6 @@ public:
 	float timer_jump = 0;
 	float player_height = PLAYER_HEIGHT;
 
-	// Bullets
-	enum bullet_type : uint8 {
-		auto_aim,
-		circle,
-		shotgun,
-		sniper
-	};
 	bullet_type bt = circle;
 	float mana;
 	bool autoshoot = false;
@@ -69,9 +62,8 @@ public:
 	float charge_cooldown[4] = { 0,0,0,1 }; bool charging = false;
 	Shader* bullet_shaders[4]; Texture* bullet_textures[4]; Mesh* bullet_meshes[4];
 	bool canshoot = true;
-	typedef void (*PatternFunc) (Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh);
 	uint16 amount[4] = { 1, 10, 20, 1 };
-	PatternFunc patterns[4] = { Patterns::autoAim , Patterns::circle, Patterns::shotgun, Patterns::sniper };
+	PatternFunc patterns[4] = { (PatternFunc) Patterns::autoAim , (PatternFunc) Patterns::circle, (PatternFunc) Patterns::shotgun, (PatternFunc) Patterns::sniper };
 	Material charge_mat;
 	Mesh* charge_mesh;
 	Matrix44 charge_model;
@@ -149,7 +141,5 @@ private:
 	void showHitbox(Camera* camera);
 	void chargingShot(Camera* camera);
 };
-
-
 
 #endif

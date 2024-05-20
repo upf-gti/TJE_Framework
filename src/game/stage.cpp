@@ -42,8 +42,6 @@ Texture* cubemap = new Texture();
 Shader* image = NULL;
 Texture* sus;
 
-
-
 // Cosas nuevas que he añadido
 
 

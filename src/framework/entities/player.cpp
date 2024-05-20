@@ -1,5 +1,5 @@
 #include "player.h"
-
+#include "enemy.h"
 
 #include <algorithm>
 
@@ -39,8 +39,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
-
-		patterns[bullet_type](Vector3(0,0,0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
+		patterns[bullet_type](Stage::instance->enemy->getPosition() + Vector3(0, player_height, 0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
@@ -220,10 +219,8 @@ void Player::update(float delta_time) {
 	}
 	Entity::update(delta_time);
 
-	if (mana < 200) {
-		mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);
-	}
-	else mana = 200;
+	mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);
+	mana = clamp(mana, 0, 200);
 
 	std::vector<sCollisionData> collisions;
 	std::vector<sCollisionData> ground;
