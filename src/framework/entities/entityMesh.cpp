@@ -53,7 +53,6 @@ void EntityMesh::render(Camera* camera) {
 	
 	//// Get the last camera that was activated 
 	//Camera* camera = Camera::current;
-
 	if (!material.shader) {
 		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
 	}
@@ -74,8 +73,10 @@ void EntityMesh::render(Camera* camera) {
 
 	if (isInstanced)
 		mesh->renderInstanced(GL_TRIANGLES, final_models->data(), final_models->size());
-	else
-		mesh->render(GL_TRIANGLES);
+	else if (isAnimated) {
+		mesh->renderAnimated(GL_TRIANGLES, &anim->skeleton);
+	}
+	else	mesh->render(GL_TRIANGLES);
 
 	// Disable shader after finishing rendering
 	material.shader->disable();

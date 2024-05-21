@@ -246,9 +246,10 @@ Stage::Stage()
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
 	mat->shader= shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-	mat->diffuse = Texture::Get("data/meshes/toilet.mtl");
-	player->mesh = Mesh::Get("data/meshes/toilet.obj");
+	mat->diffuse = Texture::Get("data/meshes/pj.mtl");
+	player->mesh = Mesh::Get("data/meshes/pj.mesh");
 	player->material = *mat;
+	player->isAnimated = true;
 	e2 = new Player();
 	e2->model.setTranslation(Vector3(10, 0, 5));
 	player->model.setTranslation(Vector3(1, 0, 1));
