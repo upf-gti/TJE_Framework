@@ -27,6 +27,7 @@ public:
 	float speed = BULLET_SPD;
 	float opacity_dec = 3;
 	float damage;
+	float time_since_spawn = 0;
 
 	bool active = true;
 	bool to_delete = false;
@@ -51,7 +52,7 @@ public:
 
 protected:
 	void despawning(float delta_time) {
-		std::cout << material.color.w;
+		//std::cout << material.color.w;
 		if (material.color.w > 0)
 			material.color.w -= opacity_dec * delta_time;
 		else {

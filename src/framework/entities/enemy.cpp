@@ -59,7 +59,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 
 		if (bullet->isInstanced) {
 			for (Matrix44& instanced_model : bullet->models) {
-				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal) && bullet->fromPlayer) {
+				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
 					this->currHP -= bullet->damage;
@@ -67,7 +67,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 			}
 		}
 		else {
-			if (bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal) && bullet->fromPlayer) {
+			if (bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
 				colliding = true;
 				bullet->to_delete = true;
 				this->currHP -= bullet->damage;
@@ -91,9 +91,13 @@ void Enemy::update(float time_elapsed)
 	std::vector<sCollisionData> ground;
 	std::vector<sCollisionData> collisions;
 	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
-	Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD, COL_TYPE::ENEMCOLS);
+	Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD, COL_TYPE::EBCOLS);
 
 	Vector3 currDirection = direction;
+
+	if (Input::isKeyPressed(SDL_SCANCODE_K))
+		Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.5, 0), Vector3(0, 0, 1), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+
 
 	for (sCollisionData& g : collisions) {
 		currDirection += g.colNormal;
@@ -130,17 +134,18 @@ void Enemy::update(float time_elapsed)
 	}
 	else
 	{
-		if (startFiring + 2 <= Game::instance->time)
+		if (startFiring + 5 <= Game::instance->time)
 		{
 			moving = true;
 			startMoving = Game::instance->time;
 			direction.x = (rand() % 2) * 2 - 1;
 			direction.z = (rand() % 2) * 2 - 1;
 		}
-		//if (bulletCD - 0.5 >= Game::instance->time) {
-			//bulletCD = Game::instance->time;
-			Patterns::autoAim(Stage::instance->player->getPosition()+Vector3(0, 0.5, 0), Vector3(0, 0, 1), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
-		//}
+		if (bulletCD + 0.1 <= Game::instance->time) {
+			bulletCD = Game::instance->time;
+			for (int i = 0; i <= 3; ++i)
+				Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3((1.0f / 3.0f * i)*2-1, 0, 1).normalize(), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+		}
 	}
 
 	for (int i = 0; i < bullets.size(); i++) {
@@ -151,7 +156,6 @@ void Enemy::update(float time_elapsed)
 		}
 		else b->update(time_elapsed);
 	}
-	Entity::update(time_elapsed);
 
 	this->sphere_bullet_collision(player_center, HITBOX_RAD);
 }

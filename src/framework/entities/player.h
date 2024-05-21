@@ -27,6 +27,8 @@
 class Player : public EntityCollider {
 
 public:
+	float maxHP = 10;
+	float currHP = maxHP;
 	// Movement
 	Vector3 forward = Vector3(0.0f, 0.0f, 1.0f), right = Vector3(1.0f, 0.0f, 0.0f);
 	Vector3 direction;
@@ -77,6 +79,7 @@ public:
 	Mesh* hitbox_mesh = Mesh::Get("data/meshes/sphere.obj");
 	Mesh* shadow_mesh = Mesh::Get("data/meshes/shadow.obj");
 
+	void sphere_bullet_collision(Vector3 position, float radius);
 
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
@@ -84,14 +87,14 @@ public:
 
 
 	Player() {
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->mana = DEFAULT_MANA;
 		this->type = PLAYER;
 		loadTextures();
 	};
 	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
 		this->mesh = mesh;
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
 		this->mana = mana;
 		this->type = PLAYER;

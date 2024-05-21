@@ -5,6 +5,29 @@
 
 // cubemap
 
+void Player::sphere_bullet_collision(Vector3 position, float radius) {
+	for (Bullet* bullet : Stage::instance->enemy->bullets) {
+		sCollisionData data;
+
+		if (bullet->isInstanced) {
+			for (Matrix44& instanced_model : bullet->models) {
+				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
+					colliding = true;
+					bullet->to_delete = true;
+					this->currHP -= bullet->damage;
+				}
+			}
+		}
+		else {
+			if (bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
+				colliding = true;
+				bullet->to_delete = true;
+				this->currHP -= bullet->damage;
+			}
+		}
+	}
+}
+
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {
 	if (!dashing) {
 		m_spd = 4 * DEFAULT_SPD;
@@ -269,6 +292,7 @@ void Player::update(float delta_time) {
 //		move(Vector3::UP * v_spd * delta_time);
 //	else
 //		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
+	this->sphere_bullet_collision(player_center, HITBOX_RAD);
 }
 
 

@@ -7,13 +7,15 @@
 
 #include "framework/entities/bullet/bulletSniper.h"
 
+#define HEIGHT 0.5
+
 typedef void (*PatternFunc) (Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh);
 
 static class Patterns {
 public:
 	static void autoAim(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh, bool fromPlayer = true) {
 		Material mat = Material();
-		model.translate(Vector3(0,1,0));
+		model.translate(Vector3(0, HEIGHT, 0));
 		mat.diffuse = texture;
 		mat.shader = shader;
 		Stage* stage = Stage::instance;
@@ -23,7 +25,7 @@ public:
 
 	static void circle(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh, bool fromPlayer = true) {
 		Material mat = Material();
-		model.translate(Vector3(0, 0.5, 0));
+		model.translate(Vector3(0, HEIGHT, 0));
 		mat.diffuse = texture;
 		mat.shader = shader;
 		for (int i = 0; i < amount; i++) {
@@ -37,7 +39,7 @@ public:
 		Material mat = Material();
 		mat.diffuse = texture;
 		mat.shader = shader;
-		model.translate(Vector3(0, 0.5, 0));
+		model.translate(Vector3(0, HEIGHT, 0));
 		for (int i = 0; i < amount; i++) {
 			Bullet* b = new BulletNormal(mesh, mat, direction, model, BULLET_SPD + (BULLET_SPD/10) * i, "", fromPlayer);
 			b->model.rotate(random(-PI / 8, PI / 8), Vector3(0, 1, 0));

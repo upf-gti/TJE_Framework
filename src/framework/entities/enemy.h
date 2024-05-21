@@ -30,7 +30,7 @@ public:
 	bool moving;
 	float startMoving;
 	float startFiring;
-	float bulletCD;
+	float bulletCD = -1;
 
 	Mesh* hitbox_mesh = Mesh::Get("data/meshes/sphere.obj");
 	Shader* flat_shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");

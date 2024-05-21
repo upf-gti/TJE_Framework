@@ -130,7 +130,6 @@ static bool parseScene(const char* filename, Entity* root)
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
 			new_entity->type = WALL;
-			std::cout << "\n\nWALL FOUND\n\n";
 			// Create a different type of entity
 			// new_entity = new ...
 		}
@@ -173,7 +172,6 @@ bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 po
 		EntityMesh* ee = (EntityMesh*)root->children[i];
 		if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
-
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testRayCollision(
@@ -211,7 +209,19 @@ bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 pos
 	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
 
 		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
-		if ((ee->type & collision_type) == 0) continue;
+		if (!(ee->type & collision_type)) continue;
+
+		/*if (collision_type == NONE) {
+			if (!(ee->type & collision_type)) {
+				std::cout << "Skipping entity due to type mismatch." << std::endl;
+				continue;
+			}
+			else {
+				std::cout << "Type " + ee->type << std::endl;
+			}
+		}*/
+		
+
 		sCollisionData data;
 
 		if (ee->isInstanced) {
@@ -227,11 +237,7 @@ bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 pos
 			}
 		}
 	}
-	sCollisionData data;
-	Enemy* enemy = Stage::instance->enemy;
-	if (enemy->mesh->testSphereCollision(enemy->model, position, radius, data.colPoint, data.colNormal)) {
-		collisions.push_back(data);
-	}
+
 	return (!collisions.empty());
 }
 
@@ -339,6 +345,7 @@ void Stage::render(void)
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
+	drawText(2, 50, std::to_string((player->currHP / player->maxHP)*100) + '%', Vector3(1, 1, 1), 2);
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
