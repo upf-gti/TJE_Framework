@@ -246,10 +246,11 @@ Stage::Stage()
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
 	mat->shader= shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-	mat->diffuse = Texture::Get("data/meshes/pj.mtl");
+	mat->diffuse = Texture::Get("data/textures/asian.tga");
 	player->mesh = Mesh::Get("data/meshes/pj.mesh");
 	player->material = *mat;
 	player->isAnimated = true;
+	player->anim = Animation::Get("data/meshes/pj.skanim");
 	e2 = new Player();
 	e2->model.setTranslation(Vector3(10, 0, 5));
 	player->model.setTranslation(Vector3(1, 0, 1));
@@ -366,6 +367,7 @@ void Stage::render(void)
 	//shader->enable();
 	//shader->setUniform("u_color", Vector4(1, 1, 1, 1));
 	//shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
+	//shader->setUniform("u_texture", sus);
 
 	//quad->render(GL_TRIANGLES);
 
@@ -374,9 +376,9 @@ void Stage::render(void)
 	//glEnable(GL_CULL_FACE);
 	//glDisable(GL_BLEND);
 	//shader->disable();
+	//
 	
-	
-	// glDisable(GL_DEPTH_TEST);
+	 glDisable(GL_DEPTH_TEST);
 
 
 }
