@@ -12,13 +12,13 @@ public:
 	Mesh* hitbox_mesh = Mesh::Get("data/meshes/sphere.obj");
 	Matrix44 model_base;
 	BulletSniper() {
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->speed = BULLET_SPD;
 		this->timer_spawn = Game::instance->time;
 	};
-	BulletSniper(Mesh* mesh, const Material& material, Vector3 direction, Matrix44 model, float speed = BULLET_SPD,  const std::string& name = "") {
+	BulletSniper(Mesh* mesh, const Material& material, Vector3 direction, Matrix44 model, float speed = BULLET_SPD, const std::string& name = "", bool fromPlayer = true) : Bullet(fromPlayer) {
 		this->mesh = mesh;
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
 		this->speed = speed;
 		this->direction = direction;

@@ -42,8 +42,6 @@ Texture* cubemap = new Texture();
 Shader* image = NULL;
 Texture* sus;
 
-
-
 // Cosas nuevas que he añadido
 
 
@@ -132,7 +130,6 @@ static bool parseScene(const char* filename, Entity* root)
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
 			new_entity->type = WALL;
-			std::cout << "\n\nWALL FOUND\n\n";
 			// Create a different type of entity
 			// new_entity = new ...
 		}
@@ -170,12 +167,11 @@ static bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
-bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, col_type collision_type) {
+bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
 		EntityMesh* ee = (EntityMesh*)root->children[i];
 		if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
-
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testRayCollision(
@@ -209,11 +205,23 @@ bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 po
 }
 
 
-bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, col_type collision_type) {
+bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type) {
 	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
 
 		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
-		if ((ee->type & collision_type) == 0) continue;
+		if (!(ee->type & collision_type)) continue;
+
+		/*if (collision_type == NONE) {
+			if (!(ee->type & collision_type)) {
+				std::cout << "Skipping entity due to type mismatch." << std::endl;
+				continue;
+			}
+			else {
+				std::cout << "Type " + ee->type << std::endl;
+			}
+		}*/
+		
+
 		sCollisionData data;
 
 		if (ee->isInstanced) {
@@ -229,11 +237,7 @@ bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 pos
 			}
 		}
 	}
-	sCollisionData data;
-	Enemy* enemy = Stage::instance->enemy;
-	if (enemy->mesh->testSphereCollision(enemy->model, position, radius, data.colPoint, data.colNormal)) {
-		collisions.push_back(data);
-	}
+
 	return (!collisions.empty());
 }
 
@@ -246,8 +250,8 @@ Stage::Stage()
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
 	mat->shader= shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-	mat->diffuse = Texture::Get("data/meshes/toilet.mtl");
-	player->mesh = Mesh::Get("data/meshes/toilet.obj");
+	mat->diffuse = Texture::Get("data/meshes/character.mtl");
+	player->mesh = Mesh::Get("data/meshes/character.obj");
 	player->material = *mat;
 	e2 = new Player();
 	e2->model.setTranslation(Vector3(10, 0, 5));
@@ -266,15 +270,6 @@ Stage::Stage()
 	camera = new Camera();
 	camera->lookAt(Vector3(0.f, 100.f, 100.f), Vector3(0.f, 0.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
 	camera->setPerspective(70.f, Game::instance->window_width / (float)Game::instance->window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
-
-	// Load one texture using the Texture Manager
-	texture = Texture::Get("data/meshes/Toilet_01.mtl");
-
-	// Example of loading Mesh from Mesh Manager
-	mesh = Mesh::Get("data/meshes/Toilet_01.obj");
-
-	// Example of shader loading using the shaders manager
-	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 
 
 	//// Three vertices of the 1st triangle
@@ -314,6 +309,7 @@ Stage::Stage()
 	quad->createQuad(300, 300, 100, 100, false);
 	player->type = PLAYER;
 	root->addChild(player);
+	root->addChild(enemy);
 }
 
 
@@ -343,12 +339,13 @@ void Stage::render(void)
 	
 		
 	root->render(camera);
-	enemy->render(camera);
+	//enemy->render(camera);
 	// Draw the floor grid
 
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
+	drawText(2, 50, std::to_string((player->currHP / player->maxHP)*100) + '%', Vector3(1, 1, 1), 2);
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
@@ -380,7 +377,7 @@ void Stage::render(void)
 
 }
 
-bool Stage::comparefunction(const Entity *e1, const Entity *e2) {
+bool Stage::compareFunction(const Entity *e1, const Entity *e2) {
 	EntityMesh* em1 = (EntityMesh*) e1;
 	EntityMesh* em2 = (EntityMesh*) e2;
 	Vector3 center_e1 = e1->model * em1->mesh->box.center;
@@ -395,7 +392,7 @@ void Stage::update(double seconds_elapsed)
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
 
-	std::sort(root->children.begin(), root->children.end(), Stage::comparefunction);
+	std::sort(root->children.begin(), root->children.end(), Stage::compareFunction);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
@@ -426,7 +423,7 @@ void Stage::update(double seconds_elapsed)
 	float sign; zdiff >= 0 ? sign = 1 : sign = -1;
 	float reverse_dist = 1 / sqrt(clamp(player->distance(e2) / 1000, 0.1, 2.5));
 	camera->lookAt((2*reverse_dist)*(player->model.getTranslation() - e2->model.getTranslation()) + Vector3(0,500 - player->model.getTranslation().y * 2 * reverse_dist, 0), e2->model.getTranslation() + Vector3(0, 200, 0), camera->up);*/
-
+	enemy->update(seconds_elapsed);
 
 }
 

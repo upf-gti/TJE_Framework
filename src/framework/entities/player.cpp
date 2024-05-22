@@ -1,9 +1,32 @@
 #include "player.h"
-
+#include "enemy.h"
 
 #include <algorithm>
 
 // cubemap
+
+void Player::sphere_bullet_collision(Vector3 position, float radius) {
+	for (Bullet* bullet : Stage::instance->enemy->bullets) {
+		sCollisionData data;
+
+		if (bullet->isInstanced) {
+			for (Matrix44& instanced_model : bullet->models) {
+				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
+					colliding = true;
+					bullet->to_delete = true;
+					this->currHP -= bullet->damage;
+				}
+			}
+		}
+		else {
+			if (bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
+				colliding = true;
+				bullet->to_delete = true;
+				this->currHP -= bullet->damage;
+			}
+		}
+	}
+}
 
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {
 	if (!dashing) {
@@ -39,8 +62,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
-
-		patterns[bullet_type](Vector3(0,0,0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
+		patterns[bullet_type](Stage::instance->enemy->getPosition() + Vector3(0, player_height, 0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
@@ -220,10 +242,8 @@ void Player::update(float delta_time) {
 	}
 	Entity::update(delta_time);
 
-	if (mana < 200) {
-		mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);
-	}
-	else mana = 200;
+	mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);
+	mana = clamp(mana, 0, 200);
 
 	std::vector<sCollisionData> collisions;
 	std::vector<sCollisionData> ground;
@@ -264,7 +284,7 @@ void Player::update(float delta_time) {
 		v_spd -= GRAVITY * delta_time;
 	}
 
-	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
+	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded ? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
 	move(movement);
 
 //	move(direction * speed * delta_time);
@@ -272,6 +292,7 @@ void Player::update(float delta_time) {
 //		move(Vector3::UP * v_spd * delta_time);
 //	else
 //		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
+	this->sphere_bullet_collision(player_center, HITBOX_RAD);
 }
 
 
