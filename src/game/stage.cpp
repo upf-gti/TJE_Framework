@@ -245,7 +245,7 @@ Stage::Stage()
 	player = new Player();
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
-	mat->shader= shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+	mat->shader= shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	mat->diffuse = Texture::Get("data/textures/asian.tga");
 	player->mesh = Mesh::Get("data/meshes/pj.mesh");
 	player->material = *mat;
@@ -354,29 +354,28 @@ void Stage::render(void)
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
-	//Camera camera2D;
-	//camera2D.enable();
-	//camera2D.view_matrix = Matrix44(); // Set View to identity
-	//camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
+	Camera camera2D;
+	camera2D.enable();
+	camera2D.view_matrix = Matrix44(); // Set View to identity
+	camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 
 
-	//glDisable(GL_CULL_FACE);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//shader->enable();
-	//shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-	//shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
-	//shader->setUniform("u_texture", sus);
+	shader->enable();
+	shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+	shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
 
-	//quad->render(GL_TRIANGLES);
+	quad->render(GL_TRIANGLES);
 
 
-	//glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	//glDisable(GL_BLEND);
-	//shader->disable();
-	//
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	shader->disable();
+	
 	
 	 glDisable(GL_DEPTH_TEST);
 

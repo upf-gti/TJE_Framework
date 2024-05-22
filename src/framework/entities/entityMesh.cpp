@@ -74,13 +74,13 @@ void EntityMesh::render(Camera* camera) {
 
 	material.shader->setUniform("u_time", Game::instance->time);
 
-	if (isInstanced && false == true)
+	if (isInstanced && false)
 		mesh->renderInstanced(GL_TRIANGLES, final_models->data(), final_models->size());
 	else if (isAnimated) {
 		mesh->renderAnimated(GL_TRIANGLES, &anim->skeleton);
 		std::cout << isAnimated << std::endl;
 	}
-	else	mesh->render(GL_TRIANGLES);
+	else mesh->render(GL_TRIANGLES);
 
 	// Disable shader after finishing rendering
 	material.shader->disable();

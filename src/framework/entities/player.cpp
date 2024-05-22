@@ -145,6 +145,7 @@ void Player::render(Camera* camera) {
 	glDepthFunc(GL_LESS);
 	glDepthMask(true);
 
+
 	EntityMesh::render(camera);
 	showHitbox(camera);
 };
