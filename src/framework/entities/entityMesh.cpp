@@ -58,6 +58,7 @@ void EntityMesh::render(Camera* camera) {
 
 	if (!material.shader) {
 		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+		if (isAnimated) material.shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	}
 	anim->assignTime(Game::instance->time);
 	material.shader->enable();

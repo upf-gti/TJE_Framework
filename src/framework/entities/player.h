@@ -85,17 +85,31 @@ public:
 	Mesh* hitbox_mesh = Mesh::Get("data/meshes/sphere.obj");
 	Mesh* shadow_mesh = Mesh::Get("data/meshes/shadow.obj");
 
+	enum anim_type : uint8 {
+		IDLE, WALKING, DASH
+	};
+	anim_type current_animation = IDLE;
+	anim_type last_animation = IDLE;
+	Animation* animation_pool[3];
+	float timer_anim = 0;
+	
 
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
 
-
+	void loadAnims() {
+		animation_pool[IDLE] = Animation::Get("data/anims/idle.skanim");
+		animation_pool[WALKING] = Animation::Get("data/anims/walk.skanim");
+		animation_pool[DASH] = Animation::Get("data/anims/run.skanim");
+		anim = animation_pool[IDLE];
+	}
 
 	Player() {
 		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->mana = DEFAULT_MANA;
 		this->type = PLAYER;
 		loadTextures();
+		loadAnims();
 	};
 	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
 		this->mesh = mesh;
@@ -104,6 +118,7 @@ public:
 		this->mana = mana;
 		this->type = PLAYER;
 		loadTextures();
+		loadAnims();
 	};
 	~Player() {
 

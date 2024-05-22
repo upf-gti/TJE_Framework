@@ -247,10 +247,9 @@ Stage::Stage()
 	mat->color = Vector4(1, 1, 1, 1);
 	mat->shader= shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	mat->diffuse = Texture::Get("data/textures/asian.tga");
-	player->mesh = Mesh::Get("data/meshes/pj.mesh");
+	player->mesh = Mesh::Get("data/meshes/player.MESH");
 	player->material = *mat;
 	player->isAnimated = true;
-	player->anim = Animation::Get("data/meshes/pj.skanim");
 	e2 = new Player();
 	e2->model.setTranslation(Vector3(10, 0, 5));
 	player->model.setTranslation(Vector3(1, 0, 1));

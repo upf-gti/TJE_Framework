@@ -110,6 +110,7 @@ void Player::chargingShot(Camera* camera) {
 }
 
 void Player::render(Camera* camera) {
+
 	bool time = (Game::instance->time - timer_charge[bt]) > charge_cooldown[bt];
 	// Render Bullets
 	for (int i = bullets.size()-1; i >= 0; i--) 
@@ -146,7 +147,40 @@ void Player::render(Camera* camera) {
 	glDepthMask(true);
 
 
-	EntityMesh::render(camera);
+	anim = animation_pool[current_animation];
+	Skeleton blended_skeleton = anim->skeleton;
+	if (Game::instance->time - timer_anim < 0.4) {
+		blendSkeleton(&animation_pool[last_animation]->skeleton,
+			&animation_pool[current_animation]->skeleton,
+			(Game::instance->time - timer_anim) / 0.4, &blended_skeleton);
+	}
+
+	if (!material.shader) {
+		material.shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
+	}
+	anim->assignTime(Game::instance->time);
+	material.shader->enable();
+	material.shader->setUniform("u_color", material.color);
+	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+
+	if (material.diffuse) {
+		material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
+	}
+	material.shader->setUniform("u_model", model);
+	material.shader->setUniform("u_time", Game::instance->time);
+
+	mesh->renderAnimated(GL_TRIANGLES, &blended_skeleton);
+	std::cout << isAnimated << std::endl;
+
+	// Disable shader after finishing rendering
+	material.shader->disable();
+
+	// Render hijos
+	for (size_t i = 0; i < children.size(); i++)
+	{
+		children[i]->render(camera);
+	}
+
 	showHitbox(camera);
 };
 
@@ -268,6 +302,27 @@ void Player::update(float delta_time) {
 	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
 	move(movement);
 
+	if (dashing) {
+		if (current_animation != DASH) {
+			last_animation = current_animation;
+			current_animation = DASH;
+			timer_anim = Game::instance->time;
+		}
+	}
+	else if (total_spd > 0.3) {
+		if (current_animation != WALKING) {
+			last_animation = current_animation;
+			current_animation = WALKING;
+			timer_anim = Game::instance->time;
+		}
+	}
+	else {
+		if (current_animation != IDLE) {
+			last_animation = current_animation;
+			current_animation = IDLE;
+			timer_anim = Game::instance->time;
+		}
+	}
 //	move(direction * speed * delta_time);
 //	if (!grounded)
 //		move(Vector3::UP * v_spd * delta_time);

@@ -31,6 +31,7 @@ public:
 
 	Vector4 color;
 	Animation* anim;
+	Animation* last_anim;
 	Material material;
 
 	bool isInstanced = false;
