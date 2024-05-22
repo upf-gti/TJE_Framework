@@ -255,7 +255,7 @@ Stage::Stage()
 	e2->model.setTranslation(Vector3(10, 0, 5));
 	player->model.setTranslation(Vector3(1, 0, 1));
 	player->box_cam = Vector3(0, 0, 10);
-
+	// AAA
 	enemy = new Enemy(player->mesh, *mat, "Francisco", true, 1);
 	this->enemy = enemy;
 	this->player = player;
