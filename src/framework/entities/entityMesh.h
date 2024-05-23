@@ -1,7 +1,7 @@
 #pragma once
 
 #include "framework/entities/entity.h"
-
+#include "framework/animation.h"
 #include "graphics/material.h"
 
 struct sMeshLOD {
@@ -34,21 +34,25 @@ public:
 	Mesh* mesh = nullptr;
 
 	Vector4 color;
-  
+	Animation* anim;
+	Animation* last_anim;
 	Material material;
 
 	bool isInstanced = false;
+	bool isAnimated = false;
+
 	std::vector<Matrix44> models;
 
 	void addInstance(const Matrix44& model) {
 		models.push_back(model);
 	};
 
-	EntityMesh() {};
+	EntityMesh() { anim = Animation::Get("data/meshes/pj.skanim"); };
 	EntityMesh(Mesh* mesh, const Material& material, const std::string& name = "") {
 		this->mesh = mesh;
 		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
+		anim = Animation::Get("data/meshes/pj.skanim");
 	};
 	~EntityMesh() {}
 	

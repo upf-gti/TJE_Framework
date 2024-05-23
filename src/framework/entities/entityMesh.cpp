@@ -54,10 +54,13 @@ void EntityMesh::render(Camera* camera) {
 	//// Get the last camera that was activated 
 	//Camera* camera = Camera::current;
 
+
+
 	if (!material.shader) {
 		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+		if (isAnimated) material.shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	}
-
+	anim->assignTime(Game::instance->time);
 	material.shader->enable();
 	material.shader->setUniform("u_color", material.color);
 	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
@@ -72,10 +75,13 @@ void EntityMesh::render(Camera* camera) {
 
 	material.shader->setUniform("u_time", Game::instance->time);
 
-	if (isInstanced)
+	if (isInstanced && false)
 		mesh->renderInstanced(GL_TRIANGLES, final_models->data(), final_models->size());
-	else
-		mesh->render(GL_TRIANGLES);
+	else if (isAnimated) {
+		mesh->renderAnimated(GL_TRIANGLES, &anim->skeleton);
+		std::cout << isAnimated << std::endl;
+	}
+	else mesh->render(GL_TRIANGLES);
 
 	// Disable shader after finishing rendering
 	material.shader->disable();
