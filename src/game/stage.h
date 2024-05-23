@@ -33,6 +33,7 @@ public:
 
 	//some vars
 	Camera* camera; //our global camera
+	Camera* camera2D; //our global camera
 	bool mouse_locked; //tells if the mouse is locked (not seen)
 
 	Stage();
