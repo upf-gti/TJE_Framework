@@ -12,12 +12,12 @@ public:
 	
 
 	BulletAuto() {
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->speed = BULLET_SPD;
 		this->timer_spawn = Game::instance->time;
 	};
-	BulletAuto(Mesh* mesh, const Material& material, Vector3 objective, Vector3 direction, Matrix44 model, float speed = BULLET_SPD,  const std::string& name = "") {
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+	BulletAuto(Mesh* mesh, const Material& material, Vector3 objective, Vector3 direction, Matrix44 model, float speed = BULLET_SPD,  const std::string& name = "", bool fromPlayer = true) : Bullet(fromPlayer) {
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->mesh = mesh;
 		this->material = material;
 		this->speed = speed;

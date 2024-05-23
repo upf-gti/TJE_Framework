@@ -42,19 +42,31 @@ void BulletNormal::move(Vector3 vec) {
 
 void BulletNormal::update(float delta_time) {
 	std::vector<sCollisionData> collisions;
-	if (active){
+	if (active) {
 		Vector3 bullet_center = model.getTranslation();
-		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.05, SCENARIO);
-		if (colliding) active = false;
+		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.05, (fromPlayer) ? PBCOLS : EBCOLS);
+		active = !colliding;
 		speed += acceleration * delta_time;
-		rotation_angle += rotation_angle_accel * delta_time;
+		rotation_angle += rotation_angle_accel * delta_time * 10;
 		model.rotate(rotation_angle, Vector3(0, 1, 0));
-		move(speed * delta_time * direction);
+
+		// Update time since spawn
+		time_since_spawn += delta_time;
+
+		// Calculate the sine wave offset
+		float wave_amplitude = 0.5f; // Adjust the amplitude as needed
+		float wave_frequency = 5.0f; // Adjust the frequency as needed
+		float wave_offset = wave_amplitude * sin(time_since_spawn * wave_frequency);
+
+		// Apply the wave offset to the bullet's direction
+		Vector3 wave_direction = direction;
+		wave_direction.x += wave_offset; // Apply wave to x-direction, can also be y or z
+
+		move(speed * delta_time * wave_direction);
 	}
 	else {
 		despawning(delta_time);
 	}
-
 }
 
 

@@ -27,6 +27,8 @@
 class Player : public EntityCollider {
 
 public:
+	float maxHP = 10;
+	float currHP = maxHP;
 	// Movement
 	Vector3 forward = Vector3(0.0f, 0.0f, 1.0f), right = Vector3(1.0f, 0.0f, 0.0f);
 	Vector3 direction;
@@ -48,13 +50,6 @@ public:
 	float timer_jump = 0;
 	float player_height = PLAYER_HEIGHT;
 
-	// Bullets
-	enum bullet_type : uint8 {
-		auto_aim,
-		circle,
-		shotgun,
-		sniper
-	};
 	bullet_type bt = circle;
 	float mana;
 	bool autoshoot = false;
@@ -69,9 +64,8 @@ public:
 	float charge_cooldown[4] = { 0,0,0,1 }; bool charging = false;
 	Shader* bullet_shaders[4]; Texture* bullet_textures[4]; Mesh* bullet_meshes[4];
 	bool canshoot = true;
-	typedef void (*PatternFunc) (Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh);
 	uint16 amount[4] = { 1, 10, 20, 1 };
-	PatternFunc patterns[4] = { Patterns::autoAim , Patterns::circle, Patterns::shotgun, Patterns::sniper };
+	PatternFunc patterns[4] = { (PatternFunc) Patterns::autoAim , (PatternFunc) Patterns::circle, (PatternFunc) Patterns::shotgun, (PatternFunc) Patterns::sniper };
 	Material charge_mat;
 	Mesh* charge_mesh;
 	Matrix44 charge_model;
@@ -92,7 +86,9 @@ public:
 	anim_type last_animation = IDLE;
 	Animation* animation_pool[3];
 	float timer_anim = 0;
-	
+
+	void sphere_bullet_collision(Vector3 position, float radius);
+
 
 	// TODO: Hitbox stuff 
 	bool can_be_hit = true;
@@ -105,7 +101,7 @@ public:
 	}
 
 	Player() {
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->mana = DEFAULT_MANA;
 		this->type = PLAYER;
 		loadTextures();
@@ -113,7 +109,7 @@ public:
 	};
 	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
 		this->mesh = mesh;
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
 		this->mana = mana;
 		this->type = PLAYER;
@@ -164,7 +160,5 @@ private:
 	void showHitbox(Camera* camera);
 	void chargingShot(Camera* camera);
 };
-
-
 
 #endif

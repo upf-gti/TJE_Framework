@@ -7,17 +7,27 @@
 
 #define BULLET_SPD 10
 
+// Bullets
+enum bullet_type : uint8 {
+	auto_aim,
+	circle,
+	shotgun,
+	sniper
+};
 
 class Bullet : public EntityCollider {
 
 public:
 	// Movement
 	Vector3 direction;
+	bool fromPlayer;
 	float rotation_angle = 0;
 	float acceleration = 0;
 	float rotation_angle_accel = 0;
 	float speed = BULLET_SPD;
 	float opacity_dec = 3;
+	float damage;
+	float time_since_spawn = 0;
 
 	bool active = true;
 	bool to_delete = false;
@@ -25,8 +35,8 @@ public:
 	// Despawn time
 	float timer_spawn = -1;
 	
-
-	Bullet() {};
+	Bullet() { type = COL_TYPE::PBULLET; damage = 1; };
+	Bullet(bool fromPlayer) { type = COL_TYPE::PBULLET; damage = 1; this->fromPlayer = fromPlayer; }
 	~Bullet() {};
 	
 	void move(Vector3 vec) {};
@@ -42,7 +52,7 @@ public:
 
 protected:
 	void despawning(float delta_time) {
-		std::cout << material.color.w;
+		//std::cout << material.color.w;
 		if (material.color.w > 0)
 			material.color.w -= opacity_dec * delta_time;
 		else {

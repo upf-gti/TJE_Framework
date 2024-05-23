@@ -9,22 +9,26 @@ struct sMeshLOD {
 	float distance;
 };
 
-enum col_type : int32{
-  NONE = 0,
-  FLOOR = 1 << 0,
-  WALL = 1 << 1,
-  PLAYER = 1 << 2,
-  ENEMY = 1 << 3,
-  // Both WALL and FLOOR are considered SCENARIO
-  // using OR operator
-  SCENARIO = WALL | FLOOR,
-  ALL = 0xFF
+enum COL_TYPE : int32 {
+	NONE = 0,
+	FLOOR = 1 << 0,
+	WALL = 1 << 1,
+	PLAYER = 1 << 2,
+	ENEMY = 1 << 4,
+	PBULLET = 1 << 8,
+	EBULLET = 1 << 16,
+	// Both WALL and FLOOR are considered SCENARIO
+	// using OR operator
+	SCENARIO = WALL | FLOOR,
+	EBCOLS = SCENARIO | PLAYER,
+	PBCOLS = SCENARIO | ENEMY,
+	ALL = 0xFF
 };
 
 class EntityMesh : public Entity {
 
 public:
-  col_type type;
+	COL_TYPE type;
 	std::vector<sMeshLOD> mesh_lods;
 	// Attributes of the derived class  
 	Mesh* mesh = nullptr;
@@ -46,7 +50,7 @@ public:
 	EntityMesh() { anim = Animation::Get("data/meshes/pj.skanim"); };
 	EntityMesh(Mesh* mesh, const Material& material, const std::string& name = "") {
 		this->mesh = mesh;
-		material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
+		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
 		anim = Animation::Get("data/meshes/pj.skanim");
 	};
