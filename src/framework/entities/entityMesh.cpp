@@ -60,7 +60,8 @@ void EntityMesh::render(Camera* camera) {
 		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
 		if (isAnimated) material.shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	}
-	anim->assignTime(Game::instance->time);
+	if (isAnimated) 	anim->assignTime(Game::instance->time);
+
 	material.shader->enable();
 	material.shader->setUniform("u_color", material.color);
 	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);

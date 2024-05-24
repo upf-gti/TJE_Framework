@@ -8,6 +8,7 @@
 #include "graphics/material.h"
 #include "framework/entities/enemy.h"
 #include "framework/entities/player.h"
+#include "framework/entities/entityUI.h"
 
 
 #include <fstream>
@@ -41,6 +42,8 @@ Texture* cubemap = new Texture();
 
 Shader* image = NULL;
 Texture* sus;
+
+EntityUI amogus;
 
 // Cosas nuevas que he añadido
 
@@ -250,9 +253,22 @@ Stage::Stage()
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
 
-	mat->shader= shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
+	mat->shader= Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	mat->diffuse = Texture::Get("data/textures/asian.tga");
 	player->mesh = Mesh::Get("data/meshes/player.MESH");
+
+	shader = Shader::Get("data/shaders/hud.vs", "data/shaders/texture.fs");
+	sus = Texture::Get("data/gus.tga");
+	Material amogus_mat = Material();
+	amogus_mat.color = Vector4(1.0f);
+	amogus_mat.diffuse = sus;
+	amogus_mat.shader = shader;
+	amogus = EntityUI();
+	amogus.material = amogus_mat;
+	Mesh* _quad = new Mesh();
+	_quad->createQuad(300, 400, 200, 100, false);
+	amogus.mesh = _quad;
+
 
 	player->material = *mat;
 	player->isAnimated = true;
@@ -273,7 +289,10 @@ Stage::Stage()
 	camera = new Camera();
 	camera->lookAt(Vector3(0.f, 100.f, 100.f), Vector3(0.f, 0.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
 	camera->setPerspective(70.f, Game::instance->window_width / (float)Game::instance->window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
-
+	
+	camera2D = new Camera();
+	camera2D->view_matrix.setIdentity();
+	camera2D->setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 
 	//// Three vertices of the 1st triangle
 	//quad.vertices.push_back(Vector3(-1, 1, 0));
@@ -307,9 +326,8 @@ Stage::Stage()
 	});
 	cube = new Mesh();
 	cube->createCube();
-	sus = Texture::Get("data/gus.tga");
-	quad = new Mesh();
-	quad->createQuad(300, 300, 100, 100, false);
+
+
 	player->type = PLAYER;
 	root->addChild(player);
 	root->addChild(enemy);
@@ -352,30 +370,33 @@ void Stage::render(void)
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
-	Camera camera2D;
-	camera2D.enable();
-	camera2D.view_matrix = Matrix44(); // Set View to identity
-	camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
+	amogus.render(camera2D);
 
+	//Camera camera2D;
+	//camera2D.enable();
+	//camera2D.view_matrix = Matrix44(); // Set View to identity
+	//camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_DEPTH_TEST);
+	//glDisable(GL_CULL_FACE);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	shader->enable();
-	shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-	shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
+	//shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 
-	quad->render(GL_TRIANGLES);
+	//shader->enable();
+	//shader->setUniform("u_model", Matrix44());
+	//shader->setUniform("u_color", Vector4(1.0f));
+	//shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
+	//shader->setTexture("u_texture", sus, 0);
 
+	//quad->render(GL_TRIANGLES);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	shader->disable();
-	
-	
-	 glDisable(GL_DEPTH_TEST);
+	//shader->disable();
+
+	//glEnable(GL_CULL_FACE);
+	//glDisable(GL_BLEND);
+	//glDisable(GL_DEPTH_TEST);
 
 
 }
