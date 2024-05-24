@@ -266,7 +266,7 @@ Stage::Stage()
 	amogus = EntityUI();
 	amogus.material = amogus_mat;
 	Mesh* _quad = new Mesh();
-	_quad->createQuad(300, 300, 100, 100, false);
+	_quad->createQuad(300, 400, 200, 100, false);
 	amogus.mesh = _quad;
 
 
@@ -292,7 +292,7 @@ Stage::Stage()
 	
 	camera2D = new Camera();
 	camera2D->view_matrix.setIdentity();
-	camera2D->setOrthographic(0, Game::instance->window_width, Game::instance->window_height, 0, -1, 1);
+	camera2D->setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 
 	//// Three vertices of the 1st triangle
 	//quad.vertices.push_back(Vector3(-1, 1, 0));
