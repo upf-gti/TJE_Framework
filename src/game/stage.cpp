@@ -370,7 +370,7 @@ void Stage::render(void)
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
-	amogus.render(camera2D);
+	//amogus.render(camera2D);
 
 	//Camera camera2D;
 	//camera2D.enable();

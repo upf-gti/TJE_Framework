@@ -38,7 +38,7 @@ public:
 	std::vector<Bullet*> bullets;
 	Shader* bullet_shaders[4]; Texture* bullet_textures[4]; Mesh* bullet_meshes[4];
 	bool canshoot = true;
-	uint16 amount[4] = { 1, 10, 20, 1 };
+	uint16 amount[4] = {6, 10, 20, 1 };
 
 	Vector3 getPosition() const { return model.getTranslation(); };
 	Vector3 getPositionGround() const { Vector3 res = getPosition(); res.y = 0; return res; }
