@@ -56,7 +56,6 @@ void Enemy::showHitbox(Camera* camera) {
 void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 	for (Bullet* bullet : Stage::instance->player->bullets) {
 		sCollisionData data;
-
 		if (bullet->isInstanced) {
 			for (Matrix44& instanced_model : bullet->models) {
 				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
@@ -143,8 +142,13 @@ void Enemy::update(float time_elapsed)
 		}
 		if (bulletCD + 0.1 <= Game::instance->time) {
 			bulletCD = Game::instance->time;
-			for (int i = 0; i <= 3; ++i)
-				Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3((1.0f / 3.0f * i)*2-1, 0, 1).normalize(), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+			//for (int i = 0; i <= 3; ++i)
+			//	Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3((1.0f / 3.0f * i)*2-1, 0, 1).normalize(), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+			Matrix44 rotate_matrix = Matrix44();
+			rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
+			Matrix44 _m = model;
+			_m.rotate(PI/2 + Game::instance->time/1, Vector3::UP);
+			Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1,0,0), _m, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 		}
 	}
 
