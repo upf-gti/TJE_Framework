@@ -30,7 +30,6 @@ float mouse_speed = 100.0f;
 float camera_angle_x = 0;
 float camera_angle_y = 100;
 
-Stage* Stage::instance = NULL;
 Player* player = NULL;
 Player* e2 = NULL;
 Enemy* enemy = NULL;
@@ -45,6 +44,7 @@ Texture* sus;
 
 EntityUI amogus;
 
+SecondStage* SecondStage::instance = NULL;
 // Cosas nuevas que he añadido
 
 
@@ -170,7 +170,7 @@ static bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
-bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
+bool SecondStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
 		EntityMesh* ee = (EntityMesh*)root->children[i];
 		if ((ee->type & collision_type) == 0) continue;
@@ -208,22 +208,11 @@ bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 po
 }
 
 
-bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type) {
-	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
+bool SecondStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type) {
+	for (int i = 0; i < this->root->children.size(); ++i) {
 
-		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
-		if (!(ee->type & collision_type)) continue;
-
-		/*if (collision_type == NONE) {
-			if (!(ee->type & collision_type)) {
-				std::cout << "Skipping entity due to type mismatch." << std::endl;
-				continue;
-			}
-			else {
-				std::cout << "Type " + ee->type << std::endl;
-			}
-		}*/
-		
+		EntityMesh* ee = (EntityMesh*) this->root->children[i];
+		if (!(ee->type & collision_type)) continue;		
 
 		sCollisionData data;
 
@@ -244,9 +233,9 @@ bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 pos
 	return (!collisions.empty());
 }
 
-Stage::Stage()
+SecondStage::SecondStage()
 {
-	instance = this;
+	SecondStage::instance = this;
 	mouse_locked = false;
 
 	player = new Player();
@@ -294,22 +283,6 @@ Stage::Stage()
 	camera2D->view_matrix.setIdentity();
 	camera2D->setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 
-	//// Three vertices of the 1st triangle
-	//quad.vertices.push_back(Vector3(-1, 1, 0));
-	//quad.uvs.push_back(Vector2(0, 1));
-	//quad.vertices.push_back(Vector3(-1, -1, 0));
-	//quad.uvs.push_back(Vector2(0, 0));
-	//quad.vertices.push_back(Vector3(1, -1, 0));
-	//quad.uvs.push_back(Vector2(1, 0));
-
-	//// Three vertices of the 2nd triangle
-	//quad.vertices.push_back(Vector3(-1, 1, 0));
-	//quad.uvs.push_back(Vector2(0, 1));
-	//quad.vertices.push_back(Vector3(1, -1, 0));
-	//quad.uvs.push_back(Vector2(1, 0));
-	//quad.vertices.push_back(Vector3(1, 1, 0));
-	//quad.uvs.push_back(Vector2(1, 1));
-
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
@@ -338,7 +311,7 @@ Stage::Stage()
 
 
 //what to do when the image has to be draw
-void Stage::render(void)
+void SecondStage::render(void)
 {
 	// Set the clear color (the background color)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -363,7 +336,6 @@ void Stage::render(void)
 	//enemy->render(camera);
 	// Draw the floor grid
 
-
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
 	drawText(2, 50, std::to_string((player->currHP / player->maxHP)*100) + '%', Vector3(1, 1, 1), 2);
@@ -371,52 +343,24 @@ void Stage::render(void)
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
 	//amogus.render(camera2D);
-
-	//Camera camera2D;
-	//camera2D.enable();
-	//camera2D.view_matrix = Matrix44(); // Set View to identity
-	//camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
-
-	//glEnable(GL_DEPTH_TEST);
-	//glDisable(GL_CULL_FACE);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	//shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-
-	//shader->enable();
-	//shader->setUniform("u_model", Matrix44());
-	//shader->setUniform("u_color", Vector4(1.0f));
-	//shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
-	//shader->setTexture("u_texture", sus, 0);
-
-	//quad->render(GL_TRIANGLES);
-
-	//shader->disable();
-
-	//glEnable(GL_CULL_FACE);
-	//glDisable(GL_BLEND);
-	//glDisable(GL_DEPTH_TEST);
-
-
 }
 
-bool Stage::compareFunction(const Entity *e1, const Entity *e2) {
+bool SecondStage::compareFunction(const Entity *e1, const Entity *e2) {
 	EntityMesh* em1 = (EntityMesh*) e1;
 	EntityMesh* em2 = (EntityMesh*) e2;
 	Vector3 center_e1 = e1->model * em1->mesh->box.center;
 	Vector3 center_e2 = e2->model * em2->mesh->box.center;
-	return Stage::instance->camera->eye.distance(center_e1) > Stage::instance->camera->eye.distance(center_e2);
+	return SecondStage::instance->camera->eye.distance(center_e1) > SecondStage::instance->camera->eye.distance(center_e2);
 }
 
-void Stage::update(double seconds_elapsed)
+void SecondStage::update(double seconds_elapsed)
 {
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 	player->update(seconds_elapsed);
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
 
-	std::sort(root->children.begin(), root->children.end(), Stage::compareFunction);
+	std::sort(root->children.begin(), root->children.end(), SecondStage::compareFunction);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
@@ -452,7 +396,7 @@ void Stage::update(double seconds_elapsed)
 }
 
 //Keyboard event handler (sync input)
-void Stage::onKeyDown(SDL_KeyboardEvent event)
+void SecondStage::onKeyDown(SDL_KeyboardEvent event)
 {
 	player->onKeyDown(event);
 	if (event.keysym.sym == SDLK_p) //middle mouse
@@ -463,12 +407,12 @@ void Stage::onKeyDown(SDL_KeyboardEvent event)
 	}
 }
 
-void Stage::onKeyUp(SDL_KeyboardEvent event)
+void SecondStage::onKeyUp(SDL_KeyboardEvent event)
 {
 	player->onKeyUp(event);
 }
 
-void Stage::onMouseButtonDown(SDL_MouseButtonEvent event)
+void SecondStage::onMouseButtonDown(SDL_MouseButtonEvent event)
 {
 	if (event.button == SDL_BUTTON_MIDDLE) //middle mouse
 	{
@@ -478,24 +422,24 @@ void Stage::onMouseButtonDown(SDL_MouseButtonEvent event)
 	}
 }
 
-void Stage::onMouseButtonUp(SDL_MouseButtonEvent event)
+void SecondStage::onMouseButtonUp(SDL_MouseButtonEvent event)
 {
 
 }
 
-void Stage::onMouseWheel(SDL_MouseWheelEvent event)
+void SecondStage::onMouseWheel(SDL_MouseWheelEvent event)
 {
 	if (!mouse_locked) mouse_speed *= event.y > 0 ? 1.1f : 0.9f;
 	else zoom += event.y > 0 ? 0.05f : -0.05f;
 	
 }
 
-void Stage::onGamepadButtonDown(SDL_JoyButtonEvent event)
+void SecondStage::onGamepadButtonDown(SDL_JoyButtonEvent event)
 {
 
 }
 
-void Stage::onGamepadButtonUp(SDL_JoyButtonEvent event)
+void SecondStage::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
 
 }

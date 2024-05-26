@@ -8,6 +8,7 @@
 #include "graphics/material.h"
 #include "framework/entities/entityMesh.h"
 #include "framework/entities/player.h"
+#include "StageManager.h"
 
 
 #include <fstream>
@@ -15,8 +16,10 @@
 #include <unordered_map>
 #include <bitset>
 
-Stage* island;
+Stage* currStage;
 Game* Game::instance = NULL;
+SecondStage* sstage = NULL;
+StageManager* stageManager;
 
 // Cosas nuevas que he añadido
 Game::Game(int window_width, int window_height, SDL_Window* window)
@@ -32,21 +35,21 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	time = 0.0f;
 	elapsed_time = 0.0f;
 	mouse_locked = false;
-	island = new Stage();
-	stage = island;
+	sstage = new SecondStage();
+	stageManager = new StageManager();
 }
 
 
 //what to do when the image has to be draw
 void Game::render(void)
 {
-	stage->render();
+	sstage->render();
 	SDL_GL_SwapWindow(this->window);
 }
 
 void Game::update(double seconds_elapsed)
 {
-	stage->update(seconds_elapsed);
+	sstage->update(seconds_elapsed);
 }
 
 //Keyboard event handler (sync input)
@@ -57,37 +60,37 @@ void Game::onKeyDown(SDL_KeyboardEvent event)
 	case SDLK_ESCAPE: must_exit = true; break; //ESC key, kill the app
 	case SDLK_F1: Shader::ReloadAll(); break;
 	}
-	stage->onKeyDown(event);
+	sstage->onKeyDown(event);
 }
 
 void Game::onKeyUp(SDL_KeyboardEvent event)
 {
-	stage->onKeyUp(event);
+	sstage->onKeyUp(event);
 }
 
 void Game::onMouseButtonDown(SDL_MouseButtonEvent event)
 {
-	stage->onMouseButtonDown(event);
+	sstage->onMouseButtonDown(event);
 }
 
 void Game::onMouseButtonUp(SDL_MouseButtonEvent event)
 {
-	stage->onMouseButtonUp(event);
+	sstage->onMouseButtonUp(event);
 }
 
 void Game::onMouseWheel(SDL_MouseWheelEvent event)
 {
-	stage->onMouseWheel(event);
+	sstage->onMouseWheel(event);
 }
 
 void Game::onGamepadButtonDown(SDL_JoyButtonEvent event)
 {
-	stage->onGamepadButtonDown(event);
+	sstage->onGamepadButtonDown(event);
 }
 
 void Game::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
-	stage->onGamepadButtonUp(event);
+	sstage->onGamepadButtonUp(event);
 
 }
 
