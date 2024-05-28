@@ -353,7 +353,7 @@ bool SecondStage::compareFunction(const Entity *e1, const Entity *e2) {
 	return SecondStage::instance->camera->eye.distance(center_e1) > SecondStage::instance->camera->eye.distance(center_e2);
 }
 
-void SecondStage::update(double seconds_elapsed)
+void SecondStage::update(float seconds_elapsed)
 {
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 	player->update(seconds_elapsed);

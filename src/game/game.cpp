@@ -16,10 +16,7 @@
 #include <unordered_map>
 #include <bitset>
 
-Stage* currStage;
 Game* Game::instance = NULL;
-SecondStage* sstage = NULL;
-StageManager* stageManager;
 
 // Cosas nuevas que he añadido
 Game::Game(int window_width, int window_height, SDL_Window* window)
@@ -35,21 +32,20 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	time = 0.0f;
 	elapsed_time = 0.0f;
 	mouse_locked = false;
-	sstage = new SecondStage();
-	stageManager = new StageManager();
+	StageManager::instance = new StageManager();
 }
 
 
 //what to do when the image has to be draw
 void Game::render(void)
 {
-	stageManager->render();
+	StageManager::instance->render();
 	SDL_GL_SwapWindow(this->window);
 }
 
 void Game::update(double seconds_elapsed)
 {
-	Stage* stage = stageManager->instance->currStage;
+	Stage* stage = StageManager::instance->currStage;
 
 	stage->update(seconds_elapsed);
 }
@@ -57,7 +53,7 @@ void Game::update(double seconds_elapsed)
 //Keyboard event handler (sync input)
 void Game::onKeyDown(SDL_KeyboardEvent event)
 {
-	Stage* stage = stageManager->instance->currStage;
+	Stage* stage = StageManager::instance->currStage;
 	switch (event.keysym.sym)
 	{
 	case SDLK_ESCAPE: must_exit = true; break; //ESC key, kill the app
@@ -68,42 +64,42 @@ void Game::onKeyDown(SDL_KeyboardEvent event)
 
 void Game::onKeyUp(SDL_KeyboardEvent event)
 {
-	Stage* stage = stageManager->instance->currStage;
+	Stage* stage = StageManager::instance->currStage;
 
 	stage->onKeyUp(event);
 }
 
 void Game::onMouseButtonDown(SDL_MouseButtonEvent event)
 {
-	Stage* stage = stageManager->instance->currStage;
+	Stage* stage = StageManager::instance->currStage;
 
 	stage->onMouseButtonDown(event);
 }
 
 void Game::onMouseButtonUp(SDL_MouseButtonEvent event)
 {
-	Stage* stage = stageManager->instance->currStage;
+	Stage* stage = StageManager::instance->currStage;
 
 	stage->onMouseButtonUp(event);
 }
 
 void Game::onMouseWheel(SDL_MouseWheelEvent event)
 {
-	Stage* stage = stageManager->instance->currStage;
+	Stage* stage = StageManager::instance->currStage;
 
 	stage->onMouseWheel(event);
 }
 
 void Game::onGamepadButtonDown(SDL_JoyButtonEvent event)
 {
-	Stage* stage = stageManager->instance->currStage;
+	Stage* stage = StageManager::instance->currStage;
 
 	stage->onGamepadButtonDown(event);
 }
 
 void Game::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
-	Stage* stage = stageManager->instance->currStage;
+	Stage* stage = StageManager::instance->currStage;
 
 	stage->onGamepadButtonUp(event);
 }
