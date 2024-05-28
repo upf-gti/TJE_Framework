@@ -192,7 +192,7 @@ void Player::render(Camera* camera) {
 	material.shader->setUniform("u_time", Game::instance->time);
 
 	mesh->renderAnimated(GL_TRIANGLES, &blended_skeleton);
-	std::cout << isAnimated << std::endl;
+	// std::cout << isAnimated << std::endl;
 
 	// Disable shader after finishing rendering
 	material.shader->disable();

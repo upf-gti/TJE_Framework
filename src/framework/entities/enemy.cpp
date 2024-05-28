@@ -126,29 +126,89 @@ void Enemy::update(float time_elapsed)
 	if (moving)
 	{
 		this->model.translateGlobal(movement);
-		if (startMoving + 3 <= Game::instance->time) {
+		if (startMoving + 2 <= Game::instance->time) {
 			moving = false;
 			startFiring = Game::instance->time;
+			float r = random() * 2;
+			current_pattern = (pattern) clamp(floor(r), 0, 1);
+			std::cout << current_pattern << " " << r << std::endl;
 		}
 	}
 	else
 	{
-		if (startFiring + 5 <= Game::instance->time)
-		{
-			moving = true;
-			startMoving = Game::instance->time;
-			direction.x = (rand() % 2) * 2 - 1;
-			direction.z = (rand() % 2) * 2 - 1;
-		}
-		if (bulletCD + 0.1 <= Game::instance->time) {
-			bulletCD = Game::instance->time;
-			//for (int i = 0; i <= 3; ++i)
-			//	Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3((1.0f / 3.0f * i)*2-1, 0, 1).normalize(), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
-			Matrix44 rotate_matrix = Matrix44();
-			rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
-			Matrix44 _m = model;
-			_m.rotate(PI/2 + Game::instance->time/1, Vector3::UP);
-			Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1,0,0), _m, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+		switch (current_pattern) {
+		case SWIRL:
+			if (startFiring + 4 <= Game::instance->time)
+			{
+				moving = true;
+				startMoving = Game::instance->time;
+				direction.x = (rand() % 2) * 2 - 1;
+				direction.z = (rand() % 2) * 2 - 1;
+			}
+			if (bulletCD + 0.1 <= Game::instance->time) {
+				bulletCD = Game::instance->time;
+				//for (int i = 0; i <= 3; ++i)
+				//	Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3((1.0f / 3.0f * i)*2-1, 0, 1).normalize(), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+				Matrix44 rotate_matrix = Matrix44();
+				rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
+				Matrix44 _m = model;
+				_m.rotate(PI / 2 + Game::instance->time / 1, Vector3::UP);
+				Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+			}
+			break;
+		case SHOTGUN:
+			if (startFiring + 1 > Game::instance->time) {
+				if (bulletCD + 0.05 <= Game::instance->time) {
+					bulletCD = Game::instance->time;
+					Matrix44 _m = model;
+					_m.rotate(-PI / 12, Vector3::UP);
+					for (int i = -1; i <= 1; ++i) {
+						Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+						_m.rotate(PI / 12, Vector3::UP);
+					}
+				}
+			}
+			else if ((startFiring + 2.5 > Game::instance->time && startFiring + 1.5 <= Game::instance->time)) {
+				if (bulletCD + 0.05 <= Game::instance->time) {
+					bulletCD = Game::instance->time;
+					Matrix44 _m = model;
+					_m.rotate(-3 * PI / 24, Vector3::UP);
+					for (int i = -1; i <= 2; ++i) {
+						Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+						_m.rotate(PI / 12, Vector3::UP);
+					}
+				}
+			}
+			else if ((startFiring + 3.4 > Game::instance->time && startFiring + 2.7 <= Game::instance->time)) {
+				if (bulletCD + 0.05 <= Game::instance->time) {
+					bulletCD = Game::instance->time;
+					Matrix44 _m = model;
+					_m.rotate(-PI / 12, Vector3::UP);
+					for (int i = -1; i <= 1; ++i) {
+						Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+						_m.rotate(PI / 12, Vector3::UP);
+					}
+				}
+			}
+			else if ((startFiring + 5 > Game::instance->time && startFiring + 3.7 <= Game::instance->time)) {
+				if (bulletCD + 0.05 <= Game::instance->time) {
+					bulletCD = Game::instance->time;
+					Matrix44 _m = model;
+					_m.rotate(-3 * PI / 24, Vector3::UP);
+					for (int i = -1; i <= 2; ++i) {
+						Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+						_m.rotate(PI / 12, Vector3::UP);
+					}
+				}
+			}
+			else if (startFiring + 6 <= Game::instance->time)
+			{
+				moving = true;
+				startMoving = Game::instance->time;
+				direction.x = (rand() % 2) * 2 - 1;
+				direction.z = (rand() % 2) * 2 - 1;
+			}
+			break;
 		}
 	}
 

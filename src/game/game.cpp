@@ -21,6 +21,7 @@ Game* Game::instance = NULL;
 // Cosas nuevas que he añadido
 Game::Game(int window_width, int window_height, SDL_Window* window)
 {
+	srand(getpid());
 	this->window_width = window_width;
 	this->window_height = window_height;
 	this->window = window;
