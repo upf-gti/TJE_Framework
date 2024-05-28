@@ -43,55 +43,69 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 //what to do when the image has to be draw
 void Game::render(void)
 {
-	sstage->render();
+	stageManager->render();
 	SDL_GL_SwapWindow(this->window);
 }
 
 void Game::update(double seconds_elapsed)
 {
-	sstage->update(seconds_elapsed);
+	Stage* stage = stageManager->instance->currStage;
+
+	stage->update(seconds_elapsed);
 }
 
 //Keyboard event handler (sync input)
 void Game::onKeyDown(SDL_KeyboardEvent event)
 {
+	Stage* stage = stageManager->instance->currStage;
 	switch (event.keysym.sym)
 	{
 	case SDLK_ESCAPE: must_exit = true; break; //ESC key, kill the app
 	case SDLK_F1: Shader::ReloadAll(); break;
 	}
-	sstage->onKeyDown(event);
+	stage->onKeyDown(event);
 }
 
 void Game::onKeyUp(SDL_KeyboardEvent event)
 {
-	sstage->onKeyUp(event);
+	Stage* stage = stageManager->instance->currStage;
+
+	stage->onKeyUp(event);
 }
 
 void Game::onMouseButtonDown(SDL_MouseButtonEvent event)
 {
-	sstage->onMouseButtonDown(event);
+	Stage* stage = stageManager->instance->currStage;
+
+	stage->onMouseButtonDown(event);
 }
 
 void Game::onMouseButtonUp(SDL_MouseButtonEvent event)
 {
-	sstage->onMouseButtonUp(event);
+	Stage* stage = stageManager->instance->currStage;
+
+	stage->onMouseButtonUp(event);
 }
 
 void Game::onMouseWheel(SDL_MouseWheelEvent event)
 {
-	sstage->onMouseWheel(event);
+	Stage* stage = stageManager->instance->currStage;
+
+	stage->onMouseWheel(event);
 }
 
 void Game::onGamepadButtonDown(SDL_JoyButtonEvent event)
 {
-	sstage->onGamepadButtonDown(event);
+	Stage* stage = stageManager->instance->currStage;
+
+	stage->onGamepadButtonDown(event);
 }
 
 void Game::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
-	sstage->onGamepadButtonUp(event);
+	Stage* stage = stageManager->instance->currStage;
 
+	stage->onGamepadButtonUp(event);
 }
 
 void Game::onResize(int width, int height)
