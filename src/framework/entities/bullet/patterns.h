@@ -7,7 +7,7 @@
 
 #include "framework/entities/bullet/bulletSniper.h"
 
-#define HEIGHT 0.5
+#define HEIGHT 1
 
 typedef void (*PatternFunc) (Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh);
 
@@ -30,6 +30,18 @@ public:
 		for (int i = 0; i < amount; i++) {
 			Bullet* b = new BulletNormal(mesh, mat, direction, model, BULLET_SPD, "", fromPlayer);
 			b->model.rotate(2 * PI * i / amount, Vector3(0, 1, 0));
+			bullets.push_back(b);
+		}
+	}
+
+	static void horizontal(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh, bool fromPlayer = true) {
+		Material mat = Material();
+		model.translate(Vector3(0, HEIGHT, 0));
+		mat.diffuse = texture;
+		mat.shader = shader;
+		for (int i = 0; i < amount; i++) {
+			Bullet* b = new BulletNormal(mesh, mat, direction, model, BULLET_SPD, "", fromPlayer);
+			b->model.translate(Vector3( (i - (amount/2)) * 1.4, 0, 0));
 			bullets.push_back(b);
 		}
 	}
