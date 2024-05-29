@@ -1,4 +1,4 @@
-#include "stage.h"
+#include "GameStage.h"
 #include "framework/utils.h"
 #include "graphics/mesh.h"
 #include "graphics/texture.h"
@@ -9,7 +9,7 @@
 #include "framework/entities/enemy.h"
 #include "framework/entities/player.h"
 #include "framework/entities/entityUI.h"
-
+#include "StageManager.h"
 
 #include <fstream>
 #include <cmath>
@@ -30,7 +30,6 @@ float mouse_speed = 100.0f;
 float camera_angle_x = 0;
 float camera_angle_y = 100;
 
-Stage* Stage::instance = NULL;
 Player* player = NULL;
 Player* e2 = NULL;
 Enemy* enemy = NULL;
@@ -161,7 +160,7 @@ static bool parseScene(const char* filename, Entity* root)
 		}
 
 		std::cout << " " << &new_entity->material.shader << std::endl;
-		
+
 		// Add entity to scene root
 		root->addChild(new_entity);
 	}
@@ -170,7 +169,7 @@ static bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
-bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
+bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
 		EntityMesh* ee = (EntityMesh*)root->children[i];
 		if ((ee->type & collision_type) == 0) continue;
@@ -208,10 +207,11 @@ bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 po
 }
 
 
-bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type) {
-	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
+bool GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type) {
+	Stage* stage = StageManager::instance->currStage;
+	for (int i = 0; i < stage->root->children.size(); ++i) {
 
-		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
+		EntityMesh* ee = (EntityMesh*) stage->root->children[i];
 		if (!(ee->type & collision_type)) continue;
 
 		/*if (collision_type == NONE) {
@@ -223,7 +223,7 @@ bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 pos
 				std::cout << "Type " + ee->type << std::endl;
 			}
 		}*/
-		
+
 
 		sCollisionData data;
 
@@ -244,16 +244,17 @@ bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 pos
 	return (!collisions.empty());
 }
 
-Stage::Stage()
+GameStage::GameStage()
 {
-	instance = this;
 	mouse_locked = false;
+
+    nextStage = "EndStage";
 
 	player = new Player();
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
 
-	mat->shader= Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
+	mat->shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	mat->diffuse = Texture::Get("data/textures/asian.tga");
 	player->mesh = Mesh::Get("data/meshes/player.MESH");
 
@@ -289,7 +290,7 @@ Stage::Stage()
 	camera = new Camera();
 	camera->lookAt(Vector3(0.f, 100.f, 100.f), Vector3(0.f, 0.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
 	camera->setPerspective(70.f, Game::instance->window_width / (float)Game::instance->window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
-	
+
 	camera2D = new Camera();
 	camera2D->view_matrix.setIdentity();
 	camera2D->setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
@@ -323,7 +324,7 @@ Stage::Stage()
 		"data/textures/skybox/top.png",
 		"data/textures/skybox/front.png",
 		"data/textures/skybox/back.png"
-	});
+		});
 	cube = new Mesh();
 	cube->createCube();
 
@@ -338,7 +339,7 @@ Stage::Stage()
 
 
 //what to do when the image has to be draw
-void Stage::render(void)
+void GameStage::render(void)
 {
 	// Set the clear color (the background color)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -357,8 +358,8 @@ void Stage::render(void)
 	renderSkybox(cubemap);
 
 	drawGrid();
-	
-		
+
+
 	root->render(camera);
 	//enemy->render(camera);
 	// Draw the floor grid
@@ -366,7 +367,7 @@ void Stage::render(void)
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-	drawText(2, 50, std::to_string((player->currHP / player->maxHP)*100) + '%', Vector3(1, 1, 1), 2);
+	drawText(2, 50, std::to_string((player->currHP / player->maxHP) * 100) + '%', Vector3(1, 1, 1), 2);
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
@@ -401,22 +402,23 @@ void Stage::render(void)
 
 }
 
-bool Stage::compareFunction(const Entity *e1, const Entity *e2) {
-	EntityMesh* em1 = (EntityMesh*) e1;
-	EntityMesh* em2 = (EntityMesh*) e2;
+bool GameStage::compareFunction(const Entity* e1, const Entity* e2) {
+	Stage* stage = StageManager::instance->currStage;
+	EntityMesh* em1 = (EntityMesh*)e1;
+	EntityMesh* em2 = (EntityMesh*)e2;
 	Vector3 center_e1 = e1->model * em1->mesh->box.center;
 	Vector3 center_e2 = e2->model * em2->mesh->box.center;
-	return Stage::instance->camera->eye.distance(center_e1) > Stage::instance->camera->eye.distance(center_e2);
+	return stage->camera->eye.distance(center_e1) > stage->camera->eye.distance(center_e2);
 }
 
-void Stage::update(double seconds_elapsed)
+void GameStage::update(double seconds_elapsed)
 {
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 	player->update(seconds_elapsed);
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
 
-	std::sort(root->children.begin(), root->children.end(), Stage::compareFunction);
+	std::sort(root->children.begin(), root->children.end(), compareFunction);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
@@ -429,7 +431,7 @@ void Stage::update(double seconds_elapsed)
 		if (Input::isMousePressed(SDL_BUTTON_LEFT)) { //is left button pressed?
 			camera->rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f, -1.0f, 0.0f));
 			camera->rotate(Input::mouse_delta.y * 0.005f, camera->getLocalVector(Vector3(-1.0f, 0.0f, 0.0f)));
-			camera->move(Vector3(Input::mouse_delta.x * 0.5f, Input::mouse_delta.y * 0.005f,0.0));
+			camera->move(Vector3(Input::mouse_delta.x * 0.5f, Input::mouse_delta.y * 0.005f, 0.0));
 		}
 		if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) camera->move(Vector3(0.0f, 0.0f, 1.0f) * speed);
 		if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) camera->move(Vector3(0.0f, 0.0f, -1.0f) * speed);
@@ -452,7 +454,7 @@ void Stage::update(double seconds_elapsed)
 }
 
 //Keyboard event handler (sync input)
-void Stage::onKeyDown(SDL_KeyboardEvent event)
+void GameStage::onKeyDown(SDL_KeyboardEvent event)
 {
 	player->onKeyDown(event);
 	if (event.keysym.sym == SDLK_p) //middle mouse
@@ -463,12 +465,12 @@ void Stage::onKeyDown(SDL_KeyboardEvent event)
 	}
 }
 
-void Stage::onKeyUp(SDL_KeyboardEvent event)
+void GameStage::onKeyUp(SDL_KeyboardEvent event)
 {
 	player->onKeyUp(event);
 }
 
-void Stage::onMouseButtonDown(SDL_MouseButtonEvent event)
+void GameStage::onMouseButtonDown(SDL_MouseButtonEvent event)
 {
 	if (event.button == SDL_BUTTON_MIDDLE) //middle mouse
 	{
@@ -478,24 +480,24 @@ void Stage::onMouseButtonDown(SDL_MouseButtonEvent event)
 	}
 }
 
-void Stage::onMouseButtonUp(SDL_MouseButtonEvent event)
+void GameStage::onMouseButtonUp(SDL_MouseButtonEvent event)
 {
 
 }
 
-void Stage::onMouseWheel(SDL_MouseWheelEvent event)
+void GameStage::onMouseWheel(SDL_MouseWheelEvent event)
 {
 	if (!mouse_locked) mouse_speed *= event.y > 0 ? 1.1f : 0.9f;
 	else zoom += event.y > 0 ? 0.05f : -0.05f;
-	
+
 }
 
-void Stage::onGamepadButtonDown(SDL_JoyButtonEvent event)
+void GameStage::onGamepadButtonDown(SDL_JoyButtonEvent event)
 {
 
 }
 
-void Stage::onGamepadButtonUp(SDL_JoyButtonEvent event)
+void GameStage::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
 
 }

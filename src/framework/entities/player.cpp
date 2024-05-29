@@ -1,12 +1,14 @@
 #include "player.h"
 #include "enemy.h"
+#include "game/StageManager.h"
 
 #include <algorithm>
 
 // cubemap
 
 void Player::sphere_bullet_collision(Vector3 position, float radius) {
-	for (Bullet* bullet : Stage::instance->enemy->bullets) {
+	Stage* stage = StageManager::instance->currStage;
+	for (Bullet* bullet : stage->enemy->bullets) {
 		sCollisionData data;
 
 		if (bullet->isInstanced) {
@@ -62,7 +64,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
-		patterns[bullet_type](Stage::instance->enemy->getPosition() + Vector3(0, player_height, 0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
+		patterns[bullet_type](StageManager::instance->currStage->enemy->getPosition() + Vector3(0, player_height, 0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
@@ -192,7 +194,7 @@ void Player::render(Camera* camera) {
 	material.shader->setUniform("u_time", Game::instance->time);
 
 	mesh->renderAnimated(GL_TRIANGLES, &blended_skeleton);
-	std::cout << isAnimated << std::endl;
+	// std::cout << isAnimated << std::endl;
 
 	// Disable shader after finishing rendering
 	material.shader->disable();
@@ -212,6 +214,7 @@ void Player::move(const Vector3& vec) {
 }
 
 void Player::update(float delta_time) {
+	Stage* stage = StageManager::instance->currStage;
 	// std::cout << grounded << std::endl;
 
 	float time = Game::instance->time;
@@ -237,7 +240,7 @@ void Player::update(float delta_time) {
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
 		Input::isKeyPressed(SDL_SCANCODE_S) ||
 		Input::isKeyPressed(SDL_SCANCODE_A) ||
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && Stage::instance->mouse_locked) m_spd = DEFAULT_SPD;
+		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && stage->mouse_locked) m_spd = DEFAULT_SPD;
 
 	//direction = Vector3(0.0f);
 
@@ -256,7 +259,7 @@ void Player::update(float delta_time) {
 	float knockback_speed = DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
 
 	//std::cout << speed << std::endl;
-	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */Stage::instance->mouse_locked) //is left button pressed?
+	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */stage->mouse_locked) //is left button pressed?
 	{
 		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
 	}
@@ -285,8 +288,8 @@ void Player::update(float delta_time) {
 
 	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
 
-	colliding = Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD);
-	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
+	colliding = stage->sphere_collided(collisions, player_center, HITBOX_RAD);
+	stage->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
 
 	for (sCollisionData& g : collisions) {
 		direction += g.colNormal * 10000;
