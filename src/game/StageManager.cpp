@@ -2,11 +2,11 @@
 #include "stage.h"
 
 StageManager* StageManager::instance = NULL;
-SecondStage* secondStage;
+Stage* secondStage;
 
 StageManager::StageManager()
 {
-	secondStage = new SecondStage();
+	secondStage = new Stage();
 
 	StageManager::instance = this;
 	this->currStage = (Stage*) secondStage;
