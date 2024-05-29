@@ -1,4 +1,4 @@
-#include "stage.h"
+#include "GameStage.h"
 #include "framework/utils.h"
 #include "graphics/mesh.h"
 #include "graphics/texture.h"
@@ -9,7 +9,7 @@
 #include "framework/entities/enemy.h"
 #include "framework/entities/player.h"
 #include "framework/entities/entityUI.h"
-
+#include "StageManager.h"
 
 #include <fstream>
 #include <cmath>
@@ -30,7 +30,6 @@ float mouse_speed = 100.0f;
 float camera_angle_x = 0;
 float camera_angle_y = 100;
 
-Stage* Stage::instance = NULL;
 Player* player = NULL;
 Player* e2 = NULL;
 Enemy* enemy = NULL;
@@ -170,7 +169,7 @@ static bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
-bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
+bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
 		EntityMesh* ee = (EntityMesh*)root->children[i];
 		if ((ee->type & collision_type) == 0) continue;
@@ -208,10 +207,11 @@ bool Stage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 po
 }
 
 
-bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type) {
-	for (int i = 0; i < Stage::instance->root->children.size(); ++i) {
+bool GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type) {
+	Stage* stage = StageManager::instance->currStage;
+	for (int i = 0; i < stage->root->children.size(); ++i) {
 
-		EntityMesh* ee = (EntityMesh*)Stage::instance->root->children[i];
+		EntityMesh* ee = (EntityMesh*) stage->root->children[i];
 		if (!(ee->type & collision_type)) continue;
 
 		/*if (collision_type == NONE) {
@@ -244,9 +244,8 @@ bool Stage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 pos
 	return (!collisions.empty());
 }
 
-Stage::Stage()
+GameStage::GameStage()
 {
-	instance = this;
 	mouse_locked = false;
 
 	player = new Player();
@@ -338,7 +337,7 @@ Stage::Stage()
 
 
 //what to do when the image has to be draw
-void Stage::render(void)
+void GameStage::render(void)
 {
 	// Set the clear color (the background color)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -401,22 +400,23 @@ void Stage::render(void)
 
 }
 
-bool Stage::compareFunction(const Entity* e1, const Entity* e2) {
+bool GameStage::compareFunction(const Entity* e1, const Entity* e2) {
+	Stage* stage = StageManager::instance->currStage;
 	EntityMesh* em1 = (EntityMesh*)e1;
 	EntityMesh* em2 = (EntityMesh*)e2;
 	Vector3 center_e1 = e1->model * em1->mesh->box.center;
 	Vector3 center_e2 = e2->model * em2->mesh->box.center;
-	return Stage::instance->camera->eye.distance(center_e1) > Stage::instance->camera->eye.distance(center_e2);
+	return stage->camera->eye.distance(center_e1) > stage->camera->eye.distance(center_e2);
 }
 
-void Stage::update(double seconds_elapsed)
+void GameStage::update(double seconds_elapsed)
 {
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 	player->update(seconds_elapsed);
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
 
-	std::sort(root->children.begin(), root->children.end(), Stage::compareFunction);
+	std::sort(root->children.begin(), root->children.end(), compareFunction);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
@@ -452,7 +452,7 @@ void Stage::update(double seconds_elapsed)
 }
 
 //Keyboard event handler (sync input)
-void Stage::onKeyDown(SDL_KeyboardEvent event)
+void GameStage::onKeyDown(SDL_KeyboardEvent event)
 {
 	player->onKeyDown(event);
 	if (event.keysym.sym == SDLK_p) //middle mouse
@@ -463,12 +463,12 @@ void Stage::onKeyDown(SDL_KeyboardEvent event)
 	}
 }
 
-void Stage::onKeyUp(SDL_KeyboardEvent event)
+void GameStage::onKeyUp(SDL_KeyboardEvent event)
 {
 	player->onKeyUp(event);
 }
 
-void Stage::onMouseButtonDown(SDL_MouseButtonEvent event)
+void GameStage::onMouseButtonDown(SDL_MouseButtonEvent event)
 {
 	if (event.button == SDL_BUTTON_MIDDLE) //middle mouse
 	{
@@ -478,24 +478,24 @@ void Stage::onMouseButtonDown(SDL_MouseButtonEvent event)
 	}
 }
 
-void Stage::onMouseButtonUp(SDL_MouseButtonEvent event)
+void GameStage::onMouseButtonUp(SDL_MouseButtonEvent event)
 {
 
 }
 
-void Stage::onMouseWheel(SDL_MouseWheelEvent event)
+void GameStage::onMouseWheel(SDL_MouseWheelEvent event)
 {
 	if (!mouse_locked) mouse_speed *= event.y > 0 ? 1.1f : 0.9f;
 	else zoom += event.y > 0 ? 0.05f : -0.05f;
 
 }
 
-void Stage::onGamepadButtonDown(SDL_JoyButtonEvent event)
+void GameStage::onGamepadButtonDown(SDL_JoyButtonEvent event)
 {
 
 }
 
-void Stage::onGamepadButtonUp(SDL_JoyButtonEvent event)
+void GameStage::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
 
 }

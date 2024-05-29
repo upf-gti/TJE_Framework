@@ -1,12 +1,13 @@
 #include "StageManager.h"
 #include "stage.h"
+#include "GameStage.h"
 
 StageManager* StageManager::instance = NULL;
-Stage* secondStage;
+GameStage* secondStage;
 
 StageManager::StageManager()
 {
-	secondStage = new Stage();
+	secondStage = new GameStage();
 
 	StageManager::instance = this;
 	this->currStage = (Stage*) secondStage;

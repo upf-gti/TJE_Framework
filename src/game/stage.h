@@ -16,45 +16,28 @@ class Player;
 class Stage
 {
 public:
-	static Stage* instance;
+	virtual void render(void) {};
+	virtual void update(double dt) {};
 
-	//some globals
-	long frame;
-	float time;
-	float elapsed_time;
-	int fps;
-	bool must_exit;
-
-	float zoom = 5.f;
-
+	//some vars
 	Entity* root;
 	Enemy* enemy;
 	Player* player;
 
-	//some vars
 	Camera* camera; //our global camera
 	Camera* camera2D; //our global camera
 	bool mouse_locked; //tells if the mouse is locked (not seen)
 
-	Stage();
-
-	//main functions
-	void render(void);
-	void update(double dt);
-
-
 	//events
-	void onKeyDown(SDL_KeyboardEvent event);
-	void onKeyUp(SDL_KeyboardEvent event);
-	void onMouseButtonDown(SDL_MouseButtonEvent event);
-	void onMouseButtonUp(SDL_MouseButtonEvent event);
-	void onMouseWheel(SDL_MouseWheelEvent event);
-	void onGamepadButtonDown(SDL_JoyButtonEvent event);
-	void onGamepadButtonUp(SDL_JoyButtonEvent event);
+	virtual void onKeyDown(SDL_KeyboardEvent event) {};
+	virtual void onKeyUp(SDL_KeyboardEvent event) {};
+	virtual void onMouseButtonDown(SDL_MouseButtonEvent event) {};
+	virtual void onMouseButtonUp(SDL_MouseButtonEvent event) {};
+	virtual void onMouseWheel(SDL_MouseWheelEvent event) {};
+	virtual void onGamepadButtonDown(SDL_JoyButtonEvent event) {};
+	virtual void onGamepadButtonUp(SDL_JoyButtonEvent event) {};
 
 
-	bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, COL_TYPE collision_type = SCENARIO);
-	bool sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO);
-	static bool compareFunction(const Entity* e1, const Entity* e2);
-
+	virtual bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, COL_TYPE collision_type = SCENARIO) { return false; };
+	virtual bool sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO) { return false; };
 };
