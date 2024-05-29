@@ -10,7 +10,7 @@ public:
 
 	//main functions
 	void render(void) override;
-	void update(double dt) override;
+	void update(double seconds_elapsed) override;
 
 
 	//events

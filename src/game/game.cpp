@@ -45,9 +45,7 @@ void Game::render(void)
 
 void Game::update(double seconds_elapsed)
 {
-	Stage* stage = StageManager::instance->currStage;
-
-	stage->update(seconds_elapsed);
+	StageManager::instance->update(seconds_elapsed);
 }
 
 //Keyboard event handler (sync input)

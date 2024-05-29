@@ -1,22 +1,31 @@
 #include "StageManager.h"
 #include "stage.h"
 #include "GameStage.h"
+#include "IntroStage.h"
 
 StageManager* StageManager::instance = NULL;
-GameStage* secondStage;
 
 StageManager::StageManager()
 {
-	secondStage = new GameStage();
+	stages["IntroStage"] = (Stage*) new IntroStage();
+	stages["GameStage"] = (Stage*) new GameStage();
+
+	transitioning = false;
 
 	StageManager::instance = this;
-	this->currStage = (Stage*) secondStage;
+	this->currStage = stages["IntroStage"];
 }
 
 void StageManager::render() {
 	currStage->render();
 }
 
-void StageManager::update(float seconds_elapsed) {
+void StageManager::update(double seconds_elapsed) {
+	if (transitioning)
+	{
+		currStage = stages[currStage->nextStage];
+		transitioning = false;
+	}
+
 	currStage->update(seconds_elapsed);
 }

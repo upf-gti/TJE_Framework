@@ -248,6 +248,8 @@ GameStage::GameStage()
 {
 	mouse_locked = false;
 
+    nextStage = "EndStage";
+
 	player = new Player();
 	Material* mat = new Material();
 	mat->color = Vector4(1, 1, 1, 1);
