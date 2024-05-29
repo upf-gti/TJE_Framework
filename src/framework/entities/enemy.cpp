@@ -158,12 +158,12 @@ void Enemy::update(float time_elapsed)
 			if (bulletCD + 0.1 <= Game::instance->time) {
 				bulletCD = Game::instance->time;
 				//for (int i = 0; i <= 3; ++i)
-				//	Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3((1.0f / 3.0f * i)*2-1, 0, 1).normalize(), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+				//	Patterns::circle(stage->player->getPosition() + Vector3(0, 0.6, 0), Vector3((1.0f / 3.0f * i)*2-1, 0, 1).normalize(), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 				Matrix44 rotate_matrix = Matrix44();
 				rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
 				Matrix44 _m = model;
 				_m.rotate(PI / 2 + Game::instance->time / 1, Vector3::UP);
-				Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+				Patterns::circle(stage->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 			}
 			break;
 		case SHOTGUN:
@@ -173,7 +173,7 @@ void Enemy::update(float time_elapsed)
 					Matrix44 _m = model;
 					_m.rotate(-PI / 12, Vector3::UP);
 					for (int i = -1; i <= 1; ++i) {
-						Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+						Patterns::circle(stage->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 						_m.rotate(PI / 12, Vector3::UP);
 					}
 				}
@@ -184,7 +184,7 @@ void Enemy::update(float time_elapsed)
 					Matrix44 _m = model;
 					_m.rotate(-3 * PI / 24, Vector3::UP);
 					for (int i = -1; i <= 2; ++i) {
-						Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+						Patterns::circle(stage->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 						_m.rotate(PI / 12, Vector3::UP);
 					}
 				}
@@ -195,7 +195,7 @@ void Enemy::update(float time_elapsed)
 					Matrix44 _m = model;
 					_m.rotate(-PI / 12, Vector3::UP);
 					for (int i = -1; i <= 1; ++i) {
-						Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+						Patterns::circle(stage->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 						_m.rotate(PI / 12, Vector3::UP);
 					}
 				}
@@ -206,7 +206,7 @@ void Enemy::update(float time_elapsed)
 					Matrix44 _m = model;
 					_m.rotate(-3 * PI / 24, Vector3::UP);
 					for (int i = -1; i <= 2; ++i) {
-						Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+						Patterns::circle(stage->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 1, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 						_m.rotate(PI / 12, Vector3::UP);
 					}
 				}
@@ -233,7 +233,7 @@ void Enemy::update(float time_elapsed)
 				rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
 				Matrix44 _m = model;
 				//_m.rotate(PI / 2 + Game::instance->time / 1, Vector3::UP);
-				Patterns::horizontal(Stage::instance->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 3, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+				Patterns::horizontal(stage->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, 3, bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 			}
 			break;
 		}

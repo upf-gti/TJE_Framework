@@ -105,9 +105,10 @@ void Game::onGamepadButtonUp(SDL_JoyButtonEvent event)
 
 void Game::onResize(int width, int height)
 {
+	Stage* stage = StageManager::instance->currStage;
 	std::cout << "window resized: " << width << "," << height << std::endl;
 	glViewport(0, 0, width, height);
-	camera->aspect = width / (float)height;
+	stage->camera->aspect = width / (float)height;
 	window_width = width;
 	window_height = height;
 }
