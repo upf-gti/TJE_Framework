@@ -1,5 +1,5 @@
 #include "enemy.h"
-#include <game/stage.h>
+#include <game/StageManager.h>
 #include "bullet/bullet.h"
 #include "player.h"
 
@@ -54,7 +54,7 @@ void Enemy::showHitbox(Camera* camera) {
 }
 
 void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
-	for (Bullet* bullet : Stage::instance->player->bullets) {
+	for (Bullet* bullet : StageManager::instance->currStage->player->bullets) {
 		sCollisionData data;
 		if (bullet->isInstanced) {
 			for (Matrix44& instanced_model : bullet->models) {
@@ -77,10 +77,12 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 
 void Enemy::update(float time_elapsed)
 {
+	Stage* stage = StageManager::instance->currStage;
 	Vector3 player_center = getPosition();
+
 	if (looking_at_player) {
 
-		Vector3 pPosition = Stage::instance->player->getPosition();
+		Vector3 pPosition = stage->player->getPosition();
 
 		Vector3 front = pPosition - player_center;
 		front.y = 0;
@@ -96,14 +98,14 @@ void Enemy::update(float time_elapsed)
 
 	std::vector<sCollisionData> ground;
 	std::vector<sCollisionData> collisions;
-	Stage::instance->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
-	Stage::instance->sphere_collided(collisions, player_center, HITBOX_RAD, COL_TYPE::EBCOLS);
+	stage->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
+	stage->sphere_collided(collisions, player_center, HITBOX_RAD, COL_TYPE::EBCOLS);
 
 
 	Vector3 currDirection = direction;
 
 	if (Input::isKeyPressed(SDL_SCANCODE_K))
-		Patterns::circle(Stage::instance->player->getPosition() + Vector3(0, 0.5, 0), Vector3(0, 0, 1), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+		Patterns::circle(StageManager::instance->currStage->player->getPosition() + Vector3(0, 0.5, 0), Vector3(0, 0, 1), model, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
 
 
 	for (sCollisionData& g : collisions) {

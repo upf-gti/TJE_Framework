@@ -2,6 +2,7 @@
 #include "framework/camera.h"
 #include "framework/input.h"
 #include "game/game.h"
+#include "game/StageManager.h"
 
 #include <algorithm>
 
@@ -41,10 +42,11 @@ void BulletNormal::move(Vector3 vec) {
 }
 
 void BulletNormal::update(float delta_time) {
+	Stage* stage = StageManager::instance->currStage;
 	std::vector<sCollisionData> collisions;
 	if (active) {
 		Vector3 bullet_center = model.getTranslation();
-		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.05);
+		bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05);
 		if (colliding) active = false;
 		speed += acceleration * delta_time;
 		rotation_angle += rotation_angle_accel * delta_time * 10;

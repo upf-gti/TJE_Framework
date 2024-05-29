@@ -18,7 +18,6 @@ public:
 		model.translate(Vector3(0, HEIGHT, 0));
 		mat.diffuse = texture;
 		mat.shader = shader;
-		Stage* stage = Stage::instance;
 		Bullet* b = new BulletAuto(mesh, mat, objective, direction, model, BULLET_SPD, "", fromPlayer);
 		bullets.push_back(b);
 	}

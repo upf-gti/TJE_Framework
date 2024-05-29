@@ -2,6 +2,7 @@
 #include "framework/camera.h"
 #include "framework/input.h"
 #include "game/game.h"
+#include "game/StageManager.h"
 
 #include <algorithm>
 
@@ -41,10 +42,11 @@ void BulletAuto::move(Vector3 vec) {
 }
 
 void BulletAuto::update(float delta_time) {
+	Stage* stage = StageManager::instance->currStage;
 	std::vector<sCollisionData> collisions;
 	if (active) {
 		Vector3 bullet_center = model.getTranslation();
-		bool colliding = Stage::instance->sphere_collided(collisions, bullet_center, 0.05);
+		bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05);
 		if (colliding) active = false;
 		model.rotate(model.getYawRotationToAimTo(objective) * delta_time * 3, Vector3(0, 1, 0));
 		model.rotate(model.getPitchRotationToAimTo(objective) * delta_time * 3, Vector3(1, 0, 0));

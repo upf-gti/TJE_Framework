@@ -1,6 +1,7 @@
 #include "entityUI.h"
 #include "framework/camera.h"
 #include "game/game.h"
+#include "game/StageManager.h"
 
 #include <algorithm>
 #include <framework/input.h>
@@ -19,7 +20,7 @@ void EntityUI::render(Camera* camera2D) {
 
 	material.shader->enable();
 
-	Stage* stage = Stage::instance;
+	Stage* stage = StageManager::instance->currStage;
 
 	material.shader->setUniform("u_model", Matrix44());
 	material.shader->setUniform("u_color", Vector4(1.0f));
@@ -84,7 +85,7 @@ void EntityUI::update3D(Vector3 position3d) {
 	int width = Game::instance->window_width;
 	int height = Game::instance->window_height;
 
-	Stage* stage = Stage::instance;
+	Stage* stage = StageManager::instance->currStage;
 
 	visible = true;
 
