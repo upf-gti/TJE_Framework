@@ -32,13 +32,15 @@ public:
 	float startFiring;
 	float bulletCD = -1;
 
+	bool looking_at_player = true;
+
 	Mesh* hitbox_mesh = Mesh::Get("data/meshes/sphere.obj");
 	Shader* flat_shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
 
 	enum pattern {
 		SWIRL,
 		SHOTGUN,
-		SHOTGUN2
+		HORIZONTAL
 	};
 
 	std::vector<Bullet*> bullets;
