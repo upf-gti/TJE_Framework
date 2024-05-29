@@ -138,8 +138,7 @@ void Enemy::update(float time_elapsed)
 			moving = false;
 			startFiring = Game::instance->time;
 			float r = random() * 3;
-			//current_pattern = (pattern) clamp(floor(r), 0, 2);
-			current_pattern = HORIZONTAL;
+			current_pattern = (pattern) clamp(floor(r), 0, 2);
 			std::cout << current_pattern << " " << r << std::endl;
 		}
 	}
