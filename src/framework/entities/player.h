@@ -53,7 +53,6 @@ public:
 	bullet_type bt = circle;
 	float mana;
 	bool autoshoot = false;
-	BulletNormal bullets_normal;
 	std::vector<Bullet*> bullets;
 	uint16 bullet_idx_first = 0;
 	uint16 bullet_idx_last = 0;
@@ -70,6 +69,9 @@ public:
 	Material charge_mat;
 	Mesh* charge_mesh;
 	Matrix44 charge_model;
+
+	BulletNormal bullets_normal;
+	BulletAuto bullets_auto;
 
 	float ground_below_y = 10000;
 	float ground_y = 10000;
@@ -141,6 +143,7 @@ private:
 		bullets_normal.isInstanced = true;
 		bullets_normal.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
 		bullets_normal.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
+		bullets_normal.mesh = Mesh::Get("data/meshes/bullet.obj");
 
 		charge_mat.color = Vector4(1, 1, 1, 1);
 		charge_mat.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");

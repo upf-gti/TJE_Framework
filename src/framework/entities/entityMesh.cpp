@@ -76,7 +76,7 @@ void EntityMesh::render(Camera* camera) {
 
 	material.shader->setUniform("u_time", Game::instance->time);
 
-	if (isInstanced && false)
+	if (isInstanced)
 		mesh->renderInstanced(GL_TRIANGLES, final_models->data(), final_models->size());
 	else if (isAnimated) {
 		mesh->renderAnimated(GL_TRIANGLES, &anim->skeleton);

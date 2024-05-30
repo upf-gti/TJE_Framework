@@ -54,6 +54,7 @@ void Enemy::showHitbox(Camera* camera) {
 }
 
 void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
+	Stage* stage = StageManager::instance->currStage;
 	for (Bullet* bullet : StageManager::instance->currStage->player->bullets) {
 		sCollisionData data;
 		if (bullet->isInstanced) {
@@ -71,6 +72,16 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 				bullet->to_delete = true;
 				this->currHP -= bullet->damage;
 			}
+		}
+	}
+	BulletNormal& bns = stage->player->bullets_normal;
+	for (int i = 0; i < bns.models.size(); i++) {
+		Matrix44& m = stage->player->bullets_normal.models[i];
+		sCollisionData data;
+		if (bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+			bns.models.erase((bns.models.begin() + i));
+			bns.speeds.erase((bns.speeds.begin() + i));
+			this->currHP -= bns.damage;
 		}
 	}
 }
@@ -164,7 +175,7 @@ void Enemy::update(float time_elapsed)
 				rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
 				Matrix44 _m = model;
 				_m.rotate(PI / 2 + Game::instance->time / 1, Vector3::UP);
-				Patterns::circle2(_m, bullets_normal, 3);
+				Patterns::circle2(_m, bullets_normal, 6);
 			}
 			break;
 		case SHOTGUN:

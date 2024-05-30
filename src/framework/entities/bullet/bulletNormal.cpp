@@ -14,34 +14,34 @@ Vector3 BulletNormal::getPosition() {
 }
 
 void BulletNormal::render(Camera* camera) {
-	if (!mesh) {
-		std::cout << "no mesh";
-		return;
-	}
-	if (!material.shader) {
-		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
-	}
+	//if (!mesh) {
+	//	std::cout << "no mesh";
+	//	return;
+	//}
+	//if (!material.shader) {
+	//	material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
+	//}
 
-	material.shader->enable();
+	//material.shader->enable();
 
-	material.shader->setUniform("u_color", material.color);
-	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
-	material.shader->setUniform("u_time", Game::instance->time);
+	//material.shader->setUniform("u_color", material.color);
+	//material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	//material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
+	//material.shader->setUniform("u_time", Game::instance->time);
 
-	if (isInstanced) {
-		mesh->renderInstanced(GL_TRIANGLES, models.data(), models.size());
-	}
-	else {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		material.shader->setUniform("u_model", model);
-		mesh->render(GL_TRIANGLES);
-		glDisable(GL_BLEND);
-	}
-	// Disable shader after finishing rendering
-	material.shader->disable();
-
+	//if (isInstanced) {
+	//	mesh->renderInstanced(GL_TRIANGLES, models.data(), models.size());
+	//}
+	//else {
+	//	glEnable(GL_BLEND);
+	//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//	material.shader->setUniform("u_model", model);
+	//	mesh->render(GL_TRIANGLES);
+	//	glDisable(GL_BLEND);
+	//}
+	//// Disable shader after finishing rendering
+	//material.shader->disable();
+	EntityMesh::render(camera);
 };
 
 
@@ -53,14 +53,14 @@ void BulletNormal::update(float delta_time) {
 	Stage* stage = StageManager::instance->currStage;
 	std::vector<sCollisionData> collisions;
 	if (isInstanced) {
-		Stage* stage = StageManager::instance->currStage;
 		rotation_angle += rotation_angle_accel * delta_time * 10;
 		for (int i = 0; i < models.size(); i++) {
 			Matrix44& m = models[i];
 			speeds[i] += acceleration * delta_time;
 			Vector3 bullet_center = m.getTranslation();
-			int a = SCENARIO | PLAYER;
+			int a = SCENARIO;
 			bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05, (COL_TYPE) a );
+			//COL_TYPE tocheck = fromPlayer ? ENEMY : PLAYER;
 			if (colliding) {
 				// stage->root_transparent->addChild((Entity*) new BulletNormal(this->mesh, this->material, this->direction, m, 0));
 				models.erase((models.begin() + i));
@@ -70,7 +70,7 @@ void BulletNormal::update(float delta_time) {
 			};
 			m.rotate(rotation_angle, Vector3(0, 1, 0));
 			time_since_spawn += delta_time;
-			Vector3 vec = BULLET_SPD * Vector3(0, 0, 1) * delta_time;
+			Vector3 vec = speeds[i] * Vector3(0, 0, 1) * delta_time;
 			m.translate(vec);
 			collisions.clear();
 		}

@@ -62,8 +62,19 @@ public:
 		for (int i = 0; i < amount; i++) {
 			Bullet* b = new BulletNormal(mesh, mat, direction, model, BULLET_SPD + (BULLET_SPD/10) * i, "", fromPlayer);
 			b->model.rotate(random(-PI / 8, PI / 8), Vector3(0, 1, 0));
-			b->model.rotate(random(-PI / 32, PI / 16), Vector3(1, 0, 0));
+			b->model.rotate(random(-PI / 16, PI / 16), Vector3(1, 0, 0));
 			bullets.push_back(b);
+		}
+	}
+
+	static void shotgun2(Matrix44 model, BulletNormal& bullets, int amount) {
+		model.translate(Vector3(0, HEIGHT, 0));
+		Matrix44 original = Matrix44(model);
+		for (int i = 0; i < amount; i++) {
+			model = original;
+			model.rotate(random(-PI / 8, PI / 8), Vector3(0, 1, 0));
+			model.rotate(random(-PI / 8, PI / 8), Vector3(1, 0, 0));
+			bullets.addInstance(model, BULLET_SPD + (BULLET_SPD / 10) * i);
 		}
 	}
 

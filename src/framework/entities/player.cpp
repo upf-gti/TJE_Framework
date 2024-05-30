@@ -28,6 +28,16 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			}
 		}
 	}
+	BulletNormal& bns = stage->enemy->bullets_normal;
+	for (int i = 0; i < bns.models.size(); i++) {
+		Matrix44& m = stage->enemy->bullets_normal.models[i];
+		sCollisionData data;
+		if (bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+			bns.models.erase((bns.models.begin() + i));
+			bns.speeds.erase((bns.speeds.begin() + i));
+			this->currHP -= bns.damage;
+		}
+	}
 }
 
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {
@@ -60,7 +70,18 @@ void Player::jump(float delta_time) {
 }
 
 void Player::shoot(bullet_type bullet_type = auto_aim) {
-	if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+	if (bullet_type == shotgun) {
+		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+			timer_bullet[bullet_type] = Game::instance->time;
+			mana -= shoot_cost[bullet_type];
+			free_bullets -= amount[bullet_type];
+			std::cout << "Aqui llega \n";
+			Patterns::shotgun2(model, bullets_normal, 20);
+			std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
+		}
+		return;
+	}
+	else if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
@@ -204,6 +225,7 @@ void Player::render(Camera* camera) {
 	{
 		children[i]->render(camera);
 	}
+	bullets_normal.render(camera);
 
 	showHitbox(camera);
 };
@@ -278,6 +300,7 @@ void Player::update(float delta_time) {
 		}
 		else b->update(delta_time);
 	}
+	bullets_normal.update(delta_time);
 	Entity::update(delta_time);
 
 	mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);

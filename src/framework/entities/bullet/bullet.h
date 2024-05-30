@@ -7,6 +7,7 @@
 
 #define BULLET_SPD 10
 
+
 // Bullets
 enum bullet_type : uint8 {
 	auto_aim,
@@ -28,6 +29,8 @@ public:
 	float opacity_dec = 3;
 	float damage;
 	float time_since_spawn = 0;
+
+	std::vector<float> speeds;
 
 	bool active = true;
 	bool to_delete = false;

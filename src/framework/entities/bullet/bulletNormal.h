@@ -25,7 +25,7 @@ public:
 
 	}
 	
-	std::vector<float> speeds;
+
 
 	void move(Vector3 vec);
 	// Methods overwritten from base class

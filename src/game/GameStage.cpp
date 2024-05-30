@@ -169,6 +169,13 @@ static bool parseScene(const char* filename, Entity* root)
 	return true;
 }
 
+void GameStage::handlePlayerHP(Player* p, float hp) {
+	p->currHP = clamp(p->currHP + hp, -1000000, p->maxHP);
+}
+void GameStage::handleEnemyHP(Enemy* e, float hp) {
+	e->currHP = clamp(e->currHP + hp, -1000000, e->maxHP);
+}
+
 bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
 		EntityMesh* ee = (EntityMesh*)root->children[i];
@@ -207,8 +214,9 @@ bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector
 }
 
 
-bool GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type) {
+COL_TYPE GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
 	Stage* stage = StageManager::instance->currStage;
+	int return_val = COL_TYPE::NONE;
 	for (int i = 0; i < stage->root->children.size(); ++i) {
 
 		EntityMesh* ee = (EntityMesh*) stage->root->children[i];
@@ -231,17 +239,19 @@ bool GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3
 			for (Matrix44& instanced_model : ee->models) {
 				if (ee->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 					collisions.push_back(data);
+					return_val = return_val | ee->type;
 				}
 			}
 		}
 		else {
 			if (ee->mesh->testSphereCollision(ee->model, position, radius, data.colPoint, data.colNormal)) {
 				collisions.push_back(data);
+				return_val = return_val | ee->type;
 			}
 		}
 	}
-
-	return (!collisions.empty());
+	return (COL_TYPE) return_val;
+	// return !collisions.empty();
 }
 
 GameStage::GameStage()

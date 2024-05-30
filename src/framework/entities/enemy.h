@@ -1,4 +1,7 @@
 #pragma once
+#ifndef ENEMY_H
+#define ENEMY_H
+
 #include "framework/entities/entityCollider.h"
 #include "framework/entities/bullet/patterns.h"
 #define HITBOX_RAD 0.2
@@ -77,3 +80,4 @@ public:
 	}
 };
 
+#endif
