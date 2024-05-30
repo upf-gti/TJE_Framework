@@ -14,9 +14,10 @@ Vector3 BulletNormal::getPosition() {
 }
 
 void BulletNormal::render(Camera* camera) {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	if (!mesh) {
+		std::cout << "no mesh";
+		return;
+	}
 	if (!material.shader) {
 		material.shader = Shader::Get(isInstanced ? "data/shaders/instanced.vs" : "data/shaders/basic.vs");
 	}
@@ -26,14 +27,21 @@ void BulletNormal::render(Camera* camera) {
 	material.shader->setUniform("u_color", material.color);
 	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
-	material.shader->setUniform("u_model", model);
 	material.shader->setUniform("u_time", Game::instance->time);
 
-	mesh->render(GL_TRIANGLES);
-
+	if (isInstanced) {
+		mesh->renderInstanced(GL_TRIANGLES, models.data(), models.size());
+	}
+	else {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		material.shader->setUniform("u_model", model);
+		mesh->render(GL_TRIANGLES);
+		glDisable(GL_BLEND);
+	}
 	// Disable shader after finishing rendering
 	material.shader->disable();
-	glDisable(GL_BLEND);
+
 };
 
 
@@ -44,30 +52,55 @@ void BulletNormal::move(Vector3 vec) {
 void BulletNormal::update(float delta_time) {
 	Stage* stage = StageManager::instance->currStage;
 	std::vector<sCollisionData> collisions;
-	if (active) {
-		Vector3 bullet_center = model.getTranslation();
-		bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05);
-		if (colliding) active = false;
-		speed += acceleration * delta_time;
+	if (isInstanced) {
+		Stage* stage = StageManager::instance->currStage;
 		rotation_angle += rotation_angle_accel * delta_time * 10;
-		model.rotate(rotation_angle, Vector3(0, 1, 0));
-
-		// Update time since spawn
-		time_since_spawn += delta_time;
-
-		//// Calculate the sine wave offset
-		//float wave_amplitude = 0.5f; // Adjust the amplitude as needed
-		//float wave_frequency = 5.0f; // Adjust the frequency as needed
-		//float wave_offset = wave_amplitude * sin(time_since_spawn * wave_frequency);
-
-		//// Apply the wave offset to the bullet's direction
-		//Vector3 wave_direction = direction;
-		//wave_direction.x += wave_offset; // Apply wave to x-direction, can also be y or z
-
-		move(speed * Vector3(0,0,1) * delta_time /** wave_direction*/);
+		for (int i = 0; i < models.size(); i++) {
+			Matrix44& m = models[i];
+			speeds[i] += acceleration * delta_time;
+			Vector3 bullet_center = m.getTranslation();
+			int a = SCENARIO | PLAYER;
+			bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05, (COL_TYPE) a );
+			if (colliding) {
+				// stage->root_transparent->addChild((Entity*) new BulletNormal(this->mesh, this->material, this->direction, m, 0));
+				models.erase((models.begin() + i));
+				speeds.erase((speeds.begin() + i));
+				collisions.clear();
+				continue;
+			};
+			m.rotate(rotation_angle, Vector3(0, 1, 0));
+			time_since_spawn += delta_time;
+			Vector3 vec = BULLET_SPD * Vector3(0, 0, 1) * delta_time;
+			m.translate(vec);
+			collisions.clear();
+		}
 	}
 	else {
-		despawning(delta_time);
+		if (active) {
+			Vector3 bullet_center = model.getTranslation();
+			bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05);
+			if (colliding) to_delete = true;
+			speed += acceleration * delta_time;
+			rotation_angle += rotation_angle_accel * delta_time * 10;
+			model.rotate(rotation_angle, Vector3(0, 1, 0));
+
+			// Update time since spawn
+			time_since_spawn += delta_time;
+
+			//// Calculate the sine wave offset
+			//float wave_amplitude = 0.5f; // Adjust the amplitude as needed
+			//float wave_frequency = 5.0f; // Adjust the frequency as needed
+			//float wave_offset = wave_amplitude * sin(time_since_spawn * wave_frequency);
+
+			//// Apply the wave offset to the bullet's direction
+			//Vector3 wave_direction = direction;
+			//wave_direction.x += wave_offset; // Apply wave to x-direction, can also be y or z
+
+			move(speed * Vector3(0, 0, 1) * delta_time /** wave_direction*/);
+		}
+		else {
+			despawning(delta_time);
+		}
 	}
 }
 

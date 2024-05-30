@@ -34,6 +34,14 @@ public:
 		}
 	}
 
+	static void circle2(Matrix44 model, BulletNormal& bullets, int amount) {
+		model.translate(Vector3(0, HEIGHT, 0));
+		for (int i = 0; i < amount; i++) {
+			bullets.addInstance(model, BULLET_SPD);
+			model.rotate(2 * PI/ amount, Vector3(0, 1, 0));
+		}
+	}
+
 	static void horizontal(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh, bool fromPlayer = true) {
 		Material mat = Material();
 		model.translate(Vector3(0, HEIGHT, 0));

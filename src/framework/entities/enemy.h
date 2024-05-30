@@ -22,6 +22,8 @@ public:
 	Vector3 ground_normal = Vector3(0.0f);
 	Vector3 direction = Vector3(0.0f);
 
+	BulletNormal bullets_normal;
+
 	int maxHP;
 	int currHP;
 	float m_spd;
@@ -60,6 +62,12 @@ public:
 	void sphere_bullet_collision(Vector3 position, float radius);
 
 	void loadTextures() {
+		bullets_normal.isInstanced = true;
+		bullets_normal.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
+		bullets_normal.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
+		bullets_normal.fromPlayer = false;
+		bullets_normal.mesh = Mesh::Get("data/meshes/bullet.obj");
+
 		Shader* s = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 		bullet_shaders[0] = s;
 		Texture* t1 = Texture::Get("data/meshes/bullet.mtl");

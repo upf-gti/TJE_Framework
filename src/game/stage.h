@@ -21,6 +21,9 @@ public:
 
 	//some vars
 	Entity* root;
+	Entity* root_transparent;
+	Entity* GUI;
+
 	Enemy* enemy;
 	Player* player;
 

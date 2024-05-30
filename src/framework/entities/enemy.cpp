@@ -28,7 +28,7 @@ void Enemy::render(Camera* camera)
 {
 	for (int i = bullets.size() - 1; i >= 0; i--)
 		bullets[i]->render(camera);
-
+	bullets_normal.render(camera);
 	EntityMesh::render(camera);
 	showHitbox(camera);
 }
@@ -140,7 +140,8 @@ void Enemy::update(float time_elapsed)
 			moving = false;
 			startFiring = Game::instance->time;
 			float r = random() * 3;
-			current_pattern = (pattern) clamp(floor(r), 0, 2);
+			//current_pattern = (pattern) clamp(floor(r), 0, 2);
+			current_pattern = SWIRL;
 			std::cout << current_pattern << " " << r << std::endl;
 		}
 	}
@@ -163,7 +164,7 @@ void Enemy::update(float time_elapsed)
 				rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
 				Matrix44 _m = model;
 				_m.rotate(PI / 2 + Game::instance->time / 1, Vector3::UP);
-				Patterns::circle(stage->player->getPosition() + Vector3(0, 0.6, 0), Vector3(1, 0, 0), _m, bullets, amount[0], bullet_shaders[0], bullet_textures[0], bullet_meshes[0], false);
+				Patterns::circle2(_m, bullets_normal, 3);
 			}
 			break;
 		case SHOTGUN:
@@ -247,6 +248,8 @@ void Enemy::update(float time_elapsed)
 		}
 		else b->update(time_elapsed);
 	}
+
+	bullets_normal.update(time_elapsed);
 
 	this->sphere_bullet_collision(player_center, HITBOX_RAD);
 }

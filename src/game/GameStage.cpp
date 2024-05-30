@@ -246,7 +246,9 @@ bool GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3
 
 GameStage::GameStage()
 {
-	mouse_locked = false;
+	mouse_locked = true;
+	SDL_ShowCursor(!mouse_locked);
+	SDL_SetRelativeMouseMode((SDL_bool)(mouse_locked));
 
     nextStage = "EndStage";
 
