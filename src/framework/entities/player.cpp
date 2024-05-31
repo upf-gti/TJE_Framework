@@ -70,13 +70,25 @@ void Player::jump(float delta_time) {
 }
 
 void Player::shoot(bullet_type bullet_type = auto_aim) {
+	Matrix44 _m = model;
+	_m.setFrontAndOrthonormalize(_m.frontVector() * Vector3(1, 0, 1));
 	if (bullet_type == shotgun) {
 		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
 			timer_bullet[bullet_type] = Game::instance->time;
 			mana -= shoot_cost[bullet_type];
 			free_bullets -= amount[bullet_type];
 			std::cout << "Aqui llega \n";
-			Patterns::shotgun2(model, bullets_normal, 20);
+			Patterns::shotgun2(_m, bullets_normal, 20);
+			std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
+		}
+		return;
+	}
+	else if (bullet_type == auto_aim) {
+		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+			timer_bullet[bullet_type] = Game::instance->time;
+			mana -= shoot_cost[bullet_type];
+			free_bullets -= amount[bullet_type];
+			Patterns::autoAim2(_m, bullets_auto);
 			std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 		}
 		return;
@@ -85,7 +97,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
-		patterns[bullet_type](StageManager::instance->currStage->enemy->getPosition() + Vector3(0, player_height, 0), forward, model, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
+		patterns[bullet_type](StageManager::instance->currStage->enemy->getPosition() + Vector3(0, player_height, 0), forward, _m, bullets, amount[bullet_type], bullet_shaders[bullet_type], bullet_textures[bullet_type], bullet_meshes[bullet_type]);
 		std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
 	}
 }
@@ -226,6 +238,7 @@ void Player::render(Camera* camera) {
 		children[i]->render(camera);
 	}
 	bullets_normal.render(camera);
+	bullets_auto.render(camera);
 
 	showHitbox(camera);
 };
@@ -300,7 +313,9 @@ void Player::update(float delta_time) {
 		}
 		else b->update(delta_time);
 	}
+	bullets_auto.objective = stage->enemy->getHitboxPosition();
 	bullets_normal.update(delta_time);
+	bullets_auto.update(delta_time);
 	Entity::update(delta_time);
 
 	mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);

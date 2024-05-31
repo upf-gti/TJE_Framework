@@ -145,6 +145,11 @@ private:
 		bullets_normal.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
 		bullets_normal.mesh = Mesh::Get("data/meshes/bullet.obj");
 
+		bullets_auto.isInstanced = true;
+		bullets_auto.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
+		bullets_auto.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
+		bullets_auto.mesh = Mesh::Get("data/meshes/bullet.obj");
+
 		charge_mat.color = Vector4(1, 1, 1, 1);
 		charge_mat.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 		charge_mat.diffuse = Texture::Get("data/meshes/charge.mtl");

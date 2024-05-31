@@ -55,6 +55,7 @@ public:
 	uint16 amount[4] = {6, 10, 20, 1 };
 
 	Vector3 getPosition() const { return model.getTranslation(); };
+	Vector3 getHitboxPosition() const { return model.getTranslation() + Vector3(0, PLAYER_HEIGHT, 0); };
 	Vector3 getPositionGround() const { Vector3 res = getPosition(); res.y = 0; return res; }
 	Vector3 getFront() { return model.frontVector(); }
 	Vector3 getRight() { return model.rightVector(); }

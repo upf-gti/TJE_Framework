@@ -22,6 +22,11 @@ public:
 		bullets.push_back(b);
 	}
 
+	static void autoAim2(Matrix44 model, BulletAuto& bullets, int amount = 1) {
+		model.translate(Vector3(0, HEIGHT, 0));
+		bullets.addInstance(model, BULLET_SPD);
+	}
+
 	static void circle(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh, bool fromPlayer = true) {
 		Material mat = Material();
 		model.translate(Vector3(0, HEIGHT, 0));
@@ -34,7 +39,7 @@ public:
 		}
 	}
 
-	static void circle2(Matrix44 model, BulletNormal& bullets, int amount) {
+	static void circle2(Matrix44 model, BulletNormal& bullets, int amount = 1) {
 		model.translate(Vector3(0, HEIGHT, 0));
 		for (int i = 0; i < amount; i++) {
 			bullets.addInstance(model, BULLET_SPD);
@@ -54,6 +59,14 @@ public:
 		}
 	}
 
+	static void horizontal2(Matrix44 model, BulletNormal& bullets, int amount = 1) {
+		model.translate(Vector3(0, HEIGHT, 0));
+		for (int i = 0; i < amount; i++) {
+			model.translate(Vector3((i - (amount / 2)) * 1.4, 0, 0));
+			bullets.addInstance(model, BULLET_SPD);
+		}
+	}
+
 	static void shotgun(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh, bool fromPlayer = true) {
 		Material mat = Material();
 		mat.diffuse = texture;
@@ -67,13 +80,13 @@ public:
 		}
 	}
 
-	static void shotgun2(Matrix44 model, BulletNormal& bullets, int amount) {
+	static void shotgun2(Matrix44 model, BulletNormal& bullets, int amount = 1) {
 		model.translate(Vector3(0, HEIGHT, 0));
 		Matrix44 original = Matrix44(model);
 		for (int i = 0; i < amount; i++) {
 			model = original;
 			model.rotate(random(-PI / 8, PI / 8), Vector3(0, 1, 0));
-			model.rotate(random(-PI / 8, PI / 8), Vector3(1, 0, 0));
+			model.rotate(random(-PI / 4, PI / 8), Vector3(1, 0, 0));
 			bullets.addInstance(model, BULLET_SPD + (BULLET_SPD / 10) * i);
 		}
 	}
@@ -89,7 +102,6 @@ public:
 		b->opacity_dec = 1;
 		bullets.push_back(b);
 	}
-
 };
 
 #endif

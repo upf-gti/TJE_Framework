@@ -59,9 +59,10 @@ void BulletAuto::update(float delta_time) {
 				collisions.clear();
 				continue;
 			};
+
 			Vector3 vec = BULLET_SPD * Vector3(0, 0, 1) * delta_time;
-			m.rotate(model.getYawRotationToAimTo(objective) * delta_time * 3, Vector3(0, 1, 0));
-			m.rotate(model.getPitchRotationToAimTo(objective) * delta_time * 3, Vector3(1, 0, 0));
+			m.rotate(m.getYawRotationToAimTo(objective) * delta_time * 3, Vector3(0, 1, 0));
+			m.rotate(m.getPitchRotationToAimTo(objective) * delta_time * 3, Vector3(1, 0, 0));
 			m.translate(vec);
 			collisions.clear();
 		}
