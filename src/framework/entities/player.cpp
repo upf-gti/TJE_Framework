@@ -16,7 +16,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
-					this->currHP -= bullet->damage;
+					stage->anxiety += bullet->damage;
 				}
 			}
 		}
@@ -24,7 +24,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			if (bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
 				colliding = true;
 				bullet->to_delete = true;
-				this->currHP -= bullet->damage;
+				stage->anxiety += bullet->damage;
 			}
 		}
 	}
@@ -35,7 +35,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 		if (bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 			bns.models.erase((bns.models.begin() + i));
 			bns.speeds.erase((bns.speeds.begin() + i));
-			this->currHP -= bns.damage;
+			stage->anxiety += bns.damage;
 		}
 	}
 }

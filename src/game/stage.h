@@ -27,6 +27,8 @@ public:
 	Enemy* enemy;
 	Player* player;
 
+	float anxiety;
+
 	std::string nextStage;
 
 	Camera* camera; //our global camera

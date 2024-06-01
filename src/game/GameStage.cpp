@@ -222,17 +222,6 @@ COL_TYPE GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vec
 		EntityMesh* ee = (EntityMesh*) stage->root->children[i];
 		if (!(ee->type & collision_type)) continue;
 
-		/*if (collision_type == NONE) {
-			if (!(ee->type & collision_type)) {
-				std::cout << "Skipping entity due to type mismatch." << std::endl;
-				continue;
-			}
-			else {
-				std::cout << "Type " + ee->type << std::endl;
-			}
-		}*/
-
-
 		sCollisionData data;
 
 		if (ee->isInstanced) {
@@ -307,22 +296,6 @@ GameStage::GameStage()
 	camera2D->view_matrix.setIdentity();
 	camera2D->setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 
-	//// Three vertices of the 1st triangle
-	//quad.vertices.push_back(Vector3(-1, 1, 0));
-	//quad.uvs.push_back(Vector2(0, 1));
-	//quad.vertices.push_back(Vector3(-1, -1, 0));
-	//quad.uvs.push_back(Vector2(0, 0));
-	//quad.vertices.push_back(Vector3(1, -1, 0));
-	//quad.uvs.push_back(Vector2(1, 0));
-
-	//// Three vertices of the 2nd triangle
-	//quad.vertices.push_back(Vector3(-1, 1, 0));
-	//quad.uvs.push_back(Vector2(0, 1));
-	//quad.vertices.push_back(Vector3(1, -1, 0));
-	//quad.uvs.push_back(Vector2(1, 0));
-	//quad.vertices.push_back(Vector3(1, 1, 0));
-	//quad.uvs.push_back(Vector2(1, 1));
-
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
@@ -344,11 +317,55 @@ GameStage::GameStage()
 	player->type = PLAYER;
 	root->addChild(player);
 	root->addChild(enemy);
+
+	anxiety = 30;
 }
 
 
-// Assuming you have a function to loadTGA that reads the TGA data
+void GameStage::renderHUD()
+{
+	float gameWidth = Game::instance->window_width, gameHeight = Game::instance->window_height;
 
+	//Render HP bar
+	Vector2 barPosition = Vector2(gameWidth/2.0f, gameHeight*0.1f);
+	Vector2 barSize = Vector2(gameWidth/2.0f, 50);
+
+	renderBar(barPosition, barSize, anxiety/100.0f, Vector3(79,44,86)/255.0f);
+
+	barPosition = Vector2(gameWidth*0.17f, gameHeight*0.9f);
+	barSize = Vector2(gameWidth*0.3f, 40);
+
+	renderBar(barPosition, barSize, player->mana/200.0f, Vector3(0.3, 0.1, 0.8));
+}
+
+// Assuming you have a function to loadTGA that reads the TGA data
+void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color)
+{
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	Mesh innerQuad;
+	Mesh outerQuad;
+	shader = Shader::Get("data/shaders/hud.vs", "data/shaders/hud.fs");
+	shader->enable();
+
+	//Creation of the second quad. This one contains the life information. 
+	outerQuad.createQuad(barPosition.x, barPosition.y, barSize.x, barSize.y, true);
+	shader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
+	shader->setUniform("u_color", Vector3(32.0f/255.0f));
+	shader->setUniform("u_percentage", 1.0f);
+
+	outerQuad.render(GL_TRIANGLES);
+
+	innerQuad.createQuad(barPosition.x, barPosition.y, barSize.x-10, barSize.y-10, true);
+	shader->setUniform("u_color", color);
+	shader->setUniform("u_percentage", percentage);
+
+	innerQuad.render(GL_TRIANGLES);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+}
 
 //what to do when the image has to be draw
 void GameStage::render(void)
@@ -373,17 +390,15 @@ void GameStage::render(void)
 
 
 	root->render(camera);
-	//enemy->render(camera);
-	// Draw the floor grid
-
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-	drawText(2, 50, std::to_string((player->currHP / player->maxHP) * 100) + '%', Vector3(1, 1, 1), 2);
+	// drawText(2, 50, std::to_string((player->currHP / player->maxHP) * 100) + '%', Vector3(1, 1, 1), 2);
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
-	//amogus.render(camera2D);
+	// amogus.render(camera2D);
+	renderHUD();
 
 	//Camera camera2D;
 	//camera2D.enable();
@@ -454,7 +469,15 @@ void GameStage::update(double seconds_elapsed)
 		Vector3 player_pos = player->box_cam;
 		Vector3 enemy_pos = enemy->getPosition();
 		Vector3 director = player_pos - enemy_pos;
-		camera->lookAt(player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0), enemy_pos, camera->up);
+		std::vector<sCollisionData> cameraCollisions;
+		Vector3 eye = player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0);
+
+		bool isColliding = ray_collided(cameraCollisions, eye, -director, 10);
+
+		//TODO: fix camera
+		// eye = (isColliding) ? eye-Vector3(0, 0, eye.z-cameraCollisions[0].colPoint.z+10) : eye;
+
+		camera->lookAt(eye, enemy_pos, camera->up);
 	}
 	// camera->lookAt(player->model);
 	/*float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;

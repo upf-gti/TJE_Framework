@@ -62,7 +62,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 				if (bullet->mesh->testSphereCollision(instanced_model, position, 3*radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
-					this->currHP -= bullet->damage;
+					stage->anxiety -= bullet->damage;
 				}
 			}
 		}
@@ -70,7 +70,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 			if (bullet->mesh->testSphereCollision(bullet->model, position, 3 * radius, data.colPoint, data.colNormal)) {
 				colliding = true;
 				bullet->to_delete = true;
-				this->currHP -= bullet->damage;
+				stage->anxiety -= bullet->damage;
 			}
 		}
 	}
@@ -81,7 +81,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		if (bns.mesh->testSphereCollision(m, position, 3 * radius, data.colPoint, data.colNormal)) {
 			bns.models.erase((bns.models.begin() + i));
 			bns.speeds.erase((bns.speeds.begin() + i));
-			this->currHP -= bns.damage;
+			stage->anxiety -= bns.damage;
 		}
 	}
 	BulletAuto& bas = stage->player->bullets_auto;
@@ -91,7 +91,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		if (bas.mesh->testSphereCollision(m, position, 2 * radius, data.colPoint, data.colNormal)) {
 			bas.models.erase((bas.models.begin() + i));
 			bas.speeds.erase((bas.speeds.begin() + i));
-			this->currHP -= bas.damage;
+			stage->anxiety -= bas.damage;
 		}
 	}
 }
