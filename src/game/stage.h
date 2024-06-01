@@ -21,6 +21,9 @@ public:
 
 	//some vars
 	Entity* root;
+	Entity* root_transparent;
+	Entity* GUI;
+
 	Enemy* enemy;
 	Player* player;
 
@@ -39,7 +42,9 @@ public:
 	virtual void onGamepadButtonDown(SDL_JoyButtonEvent event) {};
 	virtual void onGamepadButtonUp(SDL_JoyButtonEvent event) {};
 
+	virtual void handlePlayerHP(Player* p, float hp) {};
+	virtual void handleEnemyHP(Enemy* e, float hp) {};
 
 	virtual bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, COL_TYPE collision_type = SCENARIO) { return false; };
-	virtual bool sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO) { return false; };
+	virtual COL_TYPE sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO, bool check = false) { return COL_TYPE::NONE; };
 };

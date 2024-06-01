@@ -22,9 +22,11 @@ public:
 	void onGamepadButtonDown(SDL_JoyButtonEvent event) override;
 	void onGamepadButtonUp(SDL_JoyButtonEvent event) override;
 
+	void handlePlayerHP(Player* p, float hp) override;
+	void handleEnemyHP(Enemy* e, float hp) override;
 
 	bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, COL_TYPE collision_type = SCENARIO) override;
-	bool sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO) override;
+	COL_TYPE sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO, bool check = false) override;
 	static bool compareFunction(const Entity* e1, const Entity* e2);
 
 };

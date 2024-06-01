@@ -30,6 +30,12 @@ public:
 
 	}
 	
+	void addInstance(Matrix44 model, float speed) {
+		this->models.push_back(model);
+		this->speeds.push_back(speed);
+		std::cout << "New instance #" << models.size() << "! " << isInstanced << " ";
+	};
+
 	void move(Vector3 vec);
 	// Methods overwritten from base class
 	void render(Camera* camera);
