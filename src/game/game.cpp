@@ -108,7 +108,11 @@ void Game::onResize(int width, int height)
 	Stage* stage = StageManager::instance->currStage;
 	std::cout << "window resized: " << width << "," << height << std::endl;
 	glViewport(0, 0, width, height);
-	stage->camera->aspect = width / (float)height;
+
 	window_width = width;
 	window_height = height;
+
+	stage->camera->aspect = width / (float)height;
+	stage->camera2D->aspect = width / (float)height;
+	stage->camera2D->setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 }

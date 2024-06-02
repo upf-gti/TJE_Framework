@@ -10,6 +10,7 @@
 #include "framework/entities/player.h"
 #include "framework/entities/entityUI.h"
 #include "StageManager.h"
+#include "framework/audio.h"
 
 #include <fstream>
 #include <cmath>
@@ -74,7 +75,7 @@ static void renderSkybox(Texture* cubemap)
 	glEnable(GL_DEPTH_TEST);
 }
 
-static bool parseScene(const char* filename, Entity* root)
+bool GameStage::parseScene(const char* filename)
 {
 	std::cout << " + Scene loading: " << filename << "..." << std::endl;
 
@@ -128,12 +129,18 @@ static bool parseScene(const char* filename, Entity* root)
 
 		size_t tag = data.first.find("@wall");
 
-		if (tag != std::string::npos) {
+		if (data.first.find("@wall") != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
-			new_entity->type = WALL;
+			new_entity->type = (data.first.find("Cone") != std::string::npos) ? BORDER : WALL;
+			(data.first.find("Cone") != std::string::npos) ? std::cout << "Border" : std::cout << "Wall";
 			// Create a different type of entity
 			// new_entity = new ...
+		}
+		else if (data.first.find("cone") != std::string::npos) {
+			Mesh* mesh = Mesh::Get(mesh_name.c_str());
+			new_entity = new EntityCollider(mesh, mat);
+			new_entity->type = BORDER;
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
@@ -161,8 +168,16 @@ static bool parseScene(const char* filename, Entity* root)
 
 		std::cout << " " << &new_entity->material.shader << std::endl;
 
-		// Add entity to scene root
-		root->addChild(new_entity);
+		if (data.first.find("@wall") != std::string::npos || data.first.find("Cone") != std::string::npos) {
+			root_transparent->addChild(new_entity);
+			std::cout << " This is a Transparent element";
+		}
+		else {
+			root_opaque->addChild(new_entity);
+			std::cout << " This is a Opaque element";
+		}
+
+
 	}
 
 	std::cout << "Scene [OK]" << " Meshes added: " << mesh_count << std::endl;
@@ -176,9 +191,10 @@ void GameStage::handleEnemyHP(Enemy* e, float hp) {
 	e->currHP = clamp(e->currHP + hp, -1000000, e->maxHP);
 }
 
-bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
+bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*)root->children[i];
+		EntityMesh* ee = (EntityMesh*) root->children[i];
+		if (ray_collided(ee, ray_collisions, position, direction, dist, in_object_space, collision_type)) return true;
 		if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
 		if (ee->isInstanced) {
@@ -214,24 +230,12 @@ bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector
 }
 
 
-COL_TYPE GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
-	Stage* stage = StageManager::instance->currStage;
+COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
 	int return_val = COL_TYPE::NONE;
-	for (int i = 0; i < stage->root->children.size(); ++i) {
-
-		EntityMesh* ee = (EntityMesh*) stage->root->children[i];
+	for (int i = 0; i < root->children.size(); ++i) {
+		EntityMesh* ee = (EntityMesh*) root->children[i];
+		return_val |= sphere_collided(ee, collisions, position, radius, collision_type, check);
 		if (!(ee->type & collision_type)) continue;
-
-		/*if (collision_type == NONE) {
-			if (!(ee->type & collision_type)) {
-				std::cout << "Skipping entity due to type mismatch." << std::endl;
-				continue;
-			}
-			else {
-				std::cout << "Type " + ee->type << std::endl;
-			}
-		}*/
-
 
 		sCollisionData data;
 
@@ -307,27 +311,15 @@ GameStage::GameStage()
 	camera2D->view_matrix.setIdentity();
 	camera2D->setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
 
-	//// Three vertices of the 1st triangle
-	//quad.vertices.push_back(Vector3(-1, 1, 0));
-	//quad.uvs.push_back(Vector2(0, 1));
-	//quad.vertices.push_back(Vector3(-1, -1, 0));
-	//quad.uvs.push_back(Vector2(0, 0));
-	//quad.vertices.push_back(Vector3(1, -1, 0));
-	//quad.uvs.push_back(Vector2(1, 0));
-
-	//// Three vertices of the 2nd triangle
-	//quad.vertices.push_back(Vector3(-1, 1, 0));
-	//quad.uvs.push_back(Vector2(0, 1));
-	//quad.vertices.push_back(Vector3(1, -1, 0));
-	//quad.uvs.push_back(Vector2(1, 0));
-	//quad.vertices.push_back(Vector3(1, 1, 0));
-	//quad.uvs.push_back(Vector2(1, 1));
-
 	// Hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
 	root = new Entity();
-	parseScene("data/myscene.scene", root);
+	root_transparent = new Entity();
+	root_opaque = new Entity();
+	root->addChild(root_transparent);
+	root->addChild(root_opaque);
+	parseScene("data/myscene.scene");
 
 	cubemap->loadCubemap("landscape", {
 		"data/textures/skybox/right.png",
@@ -342,13 +334,62 @@ GameStage::GameStage()
 
 
 	player->type = PLAYER;
-	root->addChild(player);
-	root->addChild(enemy);
+
+	root_opaque->addChild(player);
+	root_opaque->addChild(enemy);
+
+
+	anxiety = 30;
+
+	if (!Audio::Init()) std::cout << "Audio not initialized correctly\n";
+	Audio::Get("data/audio/whip.wav");
 }
 
 
-// Assuming you have a function to loadTGA that reads the TGA data
+void GameStage::renderHUD()
+{
+	float gameWidth = Game::instance->window_width, gameHeight = Game::instance->window_height;
 
+	//Render HP bar
+	Vector2 barPosition = Vector2(gameWidth/2.0f, gameHeight*0.1f);
+	Vector2 barSize = Vector2(gameWidth/2.0f, 50);
+
+	renderBar(barPosition, barSize, anxiety/100.0f, Vector3(79,44,86)/255.0f);
+
+	barPosition = Vector2(gameWidth*0.17f, gameHeight*0.9f);
+	barSize = Vector2(gameWidth*0.3f, 40);
+
+	renderBar(barPosition, barSize, player->mana/200.0f, Vector3(0.3, 0.1, 0.8));
+}
+
+// Assuming you have a function to loadTGA that reads the TGA data
+void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color)
+{
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	Mesh innerQuad;
+	Mesh outerQuad;
+	shader = Shader::Get("data/shaders/hud.vs", "data/shaders/hud.fs");
+	shader->enable();
+
+	//Creation of the second quad. This one contains the life information. 
+	outerQuad.createQuad(barPosition.x, barPosition.y, barSize.x, barSize.y, true);
+	shader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
+	shader->setUniform("u_color", Vector3(32.0f/255.0f));
+	shader->setUniform("u_percentage", 1.0f);
+
+	outerQuad.render(GL_TRIANGLES);
+
+	innerQuad.createQuad(barPosition.x, barPosition.y, barSize.x-10, barSize.y-10, true);
+	shader->setUniform("u_color", color);
+	shader->setUniform("u_percentage", percentage);
+
+	innerQuad.render(GL_TRIANGLES);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+}
 
 //what to do when the image has to be draw
 void GameStage::render(void)
@@ -371,19 +412,18 @@ void GameStage::render(void)
 
 	drawGrid();
 
-
-	root->render(camera);
-	//enemy->render(camera);
-	// Draw the floor grid
+	root_opaque->render(camera);
+	root_transparent->render(camera);
 
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-	drawText(2, 50, std::to_string((player->currHP / player->maxHP) * 100) + '%', Vector3(1, 1, 1), 2);
+	// drawText(2, 50, std::to_string((player->currHP / player->maxHP) * 100) + '%', Vector3(1, 1, 1), 2);
 	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
 	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
 
-	//amogus.render(camera2D);
+	// amogus.render(camera2D);
+	renderHUD();
 
 	//Camera camera2D;
 	//camera2D.enable();
@@ -430,13 +470,16 @@ void GameStage::update(double seconds_elapsed)
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
 
-	std::sort(root->children.begin(), root->children.end(), compareFunction);
+	std::sort(root_transparent->children.begin(), root_transparent->children.end(), compareFunction);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
 	// Mouse input to rotate the cam
-
-
+	Vector3 cam_ground = cam_position * Vector3(1, 0, 1);
+	float box_dist = player->getPositionGround().distance(cam_ground);
+	if (box_dist > 1) {
+		cam_position += (box_dist - 1) * (player->getPositionGround() - cam_ground) * seconds_elapsed;
+	}
 	// Async input to move the camera around
 	//if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
 	if (!mouse_locked) {
@@ -451,10 +494,19 @@ void GameStage::update(double seconds_elapsed)
 		if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f, 0.0f, 0.0f) * speed);
 	}
 	else {
-		Vector3 player_pos = player->box_cam;
+		Vector3 player_pos = cam_position * Vector3(1,0,1);
 		Vector3 enemy_pos = enemy->getPosition();
 		Vector3 director = player_pos - enemy_pos;
-		camera->lookAt(player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0), enemy_pos, camera->up);
+
+		Vector3 cam_pos = player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0);
+
+		std::vector<sCollisionData> cols;
+		ray_collided(root, cols, cam_pos, Vector3::UP, 200, WALL);
+		for (sCollisionData& c : cols) {
+			cam_pos.y += (c.colPoint.y - cam_pos.y);
+		}
+
+		camera->lookAt(cam_pos, enemy_pos, camera->up);
 	}
 	// camera->lookAt(player->model);
 	/*float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;

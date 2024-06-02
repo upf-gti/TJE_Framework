@@ -1,6 +1,7 @@
 #include "player.h"
 #include "enemy.h"
 #include "game/StageManager.h"
+#include "framework/audio.h"
 
 #include <algorithm>
 
@@ -16,7 +17,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
-					this->currHP -= bullet->damage;
+					stage->anxiety += bullet->damage;
 				}
 			}
 		}
@@ -24,7 +25,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			if (bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
 				colliding = true;
 				bullet->to_delete = true;
-				this->currHP -= bullet->damage;
+				stage->anxiety += bullet->damage;
 			}
 		}
 	}
@@ -35,7 +36,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 		if (bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 			bns.models.erase((bns.models.begin() + i));
 			bns.speeds.erase((bns.speeds.begin() + i));
-			this->currHP -= bns.damage;
+			stage->anxiety += bns.damage;
 		}
 	}
 }
@@ -265,6 +266,8 @@ void Player::update(float delta_time) {
 		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
 		if (charge_cooldown[bt]) shootCharge(bt);
 		else shoot(bt);
+
+		Audio::Play("data/audio/whip.wav");
 	}
 	else charging = false;
 	if (autoshoot) {
@@ -326,8 +329,8 @@ void Player::update(float delta_time) {
 
 	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
 
-	colliding = stage->sphere_collided(collisions, player_center, HITBOX_RAD);
-	stage->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
+	colliding = stage->sphere_collided(stage->root, collisions, player_center, HITBOX_RAD);
+	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000, FLOOR);
 
 	for (sCollisionData& g : collisions) {
 		direction += g.colNormal * 10000;

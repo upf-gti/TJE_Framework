@@ -14,12 +14,13 @@ enum COL_TYPE : int32 {
 	FLOOR = 1 << 0,
 	WALL = 1 << 1,
 	PLAYER = 1 << 2,
-	ENEMY = 1 << 4,
-	PBULLET = 1 << 8,
-	EBULLET = 1 << 16,
+	ENEMY = 1 << 3,
+	PBULLET = 1 << 4,
+	EBULLET = 1 << 5,
+	BORDER = 1 << 6,
 	// Both WALL and FLOOR are considered SCENARIO
 	// using OR operator
-	SCENARIO = WALL | FLOOR,
+	SCENARIO = WALL | FLOOR | BORDER,
 	EBCOLS = SCENARIO | PLAYER,
 	PBCOLS = SCENARIO | ENEMY,
 	ALL = 0xFF

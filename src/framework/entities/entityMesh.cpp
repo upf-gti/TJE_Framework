@@ -28,12 +28,17 @@ void EntityMesh::render(Camera* camera) {
 	else {
 		Vector3 center_world = model * mesh->box.center;
 		float sphere_radius = mesh->box.halfsize.length();
-		float dist = camera->eye.distance(center_world);
-		if (!camera->testSphereInFrustum(center_world, sphere_radius)) {
+		if (!camera->testSphereInFrustum(center_world, sphere_radius * 5)) {
 			return;
 		}
 		int is_wall = (type & WALL);
+		int is_border = (type & BORDER);
+		center_world.y = camera->eye.y;
+		float dist = camera->eye.distance(center_world);
 		if (dist < 7 && (is_wall != 0)) material.color.w = clamp(((dist - 2)/ 5), 0, 1);
+		else if (dist < 30 && (is_border != 0)) { 
+			material.color.w = clamp(((dist - 25) / 5), .2, 1); 
+		}
 		else material.color.w = 1;
 	}
 
