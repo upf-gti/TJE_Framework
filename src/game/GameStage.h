@@ -1,6 +1,8 @@
 #pragma once
 #include "stage.h"
 
+class Audio;
+
 class GameStage : Stage
 {
 public:

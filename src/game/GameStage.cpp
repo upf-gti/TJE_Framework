@@ -10,6 +10,7 @@
 #include "framework/entities/player.h"
 #include "framework/entities/entityUI.h"
 #include "StageManager.h"
+#include "framework/audio.h"
 
 #include <fstream>
 #include <cmath>
@@ -319,6 +320,9 @@ GameStage::GameStage()
 	root->addChild(enemy);
 
 	anxiety = 30;
+
+	if (!Audio::Init()) std::cout << "Audio not initialized correctly\n";
+	Audio::Get("data/audio/whip.wav");
 }
 
 

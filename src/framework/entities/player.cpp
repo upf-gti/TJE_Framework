@@ -1,6 +1,7 @@
 #include "player.h"
 #include "enemy.h"
 #include "game/StageManager.h"
+#include "framework/audio.h"
 
 #include <algorithm>
 
@@ -265,6 +266,8 @@ void Player::update(float delta_time) {
 		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
 		if (charge_cooldown[bt]) shootCharge(bt);
 		else shoot(bt);
+
+		Audio::Play("data/audio/whip.wav");
 	}
 	else charging = false;
 	if (autoshoot) {
