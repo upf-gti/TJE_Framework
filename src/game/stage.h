@@ -20,6 +20,7 @@ public:
 	virtual void update(double dt) {};
 
 	//some vars
+	Entity* root_opaque;
 	Entity* root;
 	Entity* root_transparent;
 	Entity* GUI;
