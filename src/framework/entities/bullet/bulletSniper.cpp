@@ -71,7 +71,7 @@ void BulletSniper::update(float delta_time) {
 		model.scale(0.5, 0.5, scale / 10);
 		model.translateGlobal(model_base.frontVector() * (scale / 10));
 		Vector3 bullet_center = model.getTranslation() + model_base.frontVector() * (scale / 10);
-		bool colliding = stage->sphere_collided(collisions, bullet_center, 0.8, SCENARIO);
+		bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.8, SCENARIO);
 		if (colliding) active = false;
 	}
 	else despawning(delta_time);

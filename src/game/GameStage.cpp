@@ -75,7 +75,7 @@ static void renderSkybox(Texture* cubemap)
 	glEnable(GL_DEPTH_TEST);
 }
 
-static bool parseScene(const char* filename, Entity* root)
+bool GameStage::parseScene(const char* filename)
 {
 	std::cout << " + Scene loading: " << filename << "..." << std::endl;
 
@@ -129,12 +129,18 @@ static bool parseScene(const char* filename, Entity* root)
 
 		size_t tag = data.first.find("@wall");
 
-		if (tag != std::string::npos) {
+		if (data.first.find("@wall") != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
-			new_entity->type = WALL;
+			new_entity->type = (data.first.find("Cone") != std::string::npos) ? BORDER : WALL;
+			(data.first.find("Cone") != std::string::npos) ? std::cout << "Border" : std::cout << "Wall";
 			// Create a different type of entity
 			// new_entity = new ...
+		}
+		else if (data.first.find("cone") != std::string::npos) {
+			Mesh* mesh = Mesh::Get(mesh_name.c_str());
+			new_entity = new EntityCollider(mesh, mat);
+			new_entity->type = BORDER;
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
@@ -162,8 +168,16 @@ static bool parseScene(const char* filename, Entity* root)
 
 		std::cout << " " << &new_entity->material.shader << std::endl;
 
-		// Add entity to scene root
-		root->addChild(new_entity);
+		if (data.first.find("@wall") != std::string::npos || data.first.find("Cone") != std::string::npos) {
+			root_transparent->addChild(new_entity);
+			std::cout << " This is a Transparent element";
+		}
+		else {
+			root_opaque->addChild(new_entity);
+			std::cout << " This is a Opaque element";
+		}
+
+
 	}
 
 	std::cout << "Scene [OK]" << " Meshes added: " << mesh_count << std::endl;
@@ -177,9 +191,10 @@ void GameStage::handleEnemyHP(Enemy* e, float hp) {
 	e->currHP = clamp(e->currHP + hp, -1000000, e->maxHP);
 }
 
-bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
+bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*)root->children[i];
+		EntityMesh* ee = (EntityMesh*) root->children[i];
+		if (ray_collided(ee, ray_collisions, position, direction, dist, in_object_space, collision_type)) return true;
 		if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
 		if (ee->isInstanced) {
@@ -215,12 +230,11 @@ bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector
 }
 
 
-COL_TYPE GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
-	Stage* stage = StageManager::instance->currStage;
+COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
 	int return_val = COL_TYPE::NONE;
-	for (int i = 0; i < stage->root->children.size(); ++i) {
-
-		EntityMesh* ee = (EntityMesh*) stage->root->children[i];
+	for (int i = 0; i < root->children.size(); ++i) {
+		EntityMesh* ee = (EntityMesh*) root->children[i];
+		return_val |= sphere_collided(ee, collisions, position, radius, collision_type, check);
 		if (!(ee->type & collision_type)) continue;
 
 		sCollisionData data;
@@ -301,7 +315,11 @@ GameStage::GameStage()
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 
 	root = new Entity();
-	parseScene("data/myscene.scene", root);
+	root_transparent = new Entity();
+	root_opaque = new Entity();
+	root->addChild(root_transparent);
+	root->addChild(root_opaque);
+	parseScene("data/myscene.scene");
 
 	cubemap->loadCubemap("landscape", {
 		"data/textures/skybox/right.png",
@@ -316,8 +334,10 @@ GameStage::GameStage()
 
 
 	player->type = PLAYER;
-	root->addChild(player);
-	root->addChild(enemy);
+
+	root_opaque->addChild(player);
+	root_opaque->addChild(enemy);
+
 
 	anxiety = 30;
 
@@ -392,8 +412,9 @@ void GameStage::render(void)
 
 	drawGrid();
 
+	root_opaque->render(camera);
+	root_transparent->render(camera);
 
-	root->render(camera);
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
@@ -449,13 +470,16 @@ void GameStage::update(double seconds_elapsed)
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
 
-	std::sort(root->children.begin(), root->children.end(), compareFunction);
+	std::sort(root_transparent->children.begin(), root_transparent->children.end(), compareFunction);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
 	// Mouse input to rotate the cam
-
-
+	Vector3 cam_ground = cam_position * Vector3(1, 0, 1);
+	float box_dist = player->getPositionGround().distance(cam_ground);
+	if (box_dist > 1) {
+		cam_position += (box_dist - 1) * (player->getPositionGround() - cam_ground) * seconds_elapsed;
+	}
 	// Async input to move the camera around
 	//if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
 	if (!mouse_locked) {
@@ -470,18 +494,19 @@ void GameStage::update(double seconds_elapsed)
 		if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f, 0.0f, 0.0f) * speed);
 	}
 	else {
-		Vector3 player_pos = player->box_cam;
+		Vector3 player_pos = cam_position * Vector3(1,0,1);
 		Vector3 enemy_pos = enemy->getPosition();
 		Vector3 director = player_pos - enemy_pos;
-		std::vector<sCollisionData> cameraCollisions;
-		Vector3 eye = player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0);
 
-		bool isColliding = ray_collided(cameraCollisions, eye, -director, 10);
+		Vector3 cam_pos = player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0);
 
-		//TODO: fix camera
-		// eye = (isColliding) ? eye-Vector3(0, 0, eye.z-cameraCollisions[0].colPoint.z+10) : eye;
+		std::vector<sCollisionData> cols;
+		ray_collided(root, cols, cam_pos, Vector3::UP, 200, WALL);
+		for (sCollisionData& c : cols) {
+			cam_pos.y += (c.colPoint.y - cam_pos.y);
+		}
 
-		camera->lookAt(eye, enemy_pos, camera->up);
+		camera->lookAt(cam_pos, enemy_pos, camera->up);
 	}
 	// camera->lookAt(player->model);
 	/*float zdiff = player->model.getTranslation().z - e2->model.getTranslation().z;

@@ -119,8 +119,8 @@ void Enemy::update(float time_elapsed)
 
 	std::vector<sCollisionData> ground;
 	std::vector<sCollisionData> collisions;
-	stage->ray_collided(ground, player_center, -Vector3::UP, 1000, FLOOR);
-	stage->sphere_collided(collisions, player_center, HITBOX_RAD, COL_TYPE::EBCOLS);
+	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000, FLOOR);
+	stage->sphere_collided(stage->root, collisions, player_center, HITBOX_RAD, COL_TYPE::EBCOLS);
 
 
 	Vector3 currDirection = direction;

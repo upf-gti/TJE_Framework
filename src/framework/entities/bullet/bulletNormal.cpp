@@ -59,8 +59,7 @@ void BulletNormal::update(float delta_time) {
 			speeds[i] += acceleration * delta_time;
 			Vector3 bullet_center = m.getTranslation();
 			int a = SCENARIO;
-			bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05, (COL_TYPE) a );
-			//COL_TYPE tocheck = fromPlayer ? ENEMY : PLAYER;
+			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.05, SCENARIO );
 			if (colliding) {
 				// stage->root_transparent->addChild((Entity*) new BulletNormal(this->mesh, this->material, this->direction, m, 0));
 				models.erase((models.begin() + i));
@@ -78,7 +77,7 @@ void BulletNormal::update(float delta_time) {
 	else {
 		if (active) {
 			Vector3 bullet_center = model.getTranslation();
-			bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05);
+			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.05);
 			if (colliding) to_delete = true;
 			speed += acceleration * delta_time;
 			rotation_angle += rotation_angle_accel * delta_time * 10;
