@@ -190,9 +190,10 @@ void GameStage::handleEnemyHP(Enemy* e, float hp) {
 	e->currHP = clamp(e->currHP + hp, -1000000, e->maxHP);
 }
 
-bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
+bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*)root->children[i];
+		EntityMesh* ee = (EntityMesh*) root->children[i];
+		if (ray_collided(ee, ray_collisions, position, direction, dist, in_object_space, collision_type)) return true;
 		if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
 		if (ee->isInstanced) {
@@ -228,23 +229,12 @@ bool GameStage::ray_collided(std::vector<sCollisionData>& ray_collisions, Vector
 }
 
 
-COL_TYPE GameStage::sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
-	Stage* stage = StageManager::instance->currStage;
+COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
 	int return_val = COL_TYPE::NONE;
-	for (int i = 0; i < stage->root->children.size(); ++i) {
-
-		EntityMesh* ee = (EntityMesh*) stage->root->children[i];
+	for (int i = 0; i < root->children.size(); ++i) {
+		EntityMesh* ee = (EntityMesh*) root->children[i];
+		return_val |= sphere_collided(ee, collisions, position, radius, collision_type, check);
 		if (!(ee->type & collision_type)) continue;
-
-		/*if (collision_type == NONE) {
-			if (!(ee->type & collision_type)) {
-				std::cout << "Skipping entity due to type mismatch." << std::endl;
-				continue;
-			}
-			else {
-				std::cout << "Type " + ee->type << std::endl;
-			}
-		}*/
 
 
 		sCollisionData data;
@@ -480,7 +470,7 @@ void GameStage::update(double seconds_elapsed)
 		Vector3 cam_pos = player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0);
 
 		std::vector<sCollisionData> cols;
-		ray_collided(cols, cam_pos, Vector3::UP, 200, WALL);
+		ray_collided(root, cols, cam_pos, Vector3::UP, 200, WALL);
 		for (sCollisionData& c : cols) {
 			cam_pos.y += (c.colPoint.y - cam_pos.y);
 		}

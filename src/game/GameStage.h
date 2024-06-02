@@ -26,8 +26,8 @@ public:
 	void handlePlayerHP(Player* p, float hp) override;
 	void handleEnemyHP(Enemy* e, float hp) override;
 
-	bool ray_collided(std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, COL_TYPE collision_type = SCENARIO) override;
-	COL_TYPE sphere_collided(std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO, bool check = false) override;
+	bool ray_collided(Entity* root, std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space = false, COL_TYPE collision_type = SCENARIO) override;
+	COL_TYPE sphere_collided(Entity* root, std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO, bool check = false) override;
 	static bool compareFunction(const Entity* e1, const Entity* e2);
 
 	bool parseScene(const char* filename);

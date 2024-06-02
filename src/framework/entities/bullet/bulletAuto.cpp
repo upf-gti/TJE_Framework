@@ -51,7 +51,7 @@ void BulletAuto::update(float delta_time) {
 			Vector3 bullet_center = m.getTranslation();
 
 			int a = SCENARIO;
-			bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05, (COL_TYPE)a);
+			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.05, (COL_TYPE)a);
 			if (colliding) {
 				// stage->root_transparent->addChild((Entity*) new BulletNormal(this->mesh, this->material, this->direction, m, 0));
 				models.erase((models.begin() + i));
@@ -71,7 +71,7 @@ void BulletAuto::update(float delta_time) {
 		std::vector<sCollisionData> collisions;
 		if (active) {
 			Vector3 bullet_center = model.getTranslation();
-			bool colliding = stage->sphere_collided(collisions, bullet_center, 0.05);
+			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.05);
 			if (colliding) to_delete = true;
 			model.rotate(model.getYawRotationToAimTo(objective) * delta_time * 3, Vector3(0, 1, 0));
 			model.rotate(model.getPitchRotationToAimTo(objective) * delta_time * 3, Vector3(1, 0, 0));
