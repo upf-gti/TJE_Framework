@@ -292,6 +292,13 @@ void Matrix44::scale(float x, float y, float z)
 	*this = S * *this;
 }
 
+void Matrix44::scale(const Vector3& delta)
+{
+	Matrix44 S;
+	S.setScale(delta.x, delta.y, delta.z);
+	*this = S * *this;
+}
+
 void Matrix44::setScale(float x, float y, float z)
 {
 	setIdentity();
@@ -1271,6 +1278,11 @@ bool RaySphereCollision(const Vector3& center, const float& radius, const Vector
 	coll = ray_origin + t * ray_dir;
 
 	return true;
+}
+
+Vector3 reflect(const Vector3& I, const Vector3& N)
+{
+	return I - 2.f * N.dot(I) * N;
 }
 
 Vector3 normalize(Vector3 n)
