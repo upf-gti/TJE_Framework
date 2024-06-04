@@ -193,8 +193,10 @@ void GameStage::handleEnemyHP(Enemy* e, float hp) {
 
 bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*) root->children[i];
-		if (ray_collided(ee, ray_collisions, position, direction, dist, in_object_space, collision_type)) return true;
+		Entity* e = root->children[i];
+		if (ray_collided(e, ray_collisions, position, direction, dist, in_object_space, collision_type)) return true;
+		EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
+		if (!ee) continue;
 		if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
 		if (ee->isInstanced) {
@@ -233,8 +235,12 @@ bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_coll
 COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
 	int return_val = COL_TYPE::NONE;
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*) root->children[i];
-		return_val |= sphere_collided(ee, collisions, position, radius, collision_type, check);
+		Entity* e = root->children[i];
+		return_val |= sphere_collided(e, collisions, position, radius, collision_type, check);
+		EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
+		if (!ee) {
+			continue;
+		}
 		if (!(ee->type & collision_type)) continue;
 
 		sCollisionData data;

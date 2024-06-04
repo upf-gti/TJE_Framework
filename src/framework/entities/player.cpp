@@ -276,9 +276,9 @@ void Player::update(float delta_time) {
 
 	direction = model.frontVector();
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
-		Input::isKeyPressed(SDL_SCANCODE_S) ||
+		Input::isKeyPressed(SDL_SCANCODE_L) ||
 		Input::isKeyPressed(SDL_SCANCODE_A) ||
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && stage->mouse_locked) m_spd = DEFAULT_SPD;
+		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing /* && stage->mouse_locked*/) m_spd = DEFAULT_SPD;
 
 	//direction = Vector3(0.0f);
 
@@ -328,9 +328,9 @@ void Player::update(float delta_time) {
 	std::vector<sCollisionData> ground;
 
 	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
-
+	if (!mesh) std::cout << "NOMESH ";
 	colliding = stage->sphere_collided(stage->root, collisions, player_center, HITBOX_RAD);
-	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000, FLOOR);
+	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000000, FLOOR);
 
 	for (sCollisionData& g : collisions) {
 		direction += g.colNormal * 10000;
@@ -387,6 +387,7 @@ void Player::update(float delta_time) {
 			timer_anim = Game::instance->time;
 		}
 	}
+	std::cout << grounded << " ";
 //	move(direction * speed * delta_time);
 //	if (!grounded)
 //		move(Vector3::UP * v_spd * delta_time);
