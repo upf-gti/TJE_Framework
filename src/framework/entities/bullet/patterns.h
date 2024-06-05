@@ -39,10 +39,10 @@ public:
 		}
 	}
 
-	static void circle2(Matrix44 model, BulletNormal& bullets, int amount = 1) {
+	static void circle2(Matrix44 model, BulletNormal& bullets, int amount = 1, float speed = BULLET_SPD) {
 		model.translate(Vector3(0, HEIGHT, 0));
 		for (int i = 0; i < amount; i++) {
-			bullets.addInstance(model, BULLET_SPD);
+			bullets.addInstance(model, speed);
 			model.rotate(2 * PI/ amount, Vector3(0, 1, 0));
 		}
 	}
@@ -59,11 +59,12 @@ public:
 		}
 	}
 
-	static void horizontal2(Matrix44 model, BulletNormal& bullets, int amount = 1) {
+	static void horizontal2(Matrix44 model, BulletNormal& bullets, int amount = 1, float speed = BULLET_SPD) {
 		model.translate(Vector3(0, HEIGHT, 0));
 		for (int i = 0; i < amount; i++) {
-			model.translate(Vector3((i - (amount / 2)) * 1.4, 0, 0));
-			bullets.addInstance(model, BULLET_SPD);
+			Matrix44 _m = model;
+			_m.translate(Vector3((i - (amount / 2)) * 1.4, 0, 0));
+			bullets.addInstance(_m, speed);
 		}
 	}
 

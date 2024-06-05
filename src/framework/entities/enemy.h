@@ -36,6 +36,8 @@ public:
 	float startMoving;
 	float startFiring;
 	float bulletCD = -1;
+	float burstCD = -1;
+	int burstCount = 0;
 
 	bool looking_at_player = true;
 
@@ -45,7 +47,8 @@ public:
 	enum pattern {
 		SWIRL,
 		SHOTGUN,
-		HORIZONTAL
+		HORIZONTAL,
+		SPIRAL
 	};
 
 	std::vector<Bullet*> bullets;
