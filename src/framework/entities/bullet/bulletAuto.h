@@ -30,10 +30,12 @@ public:
 
 	}
 	
-	void addInstance(Matrix44 model, float speed) {
+	void addInstance(Matrix44 model, float speed, float accel = 0, float angular_speed = 0, float angular_accel = 0) {
 		this->models.push_back(model);
 		this->speeds.push_back(speed);
-		std::cout << "New instance #" << models.size() << "! " << isInstanced << " ";
+		this->accels.push_back(accel);
+		this->angular_speeds.push_back(angular_speed);
+		this->angular_accels.push_back(angular_accel);
 	};
 
 	void move(Vector3 vec);

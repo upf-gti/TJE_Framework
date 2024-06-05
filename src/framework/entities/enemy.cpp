@@ -79,8 +79,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		Matrix44& m = stage->player->bullets_normal.models[i];
 		sCollisionData data;
 		if (bns.mesh->testSphereCollision(m, position, 3 * radius, data.colPoint, data.colNormal)) {
-			bns.models.erase((bns.models.begin() + i));
-			bns.speeds.erase((bns.speeds.begin() + i));
+			bns.despawnBullet(i);
 			stage->anxiety -= bns.damage;
 		}
 	}
@@ -89,8 +88,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		Matrix44& m = bas.models[i];
 		sCollisionData data;
 		if (bas.mesh->testSphereCollision(m, position, 2 * radius, data.colPoint, data.colNormal)) {
-			bas.models.erase((bas.models.begin() + i));
-			bas.speeds.erase((bas.speeds.begin() + i));
+			bas.despawnBullet(i);
 			stage->anxiety -= bas.damage;
 		}
 	}

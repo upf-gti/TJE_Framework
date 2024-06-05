@@ -34,8 +34,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 		Matrix44& m = stage->enemy->bullets_normal.models[i];
 		sCollisionData data;
 		if (bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-			bns.models.erase((bns.models.begin() + i));
-			bns.speeds.erase((bns.speeds.begin() + i));
+			bns.despawnBullet(i);
 			stage->anxiety += bns.damage;
 		}
 	}
@@ -75,6 +74,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	_m.setFrontAndOrthonormalize(_m.frontVector() * Vector3(1, 0, 1));
 	if (bullet_type == shotgun) {
 		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+			Audio::Play("data/audio/whip.wav");
 			timer_bullet[bullet_type] = Game::instance->time;
 			mana -= shoot_cost[bullet_type];
 			free_bullets -= amount[bullet_type];
@@ -86,6 +86,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	}
 	else if (bullet_type == auto_aim) {
 		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+			Audio::Play("data/audio/whip.wav");
 			timer_bullet[bullet_type] = Game::instance->time;
 			mana -= shoot_cost[bullet_type];
 			free_bullets -= amount[bullet_type];
@@ -95,6 +96,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		return;
 	}
 	else if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+		Audio::Play("data/audio/whip.wav");
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
@@ -267,7 +269,7 @@ void Player::update(float delta_time) {
 		if (charge_cooldown[bt]) shootCharge(bt);
 		else shoot(bt);
 
-		Audio::Play("data/audio/whip.wav");
+		
 	}
 	else charging = false;
 	if (autoshoot) {

@@ -56,14 +56,13 @@ void BulletNormal::update(float delta_time) {
 		rotation_angle += rotation_angle_accel * delta_time * 10;
 		for (int i = 0; i < models.size(); i++) {
 			Matrix44& m = models[i];
-			speeds[i] += acceleration * delta_time;
+			speeds[i] += accels[i] * delta_time;
 			Vector3 bullet_center = m.getTranslation();
 			int a = SCENARIO;
 			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.05, SCENARIO );
 			if (colliding) {
 				// stage->root_transparent->addChild((Entity*) new BulletNormal(this->mesh, this->material, this->direction, m, 0));
-				models.erase((models.begin() + i));
-				speeds.erase((speeds.begin() + i));
+				despawnBullet(i);
 				collisions.clear();
 				continue;
 			};

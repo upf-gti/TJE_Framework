@@ -31,6 +31,17 @@ public:
 	float time_since_spawn = 0;
 
 	std::vector<float> speeds;
+	std::vector<float> accels;
+	std::vector<float> angular_speeds;
+	std::vector<float> angular_accels;
+
+	void despawnBullet(int i) {
+		models.erase((models.begin() + i));
+		speeds.erase((speeds.begin() + i));
+		accels.erase((accels.begin() + i));
+		angular_speeds.erase((angular_speeds.begin() + i));
+		angular_accels.erase((angular_accels.begin() + i));
+	}
 
 	bool active = true;
 	bool to_delete = false;
