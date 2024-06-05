@@ -71,6 +71,9 @@ void ParticleEmitter::render(Camera* camera) {
 	material.shader->setUniform("u_color", Vector4(1.0f));
 	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 
+
+
+
 	if (material.diffuse) {
 		material.shader->setTexture("u_texture", material.diffuse, 0);
 	}
