@@ -132,15 +132,16 @@ bool GameStage::parseScene(const char* filename)
 		if (data.first.find("@wall") != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
-			new_entity->type = (data.first.find("Cone") != std::string::npos) ? BORDER : WALL;
-			(data.first.find("Cone") != std::string::npos) ? std::cout << "Border" : std::cout << "Wall";
+			new_entity->type = WALL;
+			std::cout << "WALL: " << (FLOOR & WALL);
 			// Create a different type of entity
 			// new_entity = new ...
 		}
-		else if (data.first.find("cone") != std::string::npos) {
+		else if (data.first.find("@border") != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
 			new_entity->type = BORDER;
+			std::cout << "BORDER: " << (BORDER & FLOOR);
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
@@ -168,7 +169,7 @@ bool GameStage::parseScene(const char* filename)
 
 		std::cout << " " << &new_entity->material.shader << std::endl;
 
-		if (data.first.find("@wall") != std::string::npos || data.first.find("Cone") != std::string::npos) {
+		if (data.first.find("@wall") != std::string::npos || data.first.find("@border") != std::string::npos) {
 			root_transparent->addChild(new_entity);
 			std::cout << " This is a Transparent element";
 		}
@@ -193,9 +194,10 @@ void GameStage::handleEnemyHP(Enemy* e, float hp) {
 
 bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*) root->children[i];
-		if (ray_collided(ee, ray_collisions, position, direction, dist, in_object_space, collision_type)) return true;
-		if ((ee->type & collision_type) == 0) continue;
+		Entity* e = root->children[i];
+		ray_collided(e, ray_collisions, position, direction, dist, in_object_space, collision_type);
+		EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
+		if (!ee) continue; if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
@@ -233,8 +235,12 @@ bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_coll
 COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
 	int return_val = COL_TYPE::NONE;
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*) root->children[i];
-		return_val |= sphere_collided(ee, collisions, position, radius, collision_type, check);
+		Entity* e = root->children[i];
+		return_val |= sphere_collided(e, collisions, position, radius, collision_type, check);
+		EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
+		if (!ee) {
+			continue;
+		}
 		if (!(ee->type & collision_type)) continue;
 
 		sCollisionData data;

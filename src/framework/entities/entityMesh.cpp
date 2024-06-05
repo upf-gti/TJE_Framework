@@ -36,8 +36,8 @@ void EntityMesh::render(Camera* camera) {
 		center_world.y = camera->eye.y;
 		float dist = camera->eye.distance(center_world);
 		if (dist < 7 && (is_wall != 0)) material.color.w = clamp(((dist - 2)/ 5), 0, 1);
-		else if (dist < 30 && (is_border != 0)) { 
-			material.color.w = clamp(((dist - 25) / 5), .2, 1); 
+		else if (dist < 35 && (is_border != 0)) { 
+			material.color.w = clamp(((dist - 30) / 5), .3, 1); 
 		}
 		else material.color.w = 1;
 	}
