@@ -26,6 +26,7 @@ public:
 	Vector3 direction = Vector3(0.0f);
 
 	BulletNormal bullets_normal;
+	BulletNormal bullets_ball;
 
 	int maxHP;
 	int currHP;
@@ -46,9 +47,10 @@ public:
 
 	enum pattern {
 		SWIRL,
-		SHOTGUN,
+		FLOWER,
 		HORIZONTAL,
-		SPIRAL
+		SPIRAL,
+		SHOTGUN
 	};
 
 	std::vector<Bullet*> bullets;
@@ -74,6 +76,14 @@ public:
 		bullets_normal.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
 		bullets_normal.fromPlayer = false;
 		bullets_normal.mesh = Mesh::Get("data/meshes/bullet.obj");
+
+		bullets_ball.isInstanced = true;
+		bullets_ball.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
+		bullets_ball.material.diffuse = Texture::Get("data/meshes/bulletball.mtl");
+		bullets_ball.material.color = Vector4(1, 0, 0, 1);
+		bullets_ball.fromPlayer = false;
+		bullets_ball.mesh = Mesh::Get("data/meshes/bulletball.obj");
+		bullets_ball.damage = 10;
 
 		Shader* s = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 		bullet_shaders[0] = s;

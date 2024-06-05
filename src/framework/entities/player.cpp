@@ -38,6 +38,15 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			stage->anxiety += bns.damage;
 		}
 	}
+	BulletNormal& bbs = stage->enemy->bullets_ball;
+	for (int i = 0; i < bbs.models.size(); i++) {
+		Matrix44& m = stage->enemy->bullets_ball.models[i];
+		sCollisionData data;
+		if (bbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+			bbs.despawnBullet(i);
+			stage->anxiety += bbs.damage;
+		}
+	}
 }
 
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {

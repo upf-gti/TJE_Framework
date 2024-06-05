@@ -57,6 +57,8 @@ void BulletNormal::update(float delta_time) {
 		for (int i = 0; i < models.size(); i++) {
 			Matrix44& m = models[i];
 			speeds[i] += accels[i] * delta_time;
+			angular_speeds[i] += angular_accels[i] * delta_time;
+			m.rotate(angular_speeds[i], Vector3::UP);
 			Vector3 bullet_center = m.getTranslation();
 			int a = SCENARIO;
 			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.05, SCENARIO );
