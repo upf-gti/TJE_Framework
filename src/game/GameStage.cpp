@@ -133,15 +133,16 @@ bool GameStage::parseScene(const char* filename)
 		if (data.first.find("@wall") != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
-			new_entity->type = (data.first.find("Cone") != std::string::npos) ? BORDER : WALL;
-			(data.first.find("Cone") != std::string::npos) ? std::cout << "Border" : std::cout << "Wall";
+			new_entity->type = WALL;
+			std::cout << "WALL: " << (FLOOR & WALL);
 			// Create a different type of entity
 			// new_entity = new ...
 		}
-		else if (data.first.find("cone") != std::string::npos) {
+		else if (data.first.find("@border") != std::string::npos) {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
 			new_entity->type = BORDER;
+			std::cout << "BORDER: " << (BORDER & FLOOR);
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
@@ -169,7 +170,7 @@ bool GameStage::parseScene(const char* filename)
 
 		std::cout << " " << &new_entity->material.shader << std::endl;
 
-		if (data.first.find("@wall") != std::string::npos || data.first.find("Cone") != std::string::npos) {
+		if (data.first.find("@wall") != std::string::npos || data.first.find("@border") != std::string::npos) {
 			root_transparent->addChild(new_entity);
 			std::cout << " This is a Transparent element";
 		}

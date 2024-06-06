@@ -24,7 +24,7 @@ public:
 	~BulletNormal() {
 
 	}
-	
+
 
 
 	void move(Vector3 vec);
@@ -32,11 +32,28 @@ public:
 	void render(Camera* camera);
 	void update(float elapsed_time);
 
-	void addInstance(Matrix44 model, float speed) {
+	void addInstance(Matrix44 model, float speed, float accel = 0, float angular_speed = 0, float angular_accel = 0) {
 		this->models.push_back(model);
 		this->speeds.push_back(speed);
-		std::cout << "New instance #" << models.size() << "! " << isInstanced << " ";
+		this->accels.push_back(accel);
+		this->angular_speeds.push_back(angular_speed);
+		this->angular_accels.push_back(angular_accel);
 	};
+
+
+	void addRing(Matrix44 model, float speed, float accel = 0, float angular_speed = 0, float angular_accel = 0, float rad = 1, int count = 6) {
+		for (int i = 0; i < count; i++) {
+			Matrix44 _m = model;
+			Matrix44 rotatematrix = Matrix44();
+			rotatematrix.rotate(i * 2 * PI / count, Vector3::UP);
+			_m.translate(rad * rotatematrix.rotateVector(Vector3(1,0,0)));
+			this->models.push_back(_m);
+			this->speeds.push_back(speed);
+			this->accels.push_back(accel);
+			this->angular_speeds.push_back(angular_speed);
+			this->angular_accels.push_back(angular_accel);
+		}
+	}
 
 	void onMouseWheel(SDL_MouseWheelEvent event);
 	void onMouseButtonDown(SDL_MouseButtonEvent event);

@@ -54,8 +54,7 @@ void BulletAuto::update(float delta_time) {
 			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.05, (COL_TYPE)a);
 			if (colliding) {
 				// stage->root_transparent->addChild((Entity*) new BulletNormal(this->mesh, this->material, this->direction, m, 0));
-				models.erase((models.begin() + i));
-				speeds.erase((speeds.begin() + i));
+				despawnBullet(i);
 				collisions.clear();
 				continue;
 			};

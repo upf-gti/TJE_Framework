@@ -26,6 +26,8 @@ public:
 	Vector3 direction = Vector3(0.0f);
 
 	BulletNormal bullets_normal;
+	BulletNormal bullets_ball;
+	BulletNormal bullets_smallball;
 
 	int maxHP;
 	int currHP;
@@ -36,6 +38,10 @@ public:
 	float startMoving;
 	float startFiring;
 	float bulletCD = -1;
+	float burstCD = -1;
+	int burstCount = 0;
+
+	Matrix44 patternTarget;
 
 	bool looking_at_player = true;
 
@@ -44,8 +50,12 @@ public:
 
 	enum pattern {
 		SWIRL,
+		FLOWER,
+		HORIZONTAL,
+		SPIRAL,
 		SHOTGUN,
-		HORIZONTAL
+		RINGS,
+		TRAP
 	};
 
 	std::vector<Bullet*> bullets;
@@ -71,6 +81,21 @@ public:
 		bullets_normal.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
 		bullets_normal.fromPlayer = false;
 		bullets_normal.mesh = Mesh::Get("data/meshes/bullet.obj");
+
+		bullets_smallball.isInstanced = true;
+		bullets_smallball.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
+		bullets_smallball.material.diffuse = Texture::Get("data/meshes/bulletballsmall.mtl");
+		bullets_smallball.fromPlayer = false;
+		bullets_smallball.mesh = Mesh::Get("data/meshes/bulletballsmall.obj");
+		bullets_smallball.material.color = Vector4(1, 0.0, 0.5, 1);
+
+		bullets_ball.isInstanced = true;
+		bullets_ball.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
+		bullets_ball.material.diffuse = Texture::Get("data/meshes/bulletball.mtl");
+		bullets_ball.material.color = Vector4(1, 0, 1, 1);
+		bullets_ball.fromPlayer = false;
+		bullets_ball.mesh = Mesh::Get("data/meshes/bulletball.obj");
+		bullets_ball.damage = 10;
 
 		Shader* s = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 		bullet_shaders[0] = s;

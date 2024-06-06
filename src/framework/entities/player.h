@@ -112,6 +112,7 @@ public:
 	};
 	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
 		this->mesh = mesh;
+		if (!mesh) std::cout << "NO MESH";
 		//material.shader == nullptr ? std::cout << "NULL SHADER" : std::cout << "GOOD SHADER";
 		this->material = material;
 		this->mana = mana;
@@ -149,6 +150,7 @@ private:
 		bullets_auto.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
 		bullets_auto.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
 		bullets_auto.mesh = Mesh::Get("data/meshes/bullet.obj");
+		bullets_auto.damage = 0.2;
 
 		charge_mat.color = Vector4(1, 1, 1, 1);
 		charge_mat.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");

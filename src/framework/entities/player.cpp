@@ -34,9 +34,17 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 		Matrix44& m = stage->enemy->bullets_normal.models[i];
 		sCollisionData data;
 		if (bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-			bns.models.erase((bns.models.begin() + i));
-			bns.speeds.erase((bns.speeds.begin() + i));
+			bns.despawnBullet(i);
 			stage->anxiety += bns.damage;
+		}
+	}
+	BulletNormal& bbs = stage->enemy->bullets_ball;
+	for (int i = 0; i < bbs.models.size(); i++) {
+		Matrix44& m = stage->enemy->bullets_ball.models[i];
+		sCollisionData data;
+		if (bbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+			bbs.despawnBullet(i);
+			stage->anxiety += bbs.damage;
 		}
 	}
 }
@@ -75,6 +83,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	_m.setFrontAndOrthonormalize(_m.frontVector() * Vector3(1, 0, 1));
 	if (bullet_type == shotgun) {
 		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+			Audio::Play("data/audio/whip.wav");
 			timer_bullet[bullet_type] = Game::instance->time;
 			mana -= shoot_cost[bullet_type];
 			free_bullets -= amount[bullet_type];
@@ -86,6 +95,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	}
 	else if (bullet_type == auto_aim) {
 		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+			Audio::Play("data/audio/whip.wav");
 			timer_bullet[bullet_type] = Game::instance->time;
 			mana -= shoot_cost[bullet_type];
 			free_bullets -= amount[bullet_type];
@@ -95,6 +105,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		return;
 	}
 	else if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+		Audio::Play("data/audio/whip.wav");
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
@@ -267,7 +278,7 @@ void Player::update(float delta_time) {
 		if (charge_cooldown[bt]) shootCharge(bt);
 		else shoot(bt);
 
-		Audio::Play("data/audio/whip.wav");
+		
 	}
 	else charging = false;
 	if (autoshoot) {
@@ -276,9 +287,9 @@ void Player::update(float delta_time) {
 
 	direction = model.frontVector();
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
-		Input::isKeyPressed(SDL_SCANCODE_S) ||
+		Input::isKeyPressed(SDL_SCANCODE_L) ||
 		Input::isKeyPressed(SDL_SCANCODE_A) ||
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing && stage->mouse_locked) m_spd = DEFAULT_SPD;
+		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing /* && stage->mouse_locked*/) m_spd = DEFAULT_SPD;
 
 	//direction = Vector3(0.0f);
 
@@ -328,9 +339,9 @@ void Player::update(float delta_time) {
 	std::vector<sCollisionData> ground;
 
 	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
-
+	if (!mesh) std::cout << "NOMESH ";
 	colliding = stage->sphere_collided(stage->root, collisions, player_center, HITBOX_RAD);
-	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000, FLOOR);
+	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000000, FLOOR);
 
 	for (sCollisionData& g : collisions) {
 		direction += g.colNormal * 10000;
@@ -387,6 +398,7 @@ void Player::update(float delta_time) {
 			timer_anim = Game::instance->time;
 		}
 	}
+	std::cout << grounded << " ";
 //	move(direction * speed * delta_time);
 //	if (!grounded)
 //		move(Vector3::UP * v_spd * delta_time);
