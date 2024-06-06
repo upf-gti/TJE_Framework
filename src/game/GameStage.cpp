@@ -6,6 +6,7 @@
 #include "graphics/shader.h"
 #include "framework/input.h"
 #include "graphics/material.h"
+#include "graphics/render_to_texture.h"
 #include "framework/entities/enemy.h"
 #include "framework/entities/player.h"
 #include "framework/entities/entityUI.h"
@@ -193,9 +194,10 @@ void GameStage::handleEnemyHP(Enemy* e, float hp) {
 
 bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_collisions, Vector3 position, Vector3 direction, float dist, bool in_object_space, COL_TYPE collision_type) {
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*) root->children[i];
-		if (ray_collided(ee, ray_collisions, position, direction, dist, in_object_space, collision_type)) return true;
-		if ((ee->type & collision_type) == 0) continue;
+		Entity* e = root->children[i];
+		ray_collided(e, ray_collisions, position, direction, dist, in_object_space, collision_type);
+		EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
+		if (!ee) continue; if ((ee->type & collision_type) == 0) continue;
 		sCollisionData data;
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
@@ -233,8 +235,12 @@ bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_coll
 COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type, bool check) {
 	int return_val = COL_TYPE::NONE;
 	for (int i = 0; i < root->children.size(); ++i) {
-		EntityMesh* ee = (EntityMesh*) root->children[i];
-		return_val |= sphere_collided(ee, collisions, position, radius, collision_type, check);
+		Entity* e = root->children[i];
+		return_val |= sphere_collided(e, collisions, position, radius, collision_type, check);
+		EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
+		if (!ee) {
+			continue;
+		}
 		if (!(ee->type & collision_type)) continue;
 
 		sCollisionData data;
@@ -254,7 +260,7 @@ COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& c
 			}
 		}
 	}
-	return (COL_TYPE) return_val;
+	return (COL_TYPE)return_val;
 	// return !collisions.empty();
 }
 
@@ -343,6 +349,8 @@ GameStage::GameStage()
 
 	if (!Audio::Init()) std::cout << "Audio not initialized correctly\n";
 	Audio::Get("data/audio/whip.wav");
+
+	renderFBO = NULL;
 }
 
 
@@ -394,8 +402,16 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 //what to do when the image has to be draw
 void GameStage::render(void)
 {
+	float width = Game::instance->window_width, height = Game::instance->window_height;
+	if (!renderFBO) {
+		renderFBO = new RenderToTexture();
+		renderFBO->create(width, height);
+	}
+	renderFBO->enable();
 	// Set the clear color (the background color)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
+
+	renderSkybox(cubemap);
 
 	// Clear the window and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -408,13 +424,16 @@ void GameStage::render(void)
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 
-	renderSkybox(cubemap);
-
 	drawGrid();
 
 	root_opaque->render(camera);
 	root_transparent->render(camera);
 
+	glDisable(GL_DEPTH_TEST);
+
+	renderFBO->disable();
+
+	renderFBO->toViewport();
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
@@ -564,4 +583,13 @@ void GameStage::onGamepadButtonDown(SDL_JoyButtonEvent event)
 void GameStage::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
 
+}
+
+void GameStage::resize()
+{
+	Stage::resize();
+	float width = Game::instance->window_width, height = Game::instance->window_height;
+
+	if (!renderFBO) renderFBO = new RenderToTexture();
+	renderFBO->create(width, height);
 }

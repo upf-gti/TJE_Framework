@@ -2,6 +2,7 @@
 #include "stage.h"
 
 class Audio;
+class RenderToTexture;
 
 class GameStage : Stage
 {
@@ -15,6 +16,8 @@ public:
 	void update(double seconds_elapsed) override;
 
 	Vector3 cam_position;
+
+	RenderToTexture* renderFBO;
 
 	//events
 	void onKeyDown(SDL_KeyboardEvent event) override;
@@ -38,4 +41,5 @@ public:
 
 	bool parseScene(const char* filename);
 
+	void resize() override;
 };
