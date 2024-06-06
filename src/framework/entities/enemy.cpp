@@ -30,6 +30,7 @@ void Enemy::render(Camera* camera)
 		bullets[i]->render(camera);
 	bullets_normal.render(camera);
 	bullets_ball.render(camera);
+	bullets_smallball.render(camera);
 	EntityMesh::render(camera);
 	showHitbox(camera);
 }
@@ -161,8 +162,9 @@ void Enemy::update(float time_elapsed)
 			startFiring = Game::instance->time;
 			float r = random() * 5;
 			current_pattern = (pattern) clamp(floor(r), 0, 4);
-			//current_pattern = SHOTGUN;
+			current_pattern = RINGS;
 			std::cout << current_pattern << " " << r << std::endl;
+			burstCount = 0;
 		}
 		if (bulletCD + .5 <= Game::instance->time) {
 			bulletCD = Game::instance->time;
@@ -175,7 +177,7 @@ void Enemy::update(float time_elapsed)
 		}
 	}
 	else
-	{
+	{ 
 		switch (current_pattern) {
 		case SWIRL:
 			if (startFiring + 4 <= Game::instance->time)
@@ -268,7 +270,7 @@ void Enemy::update(float time_elapsed)
 			}
 			break;
 		case SHOTGUN:
-			if (startFiring + 6 <= Game::instance->time)
+			if (startFiring + 7 <= Game::instance->time)
 			{
 				moving = true;
 				looking_at_player = true;
@@ -291,6 +293,61 @@ void Enemy::update(float time_elapsed)
 				}
 			}
 			break;
+		case RINGS:
+			if (startFiring + 5 <= Game::instance->time)
+			{
+				moving = true;
+				looking_at_player = true;
+				startMoving = Game::instance->time;
+				direction.x = (rand() % 2) * 2 - 1;
+				direction.z = (rand() % 2) * 2 - 1;
+			}
+			if (bulletCD + 0.3 <= Game::instance->time) {
+				looking_at_player = false;
+				bulletCD = Game::instance->time;
+				Matrix44 _m1 = model;
+				_m1.rotate(Game::instance->time, Vector3::UP);
+				Matrix44 _m2 = model;
+				_m2.rotate(-Game::instance->time, Vector3::UP);
+				for (int i = 0; i < 6; i++) {
+					_m1.rotate(PI / 3, Vector3::UP);
+					Patterns::ring(_m1, bullets_smallball, 18, BULLET_SPD, 1.4);
+				}
+				if (burstCount == 3) {
+					Patterns::circle2(_m2, bullets_normal, 48, BULLET_SPD + 2);
+					burstCount = 0;
+				}
+				else ++burstCount;
+			}
+		case TRAP:
+			if (startFiring + 8 <= Game::instance->time && burstCount == 0)
+			{
+				moving = true;
+				looking_at_player = true;
+				startMoving = Game::instance->time;
+				direction.x = (rand() % 2) * 2 - 1;
+				direction.z = (rand() % 2) * 2 - 1;
+			}
+			if (bulletCD + 1.5 <= Game::instance->time) {
+				if (burstCount == 0) {
+					patternTarget = stage->player->model;
+					patternTarget.translate(Vector3(0, 1, 0) * (model.getTranslation().y - stage->player->model.getTranslation().y));
+				}
+				if (burstCD + .05 <= Game::instance->time) {
+					int count = 32;
+					burstCD = Game::instance->time;
+					Matrix44 _m = patternTarget;
+					_m.rotate(burstCount * 2 * PI / count, Vector3::UP);
+					_m.translate(4 * Vector3(1, 0, 0));
+					Patterns::circle3(_m, bullets_normal, 8, 0, -5);
+					if (burstCount == count) {
+						burstCount = 0;
+						bulletCD = Game::instance->time;
+					}
+					else ++burstCount;
+				}
+
+			}
 		}
 	}
 
@@ -305,6 +362,7 @@ void Enemy::update(float time_elapsed)
 
 	bullets_normal.update(time_elapsed);
 	bullets_ball.update(time_elapsed);
+	bullets_smallball.update(time_elapsed);
 
 	this->sphere_bullet_collision(player_center, HITBOX_RAD);
 }
