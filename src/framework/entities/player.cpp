@@ -47,6 +47,15 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			stage->anxiety += bbs.damage;
 		}
 	}
+	BulletNormal& bsbs = stage->enemy->bullets_smallball;
+	for (int i = 0; i < bsbs.models.size(); i++) {
+		Matrix44& m = stage->enemy->bullets_smallball.models[i];
+		sCollisionData data;
+		if (bsbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+			bsbs.despawnBullet(i);
+			stage->anxiety += bsbs.damage;
+		}
+	}
 }
 
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {
@@ -398,7 +407,6 @@ void Player::update(float delta_time) {
 			timer_anim = Game::instance->time;
 		}
 	}
-	std::cout << grounded << " ";
 //	move(direction * speed * delta_time);
 //	if (!grounded)
 //		move(Vector3::UP * v_spd * delta_time);

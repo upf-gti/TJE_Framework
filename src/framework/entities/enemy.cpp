@@ -160,9 +160,9 @@ void Enemy::update(float time_elapsed)
 		if (startMoving + 2 <= Game::instance->time) {
 			moving = false;
 			startFiring = Game::instance->time;
-			float r = random() * 5;
-			current_pattern = (pattern) clamp(floor(r), 0, 4);
-			current_pattern = RINGS;
+			float r = random() * 7;
+			current_pattern = (pattern) clamp(floor(r), 0, 6);
+			//current_pattern = TRAP;
 			std::cout << current_pattern << " " << r << std::endl;
 			burstCount = 0;
 		}
