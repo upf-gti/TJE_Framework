@@ -24,15 +24,23 @@ public:
 	float elapsed_time;
 	int fps;
 	bool must_exit;
+	//bool free_camera = true
 
 	//some vars
 	Camera* camera; //our global camera
 	bool mouse_locked; //tells if the mouse is locked (not seen)
+	float camera_yaw = 0.f;
+	float camera_pitch = 0.f;
+
+	Entity* root = nullptr;
+
+	std::map< std::string, sRenderData > meshes_to_load;
 
 	Game( int window_width, int window_height, SDL_Window* window );
 
 	//main functions
 	void render( void );
+	bool parseScene(const char* filename);
 	void update( double dt );
 
 	//events
