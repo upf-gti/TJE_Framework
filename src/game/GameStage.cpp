@@ -6,6 +6,7 @@
 #include "graphics/shader.h"
 #include "framework/input.h"
 #include "graphics/material.h"
+#include "graphics/render_to_texture.h"
 #include "framework/entities/enemy.h"
 #include "framework/entities/player.h"
 #include "framework/entities/entityUI.h"
@@ -260,7 +261,7 @@ COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& c
 			}
 		}
 	}
-	return (COL_TYPE) return_val;
+	return (COL_TYPE)return_val;
 	// return !collisions.empty();
 }
 
@@ -349,6 +350,8 @@ GameStage::GameStage()
 
 	if (!Audio::Init()) std::cout << "Audio not initialized correctly\n";
 	Audio::Get("data/audio/whip.wav");
+
+	renderFBO = NULL;
 }
 
 
@@ -400,8 +403,16 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 //what to do when the image has to be draw
 void GameStage::render(void)
 {
+	float width = Game::instance->window_width, height = Game::instance->window_height;
+	if (!renderFBO) {
+		renderFBO = new RenderToTexture();
+		renderFBO->create(width, height);
+	}
+	renderFBO->enable();
 	// Set the clear color (the background color)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
+
+	renderSkybox(cubemap);
 
 	// Clear the window and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -414,13 +425,16 @@ void GameStage::render(void)
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 
-	renderSkybox(cubemap);
-
 	drawGrid();
 
 	root_opaque->render(camera);
 	root_transparent->render(camera);
 
+	glDisable(GL_DEPTH_TEST);
+
+	renderFBO->disable();
+
+	renderFBO->toViewport();
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
@@ -570,4 +584,13 @@ void GameStage::onGamepadButtonDown(SDL_JoyButtonEvent event)
 void GameStage::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
 
+}
+
+void GameStage::resize()
+{
+	Stage::resize();
+	float width = Game::instance->window_width, height = Game::instance->window_height;
+
+	if (!renderFBO) renderFBO = new RenderToTexture();
+	renderFBO->create(width, height);
 }

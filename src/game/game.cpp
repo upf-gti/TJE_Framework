@@ -119,7 +119,5 @@ void Game::onResize(int width, int height)
 	window_width = width;
 	window_height = height;
 
-	stage->camera->aspect = width / (float)height;
-	stage->camera2D->aspect = width / (float)height;
-	stage->camera2D->setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
+	stage->resize();
 }
