@@ -48,7 +48,7 @@ void Game::update(double seconds_elapsed)
 {
 	int frames = 1 / seconds_elapsed;
 	int subframes = 1;
-	if (frames < 30) subframes = 60 / frames;
+	if (frames < 30 && frames != 0) subframes = 60 / frames;
 	
 	for (int i = 0; i < subframes; ++i) {
 		StageManager::instance->update(seconds_elapsed/subframes);

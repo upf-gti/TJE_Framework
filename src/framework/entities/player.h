@@ -38,9 +38,13 @@ public:
 	float m_spd = DEFAULT_SPD;
 	float v_spd = 0;
 
+	bool targetable = true;
+	float startHit = 0;
+
 	// Dashing
 	bool dashing = false;
 	float timer_dash;
+	float dashInvulnerabilityTimer = 0;
 
 	// Jumping
 	bool grounded = true;

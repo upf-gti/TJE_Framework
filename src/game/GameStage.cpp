@@ -434,44 +434,18 @@ void GameStage::render(void)
 
 	renderFBO->disable();
 
-	renderFBO->toViewport();
+	Shader* shader = Shader::Get("data/shaders/postfx.vs", "data/shaders/postfx.fs");
+	shader->enable();
+	shader->setUniform("iResolution", Vector2(renderFBO->width, renderFBO->height));
+
+	renderFBO->toViewport(shader);
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-	// drawText(2, 50, std::to_string((player->currHP / player->maxHP) * 100) + '%', Vector3(1, 1, 1), 2);
-	drawText(2, 400, std::to_string(floor(player->mana)), Vector3(1, 1, 1), 5);
-	drawText(Game::instance->window_width / 2.0f, Game::instance->window_height - 100, std::to_string(enemy->currHP), Vector3(1, 1, 1), 5);
+	drawText(2, 400, std::to_string(player->targetable), Vector3(1, 1, 1), 5);
 
 	// amogus.render(camera2D);
 	renderHUD();
-
-	//Camera camera2D;
-	//camera2D.enable();
-	//camera2D.view_matrix = Matrix44(); // Set View to identity
-	//camera2D.setOrthographic(0, Game::instance->window_width, 0, Game::instance->window_height, -1, 1);
-
-	//glEnable(GL_DEPTH_TEST);
-	//glDisable(GL_CULL_FACE);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	//shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-
-	//shader->enable();
-	//shader->setUniform("u_model", Matrix44());
-	//shader->setUniform("u_color", Vector4(1.0f));
-	//shader->setUniform("u_viewprojection", camera2D.viewprojection_matrix);
-	//shader->setTexture("u_texture", sus, 0);
-
-	//quad->render(GL_TRIANGLES);
-
-	//shader->disable();
-
-	//glEnable(GL_CULL_FACE);
-	//glDisable(GL_BLEND);
-	//glDisable(GL_DEPTH_TEST);
-
-
 }
 
 bool GameStage::compareFunction(const Entity* e1, const Entity* e2) {
