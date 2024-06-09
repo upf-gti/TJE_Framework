@@ -101,9 +101,9 @@ public:
 	bool can_be_hit = true;
 
 	void loadAnims() {
-		animation_pool[IDLE] = Animation::Get("data/anims/idle.skanim");
-		animation_pool[WALKING] = Animation::Get("data/anims/walk.skanim");
-		animation_pool[DASH] = Animation::Get("data/anims/run.skanim");
+		animation_pool[IDLE] = Animation::Get("data/anims/char_idle.skanim");
+		animation_pool[WALKING] = Animation::Get("data/anims/char_walk.skanim");
+		animation_pool[DASH] = Animation::Get("data/anims/char_run.skanim");
 		anim = animation_pool[IDLE];
 	}
 

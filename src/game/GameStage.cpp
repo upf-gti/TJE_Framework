@@ -278,8 +278,8 @@ GameStage::GameStage()
 	mat->color = Vector4(1, 1, 1, 1);
 
 	mat->shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
-	mat->diffuse = Texture::Get("data/textures/asian.tga");
-	player->mesh = Mesh::Get("data/meshes/player.MESH");
+	mat->diffuse = Texture::Get("data/meshes/asian.png");
+	player->mesh = Mesh::Get("data/meshes/char.MESH");
 
 	shader = Shader::Get("data/shaders/hud.vs", "data/shaders/texture.fs");
 	sus = Texture::Get("data/gus.tga");
@@ -301,7 +301,12 @@ GameStage::GameStage()
 	player->model.setTranslation(Vector3(1, 0, 1));
 	player->box_cam = Vector3(0, 0, 10);
 	// AAA
-	enemy = new Enemy(player->mesh, *mat, "Francisco", true, 1);
+
+	Material* mat2 = new Material();
+	mat2->color = Vector4(1, 1, 1, 1);
+	mat2->shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
+	mat2->diffuse = Texture::Get("data/meshes/maolixi.png");
+	enemy = new Enemy(Mesh::Get("data/meshes/maolixi.MESH"), *mat2, "Francisco", true, 1);
 	this->enemy = enemy;
 	this->player = player;
 

@@ -166,7 +166,67 @@ void Player::showHitbox(Camera* camera) {
 	flat_shader->enable();
 
 	float sphere_radius = HITBOX_RAD;
-	m.translate(0.0f, player_height, 0.0f);
+	m.translate(0.0f, (player_height / 1.5), 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	m = model;
+
+	flat_shader->enable();
+
+	m.translate(0.0f, (player_height / 1.5) + 2* sphere_radius, 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	m = model;
+
+	flat_shader->enable();
+
+	m.translate(0.0f, (player_height/ 1.5) + 4 * sphere_radius, 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	m = model;
+
+	flat_shader->enable();
+
+	m.translate(0.0f, (player_height / 1.5) + 6 * sphere_radius, 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	m = model;
+
+	flat_shader->enable();
+
+	m.translate(0.0f, (player_height / 1.5) + 8 * sphere_radius, 0.0f);
 	m.scale(sphere_radius, sphere_radius, sphere_radius);
 
 	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
@@ -428,6 +488,11 @@ void Player::update(float delta_time) {
 //	else
 //		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
 	this->sphere_bullet_collision(player_center, HITBOX_RAD);
+	Vector3 minusPlayerHeight = Vector3(0, -player_height / 3, 0);
+	this->sphere_bullet_collision(player_center + Vector3::UP * 2*HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
+	this->sphere_bullet_collision(player_center + Vector3::UP * 4*HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
+	this->sphere_bullet_collision(player_center + Vector3::UP * 6 * HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
+	this->sphere_bullet_collision(player_center + Vector3::UP * 8 * HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
 }
 
 

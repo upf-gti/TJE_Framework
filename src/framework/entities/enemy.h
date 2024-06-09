@@ -4,7 +4,7 @@
 
 #include "framework/entities/entityCollider.h"
 #include "framework/entities/bullet/patterns.h"
-#define HITBOX_RAD 0.2
+#define HITBOX_RAD 0.1
 #define PLAYER_HEIGHT 0.6
 
 class Bullet;
@@ -103,6 +103,8 @@ public:
 		bullet_textures[0] = t1;
 		Mesh* m1 = Mesh::Get("data/meshes/bullet.obj");
 		bullet_meshes[0] = m1;
+
+		anim = Animation::Get("data/anims/maolixi/maolixi_idle.skanim");
 	}
 };
 
