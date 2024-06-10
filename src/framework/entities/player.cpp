@@ -9,23 +9,28 @@
 
 void Player::sphere_bullet_collision(Vector3 position, float radius) {
 	Stage* stage = StageManager::instance->currStage;
+	bool isHit = targetable;
 	for (Bullet* bullet : stage->enemy->bullets) {
 		sCollisionData data;
 
 		if (bullet->isInstanced) {
 			for (Matrix44& instanced_model : bullet->models) {
-				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
+				if (targetable && bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
 					stage->anxiety += bullet->damage;
+					targetable = false;
+					startHit = Game::instance->time;
 				}
 			}
 		}
 		else {
-			if (bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
+			if (targetable && bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
 				colliding = true;
 				bullet->to_delete = true;
 				stage->anxiety += bullet->damage;
+				targetable = false;
+				startHit = Game::instance->time;
 			}
 		}
 	}
@@ -33,36 +38,46 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 	for (int i = 0; i < bns.models.size(); i++) {
 		Matrix44& m = stage->enemy->bullets_normal.models[i];
 		sCollisionData data;
-		if (bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+		if (targetable && bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 			bns.despawnBullet(i);
 			stage->anxiety += bns.damage;
+			targetable = false;
+			startHit = Game::instance->time;
 		}
 	}
 	BulletNormal& bbs = stage->enemy->bullets_ball;
 	for (int i = 0; i < bbs.models.size(); i++) {
 		Matrix44& m = stage->enemy->bullets_ball.models[i];
 		sCollisionData data;
-		if (bbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+		if (targetable && bbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 			bbs.despawnBullet(i);
 			stage->anxiety += bbs.damage;
+			targetable = false;
+			startHit = Game::instance->time;
 		}
 	}
 	BulletNormal& bsbs = stage->enemy->bullets_smallball;
 	for (int i = 0; i < bsbs.models.size(); i++) {
 		Matrix44& m = stage->enemy->bullets_smallball.models[i];
 		sCollisionData data;
-		if (bsbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+		if (targetable && bsbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 			bsbs.despawnBullet(i);
 			stage->anxiety += bsbs.damage;
+			targetable = false;
+			startHit = Game::instance->time;
 		}
 	}
+
+	//if (isHit != targetable) Audio::Play("data/audio/whip.wav");
 }
 
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {
 	if (!dashing) {
-		m_spd = 4 * DEFAULT_SPD;
+		m_spd = 5 * DEFAULT_SPD;
 		timer_dash = Game::instance->time;
+		dashInvulnerabilityTimer = Game::instance->time;
 		dashing = true;
+		targetable = false;
 		can_be_hit = false;
 	}
 	else if (m_spd > DEFAULT_SPD) {
@@ -151,7 +166,67 @@ void Player::showHitbox(Camera* camera) {
 	flat_shader->enable();
 
 	float sphere_radius = HITBOX_RAD;
-	m.translate(0.0f, player_height, 0.0f);
+	m.translate(0.0f, (player_height / 1.5), 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	m = model;
+
+	flat_shader->enable();
+
+	m.translate(0.0f, (player_height / 1.5) + 2* sphere_radius, 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	m = model;
+
+	flat_shader->enable();
+
+	m.translate(0.0f, (player_height/ 1.5) + 4 * sphere_radius, 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	m = model;
+
+	flat_shader->enable();
+
+	m.translate(0.0f, (player_height / 1.5) + 6 * sphere_radius, 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	m = model;
+
+	flat_shader->enable();
+
+	m.translate(0.0f, (player_height / 1.5) + 8 * sphere_radius, 0.0f);
 	m.scale(sphere_radius, sphere_radius, sphere_radius);
 
 	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
@@ -306,7 +381,7 @@ void Player::update(float delta_time) {
 	//if (Input::isKeyPressed(SDL_SCANCODE_S)) direction -= getFront();
 	//if (Input::isKeyPressed(SDL_SCANCODE_A)) direction += getRight();
 	//if (Input::isKeyPressed(SDL_SCANCODE_D)) direction -= getRight();
-
+	if (!targetable) targetable = (time - startHit >= 1.0f && time - dashInvulnerabilityTimer >= 1.f);
 
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
@@ -413,6 +488,11 @@ void Player::update(float delta_time) {
 //	else
 //		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
 	this->sphere_bullet_collision(player_center, HITBOX_RAD);
+	Vector3 minusPlayerHeight = Vector3(0, -player_height / 3, 0);
+	this->sphere_bullet_collision(player_center + Vector3::UP * 2*HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
+	this->sphere_bullet_collision(player_center + Vector3::UP * 4*HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
+	this->sphere_bullet_collision(player_center + Vector3::UP * 6 * HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
+	this->sphere_bullet_collision(player_center + Vector3::UP * 8 * HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
 }
 
 

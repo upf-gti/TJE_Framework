@@ -31,7 +31,30 @@ void Enemy::render(Camera* camera)
 	bullets_normal.render(camera);
 	bullets_ball.render(camera);
 	bullets_smallball.render(camera);
-	EntityMesh::render(camera);
+	
+
+
+
+	if (!material.shader) {
+		material.shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
+	}
+	anim->assignTime(Game::instance->time);
+	material.shader->enable();
+	material.shader->setUniform("u_color", material.color);
+	material.shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+
+	if (material.diffuse) {
+		material.shader->setTexture("u_texture", material.diffuse, 0 /*Slot que ocupa en la CPU, cuando tengamos mas texturas ya nos organizamos*/);
+	}
+	material.shader->setUniform("u_model", model);
+	material.shader->setUniform("u_time", Game::instance->time);
+
+	mesh->renderAnimated(GL_TRIANGLES, &anim->skeleton);
+	// std::cout << isAnimated << std::endl;
+
+	// Disable shader after finishing rendering
+	material.shader->disable();
+
 	showHitbox(camera);
 }
 
