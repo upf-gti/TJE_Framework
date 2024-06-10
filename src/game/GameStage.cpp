@@ -473,11 +473,12 @@ void GameStage::render(void)
 
 	drawGrid();
 
-	root_opaque->render(camera);
+	root_opaque->renderWithLights(camera);
 
 	std::sort(root_transparent->children.begin(), root_transparent->children.end(), compareFunction);
 
-	root_transparent->render(camera);
+	root_transparent->renderWithLights(camera);
+	std::cout << "!";
 
 	glDisable(GL_DEPTH_TEST);
 

@@ -15,7 +15,11 @@ uniform vec3 u_ambient_light;
 
 void main()
 {
-	vec2 uv = v_uv;
+    vec2 uv = v_uv;
     
-	gl_FragColor = u_color * texture2D( u_texture, uv );
+    vec4 final_color = u_color*texture2D(u_texture, uv);
+
+    final_color.xyz *= u_ambient_light;
+
+    gl_FragColor = final_color;
 }
