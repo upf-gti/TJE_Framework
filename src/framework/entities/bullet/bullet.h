@@ -56,6 +56,7 @@ public:
 	void move(Vector3 vec) {};
 	// Methods overwritten from base class
 	void render(Camera* camera) {};
+	void renderWithLights(Camera* camera) { render(camera); }
 	void update(float elapsed_time) {};
 
 	void onMouseWheel(SDL_MouseWheelEvent event) {};

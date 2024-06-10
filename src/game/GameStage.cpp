@@ -12,6 +12,7 @@
 #include "framework/entities/entityUI.h"
 #include "StageManager.h"
 #include "framework/audio.h"
+#include "framework/entities/Light.h"
 
 #include <fstream>
 #include <cmath>
@@ -357,6 +358,8 @@ GameStage::GameStage()
 	Audio::Get("data/audio/whip.wav");
 
 	renderFBO = NULL;
+	
+	mainLight = new Light();
 }
 
 
@@ -405,6 +408,49 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 	glDisable(GL_BLEND);
 }
 
+void GameStage::generateShadowMaps(Camera* camera)
+{
+	if (!mainLight->shadowMapFBO || mainLight->shadowMapFBO->width != shadowMapSize)
+	{
+		if (mainLight->shadowMapFBO)
+			delete mainLight->shadowMapFBO;
+		mainLight->shadowMapFBO = new FBO();
+		mainLight->shadowMapFBO->setDepthOnly(shadowMapSize, shadowMapSize);
+	}
+
+	Camera light_camera;
+	vec3 up = vec3(0, 1, 0);
+
+	vec3 pos = camera->eye;
+	light_camera.lookAt(pos, pos - mainLight->getFront(), up);
+
+	mainLight->shadowMapFBO->bind();
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	light_camera.lookAt(pos, pos - mainLight->getFront(), up);
+
+	float halfArea = mainLight->area / 2.0f;
+	light_camera.setOrthographic(-halfArea, halfArea, -halfArea, halfArea, mainLight->near_distance, mainLight->max_distance);
+
+	//compute texel size in world units, where frustum size is the distance from left to right in the camera
+	float grid = mainLight->area / (float)shadowMapSize;
+
+	//snap camera X,Y to that size in camera space assuming the frustum is square, otherwise compute gridx and gridy
+	light_camera.view_matrix.M[3][0] = round(light_camera.view_matrix.M[3][0] / grid) * grid;
+
+	light_camera.view_matrix.M[3][1] = round(light_camera.view_matrix.M[3][1] / grid) * grid;
+
+	//update viewproj matrix (be sure no one changes it)
+	light_camera.viewprojection_matrix = light_camera.view_matrix * light_camera.projection_matrix;
+
+	mainLight->shadowMap_viewProjection = light_camera.viewprojection_matrix;
+	light_camera.enable();
+
+	root_opaque->render(camera);
+
+	mainLight->shadowMapFBO->unbind();
+}
+
 //what to do when the image has to be draw
 void GameStage::render(void)
 {
@@ -432,8 +478,12 @@ void GameStage::render(void)
 
 	drawGrid();
 
-	root_opaque->render(camera);
-	root_transparent->render(camera);
+	root_opaque->renderWithLights(camera);
+
+	std::sort(root_transparent->children.begin(), root_transparent->children.end(), compareFunction);
+
+	root_transparent->renderWithLights(camera);
+	std::cout << "!";
 
 	glDisable(GL_DEPTH_TEST);
 
@@ -467,9 +517,6 @@ void GameStage::update(double seconds_elapsed)
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 	player->update(seconds_elapsed);
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
-
-
-	std::sort(root_transparent->children.begin(), root_transparent->children.end(), compareFunction);
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;

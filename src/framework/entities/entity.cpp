@@ -10,6 +10,13 @@ void Entity::render(Camera* camera)
 	}
 }
 
+void Entity::renderWithLights(Camera* camera)
+{
+	for (int i = 0; i < children.size(); ++i) {
+		children[i]->renderWithLights(camera);
+	}
+}
+
 void Entity::update(float delta_time)
 {
 	for (int i = 0; i < children.size(); ++i) {

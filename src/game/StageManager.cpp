@@ -5,8 +5,12 @@
 
 StageManager* StageManager::instance = NULL;
 
+
 StageManager::StageManager()
 {
+	ambient_night = Vector3(0.15, 0.15, 0.25).normalize();
+	ambient_day = Vector3(0.15, 0.15, 0.25).normalize();
+
 	stages["IntroStage"] = (Stage*) new IntroStage();
 	stages["GameStage"] = (Stage*) new GameStage();
 

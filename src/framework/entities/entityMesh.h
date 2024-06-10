@@ -59,6 +59,7 @@ public:
 	Vector3 getPosition() const { return model.getTranslation(); };
 	// Methods overwritten from base class
 	void render(Camera* camera);
+	void renderWithLights(Camera* camera) override;
 	void update(float elapsed_time);
 	void addLOD(sMeshLOD mesh_lod);
 };

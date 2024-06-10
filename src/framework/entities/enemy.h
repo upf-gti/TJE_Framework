@@ -15,6 +15,8 @@ public:
 	Enemy(Mesh* mesh, const Material& material, const std::string& name, bool is_dynamic, int HP);
 
 	void render(Camera* camera);
+	void renderWithLights(Camera* camera) { render(camera); }
+
 	void update(float time_elapsed);
 
 	bool touching_ground = false;
