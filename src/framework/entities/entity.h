@@ -47,6 +47,7 @@ public:
 	// Methods that should be overwritten
 	// by derived classes 
 	virtual void render(Camera* camera);
+	virtual void renderWithLights(Camera* camera);
 	virtual void update(float delta_time);
 
 	Vector3 nullify_coords(Vector3 v, uint8 axis) {

@@ -1,13 +1,16 @@
 #pragma once
 #include <unordered_map>
 #include <string>
+#include "framework/framework.h"
+
 class Stage;
 
 class StageManager
 {
 public:
 	static StageManager* instance;
-
+	Vector3 ambient_night;
+	Vector3 ambient_day;
 	bool transitioning;
 
 	Stage* currStage;

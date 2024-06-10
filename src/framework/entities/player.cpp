@@ -202,7 +202,7 @@ void Player::chargingShot(Camera* camera) {
 	charge_mat.shader->disable();
 }
 
-void Player::render(Camera* camera) {
+void Player::renderWithLights(Camera* camera) {
 
 	bool time = (Game::instance->time - timer_charge[bt]) > charge_cooldown[bt];
 	// Render Bullets
@@ -212,6 +212,87 @@ void Player::render(Camera* camera) {
 
 	// Render the charging
 	if (charging) 
+		chargingShot(camera);
+
+	// Render the Shadow
+	Matrix44 squash = model;
+	squash.setTranslation(Vector3(model.getTranslation().x, ground_y, model.getTranslation().z));
+	squash.scale(1 / (1 + ground_below_y), 0.01, 1 / (1 + ground_below_y));
+
+	//glDepthFunc(GL_GREATER);
+	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
+	//glFrontFace(GL_CW);
+	//glDepthMask(false);
+	flat_shader->enable();
+
+	flat_shader->setUniform("u_color", Vector4(0.0f, 0.0f, 0.0f, 0.5f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", squash);
+
+	shadow_mesh->render(GL_TRIANGLES);
+
+	flat_shader->disable();
+	glDisable(GL_BLEND);
+	glFrontFace(GL_CCW);
+	glDisable(GL_CULL_FACE);
+	glDepthFunc(GL_LESS);
+	glDepthMask(true);
+
+
+	anim = animation_pool[current_animation];
+	Skeleton blended_skeleton = anim->skeleton;
+	if (Game::instance->time - timer_anim < 0.4) {
+		blendSkeleton(&animation_pool[last_animation]->skeleton,
+			&animation_pool[current_animation]->skeleton,
+			(Game::instance->time - timer_anim) / 0.4, &blended_skeleton);
+	}
+
+	Shader* shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/textureLight.fs");
+
+	anim->assignTime(Game::instance->time);
+	shader->enable();
+	shader->setUniform("u_color", material.color);
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+
+	shader->setUniform("eye", camera->eye);
+	shader->setUniform("u_alpha", 30);
+	shader->setUniform("u_specular", 0.2f);
+	shader->setUniform("u_ambient_light", Vector3(0.15, 0.15, 0.25).normalize());
+
+	if (material.diffuse) {
+		shader->setTexture("u_texture", material.diffuse, 0);
+	}
+	shader->setUniform("u_model", model);
+	shader->setUniform("u_time", Game::instance->time);
+
+	mesh->renderAnimated(GL_TRIANGLES, &blended_skeleton);
+	// std::cout << isAnimated << std::endl;
+
+	// Disable shader after finishing rendering
+	shader->disable();
+
+	// Render hijos
+	for (size_t i = 0; i < children.size(); i++)
+	{
+		children[i]->renderWithLights(camera);
+	}
+	bullets_normal.render(camera);
+	bullets_auto.render(camera);
+
+	showHitbox(camera);
+};
+
+void Player::render(Camera* camera) {
+
+	bool time = (Game::instance->time - timer_charge[bt]) > charge_cooldown[bt];
+	// Render Bullets
+	for (int i = bullets.size() - 1; i >= 0; i--)
+		bullets[i]->render(camera);
+
+
+	// Render the charging
+	if (charging)
 		chargingShot(camera);
 
 	// Render the Shadow
