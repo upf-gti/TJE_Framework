@@ -67,6 +67,17 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			startHit = Game::instance->time;
 		}
 	}
+	BulletNormal& bgb = stage->enemy->bullets_giantball;
+	for (int i = 0; i < bgb.models.size(); i++) {
+		Matrix44& m = stage->enemy->bullets_giantball.models[i];
+		sCollisionData data;
+		if (targetable && bgb.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+			bgb.despawnBullet(i);
+			stage->anxiety += bgb.damage;
+			targetable = false;
+			startHit = Game::instance->time;
+		}
+	}
 
 	//if (isHit != targetable) Audio::Play("data/audio/whip.wav");
 }

@@ -29,6 +29,7 @@ public:
 
 	BulletNormal bullets_normal;
 	BulletNormal bullets_ball;
+	BulletNormal bullets_giantball;
 	BulletNormal bullets_smallball;
 
 	int maxHP;
@@ -60,7 +61,9 @@ public:
 		TRAP,
 		REV,
 		WAVY,
-		WAVY2
+		WAVY2,
+		SPIRALBURST,
+		SUN
 	};
 
 	std::vector<Bullet*> bullets;
@@ -100,7 +103,15 @@ public:
 		bullets_ball.material.color = Vector4(1, 0, 1, 1);
 		bullets_ball.fromPlayer = false;
 		bullets_ball.mesh = Mesh::Get("data/meshes/bulletball.obj");
-		bullets_ball.damage = 10;
+		bullets_ball.damage = 3;
+
+		bullets_giantball.isInstanced = true;
+		bullets_giantball.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
+		bullets_giantball.material.diffuse = Texture::Get("data/meshes/bulletballgiant.mtl");
+		bullets_giantball.material.color = Vector4(0.9, 0.4, 0, 1);
+		bullets_giantball.fromPlayer = false;
+		bullets_giantball.mesh = Mesh::Get("data/meshes/bulletballgiant.obj");
+		bullets_giantball.damage = 15;
 
 		Shader* s = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 		bullet_shaders[0] = s;
