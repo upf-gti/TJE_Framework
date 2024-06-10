@@ -57,7 +57,10 @@ public:
 		SPIRAL,
 		SHOTGUN,
 		RINGS,
-		TRAP
+		TRAP,
+		REV,
+		WAVY,
+		WAVY2
 	};
 
 	std::vector<Bullet*> bullets;

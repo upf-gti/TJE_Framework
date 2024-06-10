@@ -55,6 +55,14 @@ public:
 		}
 	}
 
+	static void circle4(Matrix44 model, BulletNormal& bullets, int amount = 1, float angular_speed = PI, float angular_accel = -PI / 300, float speed = BULLET_SPD, float accel = -10) {
+		model.translate(Vector3(0, HEIGHT, 0));
+		for (int i = 0; i < amount; i++) {
+			bullets.addInstance(model, speed, accel, angular_speed, angular_accel);
+			model.rotate(2 * PI / amount, Vector3(0, 1, 0));
+		}
+	}
+
 	static void ring(Matrix44 model, BulletNormal& bullets, int amount = 1, float speed = BULLET_SPD, float rad = 1) {
 		model.translate(Vector3(0, HEIGHT, 0));
 		bullets.addRing(model, speed, 0,0,0,rad,amount);
