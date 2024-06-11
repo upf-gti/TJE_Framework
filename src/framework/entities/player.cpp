@@ -74,7 +74,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			sCollisionData data;
 			if (targetable && bgb.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 				bgb.despawnBullet(i);
-				stage->anxiety += bgb.damage;
+				stage->anxiety += bgb.damage * bgb.sizes[i];
 				targetable = false;
 				startHit = Game::instance->time;
 			}
@@ -172,8 +172,6 @@ void Player::shootCharge(bullet_type bullet_type) {
 
 
 void Player::showHitbox(Camera* camera) {
-
-
 	Matrix44 m = model;
 
 	flat_shader->enable();
