@@ -17,6 +17,9 @@ public:
 	void render(void) override;
 	void update(double seconds_elapsed) override;
 
+	float trees_shoot = 0;
+	float interval = 10;
+
 	Vector3 cam_position;
 
 	Light* mainLight;

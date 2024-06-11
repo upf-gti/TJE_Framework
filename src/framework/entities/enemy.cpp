@@ -94,9 +94,8 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		}
 		else {
 			if (bullet->active) {
-				if (bullet->mesh->testSphereCollision(bullet->model, position, 4 * radius, data.colPoint, data.colNormal)) {
+				if (bullet->mesh->testSphereCollision(bullet->model, position, 5 * radius, data.colPoint, data.colNormal)) {
 					colliding = true;
-					bullet->active = false;
 					bullet->active = false;
 					stage->anxiety += bullet->damage;
 				}

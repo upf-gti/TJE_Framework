@@ -11,5 +11,5 @@ void main() {
         discard;
 
     // Set the color for the remaining fragments
-    FragColor = vec4(u_color, 1.0);
+    FragColor = vec4(u_color * (1 - 0.7*v_uv.y), 1.0);
 }

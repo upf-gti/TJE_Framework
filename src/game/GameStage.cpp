@@ -13,6 +13,7 @@
 #include "StageManager.h"
 #include "framework/audio.h"
 #include "framework/entities/Light.h"
+#include "framework/entities/bullet/patterns.h"
 
 #include <fstream>
 #include <cmath>
@@ -162,11 +163,13 @@ bool GameStage::parseScene(const char* filename)
 			new_entity->isInstanced = true;
 			new_entity->models = render_data.models; // Add all instances
 			if (!new_entity->material.shader) new_entity->material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texturepixel.fs");
+			std::cout << "Instanced";
 		}
 		// Create normal entity
 		else {
 			new_entity->model = render_data.models[0];
 			if (!new_entity->material.shader) new_entity->material.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texturepixel.fs");
+			std::cout << "Normal";
 		}
 
 		std::cout << " " << &new_entity->material.shader << std::endl;
@@ -355,6 +358,11 @@ GameStage::GameStage()
 	if (!Audio::Init()) std::cout << "Audio not initialized correctly\n";
 	Audio::Get("data/audio/whip.wav");
 	Audio::Get("data/audio/incorrect.wav");
+	Audio::Get("data/audio/charge_lazer.wav");
+	Audio::Get("data/audio/lazer.wav");
+	Audio::Get("data/audio/bgm.mp3", BASS_SAMPLE_LOOP);
+
+	HCHANNEL channel = Audio::Play("data/audio/bgm.mp3", 0.7);
 
 	renderFBO = NULL;
 	
@@ -367,13 +375,13 @@ void GameStage::renderHUD()
 	float gameWidth = Game::instance->window_width, gameHeight = Game::instance->window_height;
 
 	//Render HP bar
-	Vector2 barPosition = Vector2(gameWidth/2.0f, gameHeight*0.1f);
-	Vector2 barSize = Vector2(gameWidth/2.0f, 50);
+	Vector2 barPosition = Vector2(30 + gameWidth / 4.0, gameHeight - 40 - 15);
+	Vector2 barSize = Vector2(gameWidth/2.0f, 30);
 
-	renderBar(barPosition, barSize, anxiety/200.f, Vector3(79,44,86)/255.0f);
+	renderBar(barPosition, barSize, anxiety/200.f, Vector3(clamp(255 - anxiety, 0, 255),clamp(anxiety, 0, 255),2)/255.0f);
 
-	barPosition = Vector2(gameWidth*0.17f, gameHeight*0.9f);
-	barSize = Vector2(gameWidth*0.3f, 40);
+	barPosition = Vector2(30 + gameWidth * 0.15f, gameHeight - 55 - 30);
+	barSize = Vector2(gameWidth*0.3f, 20);
 
 	renderBar(barPosition, barSize, player->mana/300.0f, Vector3(0.3, 0.1, 0.8));
 }
@@ -563,6 +571,30 @@ void GameStage::update(double seconds_elapsed)
 	float reverse_dist = 1 / sqrt(clamp(player->distance(e2) / 1000, 0.1, 2.5));
 	camera->lookAt((2*reverse_dist)*(player->model.getTranslation() - e2->model.getTranslation()) + Vector3(0,500 - player->model.getTranslation().y * 2 * reverse_dist, 0), e2->model.getTranslation() + Vector3(0, 200, 0), camera->up);*/
 	enemy->update(seconds_elapsed);
+
+	if (trees_shoot + interval < Game::instance->time) {
+		for (Entity* e : root_transparent->children) {
+			EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
+			if (ee == nullptr) continue;
+			if (ee->type == WALL) {
+				float r = random();
+				if (r>0.8){
+					Matrix44 _m = Matrix44();
+					Vector3 center_world = ee->model * ee->mesh->box.center;
+					_m.translate(center_world);
+					for (int i = 0; i < 12; i++) {
+						_m.rotate(PI / 6, Vector3::UP);
+						Matrix44 __m = _m;
+						__m.translate(Vector3(1, -3.2, 0));
+						Patterns::circle3(__m, enemy->bullets_ball, 1, 0, 1);
+					}
+				}
+			}
+		}
+		trees_shoot = Game::instance->time;
+		interval = random(6, 6);
+	}
+
 
 }
 

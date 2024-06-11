@@ -63,18 +63,20 @@ void BulletSniper::move(Vector3 vec) {
 void BulletSniper::update(float delta_time) {
 	Stage* stage = StageManager::instance->currStage;
 	std::vector<sCollisionData> collisions;
+	acceleration += 2 * delta_time;
+	speed += acceleration;
+	scale += speed * delta_time;
+	model = model_base;
+	model.scale(0.5, 0.5, scale / 10);
+	model.translateGlobal(model_base.frontVector() * (scale / 10));
 	if (active) {
-		acceleration += 2 * delta_time;
-		speed += acceleration;
-		scale += speed * delta_time;
-		model = model_base;
-		model.scale(0.5, 0.5, scale / 10);
-		model.translateGlobal(model_base.frontVector() * (scale / 10));
 		Vector3 bullet_center = model.getTranslation() + model_base.frontVector() * (scale / 10);
 		bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.2, SCENARIO);
 		if (colliding) active = false;
 	}
-	else despawning(delta_time);
+	else {
+		despawning(delta_time);
+	}
 	//move(Vector3(0, 0, speed * delta_time));
 }
 
