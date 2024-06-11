@@ -34,9 +34,11 @@ public:
 	std::vector<float> accels;
 	std::vector<float> angular_speeds;
 	std::vector<float> angular_accels;
+	std::vector<float> spawn_time;
 
 	void despawnBullet(int i) {
 		models.erase((models.begin() + i));
+		spawn_time.erase((spawn_time.begin() + i));
 		speeds.erase((speeds.begin() + i));
 		accels.erase((accels.begin() + i));
 		angular_speeds.erase((angular_speeds.begin() + i));

@@ -483,7 +483,6 @@ void GameStage::render(void)
 	std::sort(root_transparent->children.begin(), root_transparent->children.end(), compareFunction);
 
 	root_transparent->renderWithLights(camera);
-	std::cout << "!";
 
 	glDisable(GL_DEPTH_TEST);
 

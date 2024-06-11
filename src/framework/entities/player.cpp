@@ -440,31 +440,10 @@ void Player::move(const Vector3& vec) {
 	model.translateGlobal(vec);
 }
 
-void Player::update(float delta_time) {
+
+float Player::updateSubframe(float delta_time) {
 	Stage* stage = StageManager::instance->currStage;
-	// std::cout << grounded << std::endl;
-
 	float time = Game::instance->time;
-	float box_dist = getPositionGround().distance(box_cam);
-	if (box_dist > 1) {
-		box_cam += (box_dist - 1) * (getPositionGround() - box_cam) * delta_time;
-	}
-	timer_bullet_general = Game::instance->time - timer_bullet[bt];
-	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing) {
-		dash(delta_time);
-	}
-	if (Input::isKeyPressed(SDL_SCANCODE_Q)) {
-		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
-		if (charge_cooldown[bt]) shootCharge(bt);
-		else shoot(bt);
-
-		
-	}
-	else charging = false;
-	if (autoshoot) {
-		shoot();
-	}
-
 	direction = model.frontVector();
 	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
 		Input::isKeyPressed(SDL_SCANCODE_L) ||
@@ -488,10 +467,7 @@ void Player::update(float delta_time) {
 	float knockback_speed = DEFAULT_SPD * knockback[bt] * (knockback_time[bt] - timer_bullet_general) * (is_knowckback); //the speed is defined by the seconds_elapsed so it goes constant
 
 	//std::cout << speed << std::endl;
-	if (/*Input::isMousePressed(SDL_BUTTON_LEFT) || */stage->mouse_locked) //is left button pressed?
-	{
-		model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
-	}
+
 
 	direction -= knockback_speed * model.frontVector();
 	direction.normalize();
@@ -507,10 +483,7 @@ void Player::update(float delta_time) {
 		}
 		else b->update(delta_time);
 	}
-	bullets_auto.objective = stage->enemy->getHitboxPosition();
-	bullets_normal.update(delta_time);
-	bullets_auto.update(delta_time);
-	Entity::update(delta_time);
+
 
 	mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);
 	mana = clamp(mana, 0, 200);
@@ -556,6 +529,37 @@ void Player::update(float delta_time) {
 
 	Vector3 movement = (direction * total_spd + Vector3::UP * (grounded ? (ground_y - getPosition().y) * 40 : v_spd)) * delta_time;
 	move(movement);
+	return total_spd;
+}
+
+void Player::update(float delta_time) {
+	Stage* stage = StageManager::instance->currStage;
+	if (stage->mouse_locked) model.rotate(Input::mouse_delta.x * (0.005f - (timer_bullet_general < knockback_time[bt]) * (0.0045f)), Vector3(0.0f, -1.0f, 0.0f));
+	float total_spd;
+	int subframes = 1;
+	if (1 / delta_time < 60) subframes = 120 * delta_time;
+	for (int i = 0; i < subframes; i++) {
+		total_spd = updateSubframe(delta_time / subframes);
+	}
+
+	float time = Game::instance->time;
+	float box_dist = getPositionGround().distance(box_cam);
+	if (box_dist > 1) {
+		box_cam += (box_dist - 1) * (getPositionGround() - box_cam) * delta_time;
+	}
+	timer_bullet_general = Game::instance->time - timer_bullet[bt];
+	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing) {
+		dash(delta_time);
+	}
+	if (Input::isKeyPressed(SDL_SCANCODE_Q)) {
+		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
+		if (charge_cooldown[bt]) shootCharge(bt);
+		else shoot(bt);
+	}
+	else charging = false;
+	if (autoshoot) {
+		shoot();
+	}
 
 	if (dashing) {
 		if (current_animation != DASH) {
@@ -583,6 +587,15 @@ void Player::update(float delta_time) {
 //		move(Vector3::UP * v_spd * delta_time);
 //	else
 //		move(Vector3::UP * (ground_y - getPosition().y) * delta_time * 20);
+
+	bullets_auto.objective = stage->enemy->getHitboxPosition();
+	bullets_normal.update(delta_time);
+	bullets_auto.update(delta_time);
+	Entity::update(delta_time);
+
+
+	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
+
 	this->sphere_bullet_collision(player_center, HITBOX_RAD);
 	Vector3 minusPlayerHeight = Vector3(0, -player_height / 3, 0);
 	this->sphere_bullet_collision(player_center + Vector3::UP * 2*HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);

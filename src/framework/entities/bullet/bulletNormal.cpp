@@ -62,7 +62,7 @@ void BulletNormal::update(float delta_time) {
 			Vector3 bullet_center = m.getTranslation();
 			int a = SCENARIO;
 			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.05, SCENARIO );
-			if (colliding) {
+			if (colliding || spawn_time[i] + 10 < Game::instance->time) {
 				// stage->root_transparent->addChild((Entity*) new BulletNormal(this->mesh, this->material, this->direction, m, 0));
 				despawnBullet(i);
 				collisions.clear();

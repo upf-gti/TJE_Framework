@@ -133,6 +133,7 @@ public:
 	void render(Camera* camera);	
 	void renderWithLights(Camera* camera) override;
 	void update(float elapsed_time);
+	float updateSubframe(float elapsed_time);
 
 	void onMouseWheel(SDL_MouseWheelEvent event);
 	void onMouseButtonDown(SDL_MouseButtonEvent event);

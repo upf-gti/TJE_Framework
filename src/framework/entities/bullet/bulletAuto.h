@@ -31,6 +31,8 @@ public:
 	}
 	
 	void addInstance(Matrix44 model, float speed, float accel = 0, float angular_speed = 0, float angular_accel = 0) {
+		this->spawn_time.push_back(Game::instance->time);
+
 		this->models.push_back(model);
 		this->speeds.push_back(speed);
 		this->accels.push_back(accel);

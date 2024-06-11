@@ -55,7 +55,6 @@ void BulletResize::update(float delta_time) {
 	if (isInstanced) {
 		rotation_angle += rotation_angle_accel * delta_time * 10;
 		for (int i = 0; i < models.size(); ++i) {
-			std::cout << models.size() << " ";
 			Matrix44& m = __models[i];
 			speeds[i] += accels[i] * delta_time;
 			angular_speeds[i] += angular_accels[i] * delta_time;
@@ -78,7 +77,7 @@ void BulletResize::update(float delta_time) {
 			int a = SCENARIO;
 			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, clamp(sizes[i], 0.05, 0.5), SCENARIO);
 
-			if (colliding) {
+			if (colliding || spawn_time[i] + 10 < Game::instance->time) {
 				// stage->root_transparent->addChild((Entity*) new BulletResize(this->mesh, this->material, this->direction, m, 0));
 				despawnBullet(i);
 				collisions.clear();

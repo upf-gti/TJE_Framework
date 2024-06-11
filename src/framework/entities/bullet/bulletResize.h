@@ -42,6 +42,8 @@ public:
 		this->models.push_back(model);
 		this->__models.push_back(model);
 
+		this->spawn_time.push_back(Game::instance->time);
+
 		this->sizes.push_back(size);
 		this->sizes_spd.push_back(size_spd);
 		this->sizes_accel.push_back(size_accel);
@@ -67,6 +69,8 @@ public:
 		sizes_accel.erase((sizes_accel.begin() + i));
 		sizes_limits.erase((sizes_limits.begin() + i));
 		sizes_spd_limits.erase((sizes_spd_limits.begin() + i));
+
+		spawn_time.erase((spawn_time.begin() + i));
 	}
 
 
