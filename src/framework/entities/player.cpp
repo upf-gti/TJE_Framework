@@ -10,12 +10,23 @@
 void Player::sphere_bullet_collision(Vector3 position, float radius) {
 	Stage* stage = StageManager::instance->currStage;
 	bool isHit = targetable;
-	for (Bullet* bullet : stage->enemy->bullets) {
-		sCollisionData data;
+	if (targetable) {
+		for (Bullet* bullet : stage->enemy->bullets) {
+			sCollisionData data;
 
-		if (bullet->isInstanced) {
-			for (Matrix44& instanced_model : bullet->models) {
-				if (targetable && bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
+			if (bullet->isInstanced) {
+				for (Matrix44& instanced_model : bullet->models) {
+					if (targetable && bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
+						colliding = true;
+						bullet->to_delete = true;
+						stage->anxiety += bullet->damage;
+						targetable = false;
+						startHit = Game::instance->time;
+					}
+				}
+			}
+			else {
+				if (targetable && bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
 					stage->anxiety += bullet->damage;
@@ -24,61 +35,51 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				}
 			}
 		}
-		else {
-			if (targetable && bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
-				colliding = true;
-				bullet->to_delete = true;
-				stage->anxiety += bullet->damage;
+		BulletNormal& bns = stage->enemy->bullets_normal;
+		for (int i = 0; i < bns.models.size(); i++) {
+			Matrix44& m = stage->enemy->bullets_normal.models[i];
+			sCollisionData data;
+			if (targetable && bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+				bns.despawnBullet(i);
+				stage->anxiety += bns.damage;
+				targetable = false;
+				startHit = Game::instance->time;
+			}
+		}
+		BulletNormal& bbs = stage->enemy->bullets_ball;
+		for (int i = 0; i < bbs.models.size(); i++) {
+			Matrix44& m = stage->enemy->bullets_ball.models[i];
+			sCollisionData data;
+			if (targetable && bbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+				bbs.despawnBullet(i);
+				stage->anxiety += bbs.damage;
+				targetable = false;
+				startHit = Game::instance->time;
+			}
+		}
+		BulletNormal& bsbs = stage->enemy->bullets_smallball;
+		for (int i = 0; i < bsbs.models.size(); i++) {
+			Matrix44& m = stage->enemy->bullets_smallball.models[i];
+			sCollisionData data;
+			if (targetable && bsbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+				bsbs.despawnBullet(i);
+				stage->anxiety += bsbs.damage;
+				targetable = false;
+				startHit = Game::instance->time;
+			}
+		}
+		BulletNormal& bgb = stage->enemy->bullets_giantball;
+		for (int i = 0; i < bgb.models.size(); i++) {
+			Matrix44& m = stage->enemy->bullets_giantball.models[i];
+			sCollisionData data;
+			if (targetable && bgb.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
+				bgb.despawnBullet(i);
+				stage->anxiety += bgb.damage;
 				targetable = false;
 				startHit = Game::instance->time;
 			}
 		}
 	}
-	BulletNormal& bns = stage->enemy->bullets_normal;
-	for (int i = 0; i < bns.models.size(); i++) {
-		Matrix44& m = stage->enemy->bullets_normal.models[i];
-		sCollisionData data;
-		if (targetable && bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-			bns.despawnBullet(i);
-			stage->anxiety += bns.damage;
-			targetable = false;
-			startHit = Game::instance->time;
-		}
-	}
-	BulletNormal& bbs = stage->enemy->bullets_ball;
-	for (int i = 0; i < bbs.models.size(); i++) {
-		Matrix44& m = stage->enemy->bullets_ball.models[i];
-		sCollisionData data;
-		if (targetable && bbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-			bbs.despawnBullet(i);
-			stage->anxiety += bbs.damage;
-			targetable = false;
-			startHit = Game::instance->time;
-		}
-	}
-	BulletNormal& bsbs = stage->enemy->bullets_smallball;
-	for (int i = 0; i < bsbs.models.size(); i++) {
-		Matrix44& m = stage->enemy->bullets_smallball.models[i];
-		sCollisionData data;
-		if (targetable && bsbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-			bsbs.despawnBullet(i);
-			stage->anxiety += bsbs.damage;
-			targetable = false;
-			startHit = Game::instance->time;
-		}
-	}
-	BulletNormal& bgb = stage->enemy->bullets_giantball;
-	for (int i = 0; i < bgb.models.size(); i++) {
-		Matrix44& m = stage->enemy->bullets_giantball.models[i];
-		sCollisionData data;
-		if (targetable && bgb.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-			bgb.despawnBullet(i);
-			stage->anxiety += bgb.damage;
-			targetable = false;
-			startHit = Game::instance->time;
-		}
-	}
-
 	//if (isHit != targetable) Audio::Play("data/audio/whip.wav");
 }
 
@@ -98,7 +99,8 @@ void Player::dash(float delta_time, float dash_duration = 1, float invul_duratio
 		m_spd = DEFAULT_SPD;
 		dashing = false;
 	}
-	if (!can_be_hit && Game::instance->time - timer_dash > invul_duration) {
+	if (!targetable && Game::instance->time - timer_dash > invul_duration) {
+		targetable = true;
 		can_be_hit = true;
 	}
 }
@@ -304,11 +306,7 @@ void Player::renderWithLights(Camera* camera) {
 	shadow_mesh->render(GL_TRIANGLES);
 
 	flat_shader->disable();
-	glDisable(GL_BLEND);
-	glFrontFace(GL_CCW);
-	glDisable(GL_CULL_FACE);
-	glDepthFunc(GL_LESS);
-	glDepthMask(true);
+
 
 
 	anim = animation_pool[current_animation];
@@ -323,7 +321,7 @@ void Player::renderWithLights(Camera* camera) {
 
 	anim->assignTime(Game::instance->time);
 	shader->enable();
-	shader->setUniform("u_color", material.color);
+	shader->setUniform("u_color", targetable ? material.color : Vector4(1,1,1,0.1 + 0.9 * (can_be_hit) * ((int)(Game::instance->time * 10) % 2)));
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 
 	shader->setUniform("eye", camera->eye);
@@ -343,6 +341,12 @@ void Player::renderWithLights(Camera* camera) {
 	// Disable shader after finishing rendering
 	shader->disable();
 
+	glDisable(GL_BLEND);
+	glFrontFace(GL_CCW);
+	glDisable(GL_CULL_FACE);
+	glDepthFunc(GL_LESS);
+	glDepthMask(true);
+
 	// Render hijos
 	for (size_t i = 0; i < children.size(); i++)
 	{
@@ -351,7 +355,7 @@ void Player::renderWithLights(Camera* camera) {
 	bullets_normal.render(camera);
 	bullets_auto.render(camera);
 
-	showHitbox(camera);
+	//showHitbox(camera);
 };
 
 void Player::render(Camera* camera) {

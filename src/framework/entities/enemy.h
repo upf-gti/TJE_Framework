@@ -63,7 +63,8 @@ public:
 		WAVY,
 		WAVY2,
 		SPIRALBURST,
-		SUN
+		SUN,
+		RINGSHOT
 	};
 
 	std::vector<Bullet*> bullets;
