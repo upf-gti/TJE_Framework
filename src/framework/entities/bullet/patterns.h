@@ -4,6 +4,7 @@
 
 #include "framework/entities/bullet/bulletAuto.h"
 #include "framework/entities/bullet/bulletNormal.h"
+#include "framework/entities/bullet/bulletResize.h"
 
 #include "framework/entities/bullet/bulletSniper.h"
 
@@ -59,6 +60,14 @@ public:
 		model.translate(Vector3(0, HEIGHT, 0));
 		for (int i = 0; i < amount; i++) {
 			bullets.addInstance(model, speed, accel, angular_speed, angular_accel);
+			model.rotate(2 * PI / amount, Vector3(0, 1, 0));
+		}
+	}
+
+	static void circle5(Matrix44 model, BulletResize& bullets, Vector2 size_limits, Vector2 vel_limits, int amount = 1, float speed = BULLET_SPD, float size = 1, float size_spd = 1, float size_accel = 0, float accel = 10) {
+		model.translate(Vector3(0, HEIGHT, 0));
+		for (int i = 0; i < amount; i++) {
+			bullets.addInstance(model, speed, size, size_spd, size_accel, size_limits, vel_limits, accel);
 			model.rotate(2 * PI / amount, Vector3(0, 1, 0));
 		}
 	}

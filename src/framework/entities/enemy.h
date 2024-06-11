@@ -29,7 +29,7 @@ public:
 
 	BulletNormal bullets_normal;
 	BulletNormal bullets_ball;
-	BulletNormal bullets_giantball;
+	BulletResize bullets_giantball;
 	BulletNormal bullets_smallball;
 
 	int maxHP;

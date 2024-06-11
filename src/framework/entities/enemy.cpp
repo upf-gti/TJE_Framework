@@ -187,7 +187,7 @@ void Enemy::update(float time_elapsed)
 			startFiring = Game::instance->time;
 			float r = random() * 13;
 			current_pattern = (pattern) clamp(floor(r), 0, 12);
-			//current_pattern = RINGSHOT;
+			current_pattern = SUN;
 			std::cout << current_pattern << " " << r << std::endl;
 			burstCount = 0;
 		}
@@ -476,7 +476,7 @@ void Enemy::update(float time_elapsed)
 				rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
 				Matrix44 _m1 = model;
 				_m1.rotate(PI / 2 + Game::instance->time / 3, Vector3::UP);
-				Patterns::circle3(_m1, bullets_giantball, 9, 0, 2);
+				Patterns::circle5(_m1, bullets_giantball, Vector2(0,10), Vector2(0, 10), 6, 0, 0.2, 0.6, -0.1, 2);
 			}
 			if (burstCD + 0.1 <= Game::instance->time) {
 				looking_at_player = false;

@@ -68,7 +68,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				startHit = Game::instance->time;
 			}
 		}
-		BulletNormal& bgb = stage->enemy->bullets_giantball;
+		BulletResize& bgb = stage->enemy->bullets_giantball;
 		for (int i = 0; i < bgb.models.size(); i++) {
 			Matrix44& m = stage->enemy->bullets_giantball.models[i];
 			sCollisionData data;
