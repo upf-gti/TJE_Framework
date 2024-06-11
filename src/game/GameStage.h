@@ -45,7 +45,7 @@ public:
 	COL_TYPE sphere_collided(Entity* root, std::vector<sCollisionData>& collisions, Vector3 position, float radius, COL_TYPE collision_type = SCENARIO, bool check = false) override;
   
 	void renderHUD();
- 	void renderBar(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color);
+ 	void renderBar(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color, float decrease = 0);
 
 	int shadowMapSize = 1024;
 	void generateShadowMaps(Camera* camera);

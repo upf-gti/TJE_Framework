@@ -19,7 +19,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 					if (targetable && bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 						colliding = true;
 						bullet->to_delete = true;
-						stage->anxiety -= bullet->damage;
+						stage->anxiety_dt -= bullet->damage;
 						targetable = false;
 						startHit = Game::instance->time;
 					}
@@ -29,7 +29,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				if (targetable && bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
-					stage->anxiety -= bullet->damage;
+					stage->anxiety_dt -= bullet->damage;
 					targetable = false;
 					startHit = Game::instance->time;
 				}
@@ -41,7 +41,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			sCollisionData data;
 			if (targetable && bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 				bns.despawnBullet(i);
-				stage->anxiety -= bns.damage;
+				stage->anxiety_dt -= bns.damage;
 				targetable = false;
 				startHit = Game::instance->time;
 			}
@@ -52,7 +52,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			sCollisionData data;
 			if (targetable && bbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 				bbs.despawnBullet(i);
-				stage->anxiety -= bbs.damage;
+				stage->anxiety_dt -= bbs.damage;
 				targetable = false;
 				startHit = Game::instance->time;
 			}
@@ -63,7 +63,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			sCollisionData data;
 			if (targetable && bsbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 				bsbs.despawnBullet(i);
-				stage->anxiety -= bsbs.damage;
+				stage->anxiety_dt -= bsbs.damage;
 				targetable = false;
 				startHit = Game::instance->time;
 			}
@@ -73,7 +73,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			Matrix44& m = stage->enemy->bullets_giantball.models[i];
 			sCollisionData data;
 			if (targetable && bgb.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-				stage->anxiety -= bgb.damage * bgb.sizes[i];
+				stage->anxiety_dt -= bgb.damage * bgb.sizes[i];
 				bgb.despawnBullet(i);
 				targetable = false;
 				startHit = Game::instance->time;
@@ -93,7 +93,7 @@ void Player::dash(float delta_time, float dash_duration = 1, float invul_duratio
 		can_be_hit = false;
 	}
 	else if (m_spd > DEFAULT_SPD) {
-		m_spd -= 4 * DEFAULT_SPD * delta_time / dash_duration; 
+		m_spd -= 4 * DEFAULT_SPD * delta_time / dash_duration;
 	}
 	else {
 		m_spd = DEFAULT_SPD;
@@ -112,7 +112,7 @@ void Player::jump(float delta_time) {
 		grounded = false;
 		jumping = true;
 	}
-	else v_spd = JUMP_SPD * (1 - (2*(Game::instance->time - timer_jump)));
+	else v_spd = JUMP_SPD * (1 - (2 * (Game::instance->time - timer_jump)));
 }
 
 void Player::shoot(bullet_type bullet_type = auto_aim) {
@@ -143,7 +143,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	}
 	else if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
 		Stage* stage = StageManager::instance->currStage;
-		if (bullet_type == sniper) stage->anxiety -= 2;
+		if (bullet_type == sniper) stage->anxiety_dt -= 2;
 		Audio::Play("data/audio/whip.wav");
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];

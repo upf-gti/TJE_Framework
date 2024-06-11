@@ -29,6 +29,7 @@ public:
 	Player* player;
 
 	float anxiety;
+	float anxiety_dt = 0;
 
 	std::string nextStage;
 

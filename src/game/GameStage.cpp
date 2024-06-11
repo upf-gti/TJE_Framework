@@ -378,7 +378,7 @@ void GameStage::renderHUD()
 	Vector2 barPosition = Vector2(30 + gameWidth / 4.0, gameHeight - 40 - 15);
 	Vector2 barSize = Vector2(gameWidth/2.0f, 30);
 
-	renderBar(barPosition, barSize, anxiety/200.f, Vector3(clamp(255 - anxiety, 0, 255),clamp(anxiety, 0, 255),2)/255.0f);
+	renderBar(barPosition, barSize, anxiety/200.f, Vector3(clamp(255 - anxiety, 0, 255),clamp(anxiety, 0, 255),2)/255.0f, anxiety_dt/200.f);
 
 	barPosition = Vector2(30 + gameWidth * 0.15f, gameHeight - 55 - 30);
 	barSize = Vector2(gameWidth*0.3f, 20);
@@ -387,7 +387,7 @@ void GameStage::renderHUD()
 }
 
 // Assuming you have a function to loadTGA that reads the TGA data
-void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color)
+void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color, float decrease)
 {
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -403,12 +403,14 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 	shader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
 	shader->setUniform("u_color", Vector3(32.0f/255.0f));
 	shader->setUniform("u_percentage", 1.0f);
+	shader->setUniform("u_decrease", 0.0f);
 
 	outerQuad.render(GL_TRIANGLES);
 
 	innerQuad.createQuad(barPosition.x, barPosition.y, barSize.x-10, barSize.y-10, true);
 	shader->setUniform("u_color", color);
 	shader->setUniform("u_percentage", percentage);
+	shader->setUniform("u_decrease", decrease);
 
 	innerQuad.render(GL_TRIANGLES);
 	glEnable(GL_DEPTH_TEST);
@@ -525,6 +527,10 @@ bool GameStage::compareFunction(const Entity* e1, const Entity* e2) {
 
 void GameStage::update(double seconds_elapsed)
 {
+	if (anxiety_dt != 0) {
+		anxiety += anxiety_dt * seconds_elapsed * 10;
+		anxiety_dt -= anxiety_dt * seconds_elapsed * 10;
+	}
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 	player->update(seconds_elapsed);
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
