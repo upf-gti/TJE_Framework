@@ -49,6 +49,8 @@ public:
 			Matrix44 rotatematrix = Matrix44();
 			rotatematrix.rotate(i * 2 * PI / count, Vector3::UP);
 			_m.translate(rad * rotatematrix.rotateVector(Vector3(1,0,0)));
+			this->spawn_time.push_back(Game::instance->time);
+
 			this->models.push_back(_m);
 			this->speeds.push_back(speed);
 			this->accels.push_back(accel);

@@ -73,8 +73,8 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			Matrix44& m = stage->enemy->bullets_giantball.models[i];
 			sCollisionData data;
 			if (targetable && bgb.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-				bgb.despawnBullet(i);
 				stage->anxiety += bgb.damage * bgb.sizes[i];
+				bgb.despawnBullet(i);
 				targetable = false;
 				startHit = Game::instance->time;
 			}

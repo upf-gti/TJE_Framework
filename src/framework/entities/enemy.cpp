@@ -187,7 +187,7 @@ void Enemy::update(float time_elapsed)
 			startFiring = Game::instance->time;
 			float r = random() * 13;
 			current_pattern = (pattern) clamp(floor(r), 0, 12);
-			current_pattern = SUN;
+			//current_pattern = SUN;
 			std::cout << current_pattern << " " << r << std::endl;
 			burstCount = 0;
 		}
