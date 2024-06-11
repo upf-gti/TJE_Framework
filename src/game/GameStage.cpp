@@ -348,14 +348,13 @@ GameStage::GameStage()
 
 	player->type = PLAYER;
 
-	root_opaque->addChild(player);
-	root_opaque->addChild(enemy);
 
 
 	anxiety = 30;
 
 	if (!Audio::Init()) std::cout << "Audio not initialized correctly\n";
 	Audio::Get("data/audio/whip.wav");
+	Audio::Get("data/audio/incorrect.wav");
 
 	renderFBO = NULL;
 	
@@ -371,12 +370,12 @@ void GameStage::renderHUD()
 	Vector2 barPosition = Vector2(gameWidth/2.0f, gameHeight*0.1f);
 	Vector2 barSize = Vector2(gameWidth/2.0f, 50);
 
-	renderBar(barPosition, barSize, anxiety/100.0f, Vector3(79,44,86)/255.0f);
+	renderBar(barPosition, barSize, anxiety/200.f, Vector3(79,44,86)/255.0f);
 
 	barPosition = Vector2(gameWidth*0.17f, gameHeight*0.9f);
 	barSize = Vector2(gameWidth*0.3f, 40);
 
-	renderBar(barPosition, barSize, player->mana/200.0f, Vector3(0.3, 0.1, 0.8));
+	renderBar(barPosition, barSize, player->mana/300.0f, Vector3(0.3, 0.1, 0.8));
 }
 
 // Assuming you have a function to loadTGA that reads the TGA data
@@ -482,7 +481,12 @@ void GameStage::render(void)
 
 	std::sort(root_transparent->children.begin(), root_transparent->children.end(), compareFunction);
 
+	enemy->renderWithLights(camera);
+	player->renderWithLights(camera);
+
 	root_transparent->renderWithLights(camera);
+
+
 
 	glDisable(GL_DEPTH_TEST);
 

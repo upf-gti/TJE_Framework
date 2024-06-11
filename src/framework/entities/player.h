@@ -13,7 +13,7 @@
 
 
 #define DEFAULT_SPD 1.2
-#define DEFAULT_MANA 100
+#define DEFAULT_MANA 200
 #define JUMP_SPD 10
 #define JUMP_HOLDTIME 1.0f
 #define GRAVITY 40
@@ -63,7 +63,7 @@ public:
 	uint16 free_bullets = MAX_BULLETS;
 	float timer_bullet_general = 0;
 	float timer_bullet[4] = { 0,0,0,0 }, timer_charge[4] = { 0,0,0,0 };
-	float shoot_cooldown[4] = { DEFAULT_FIRERATE, 1, 1, 1 }, shoot_cost[4] = { DEFAULT_COST, 30, 60, 80 };
+	float shoot_cooldown[4] = { DEFAULT_FIRERATE, 1, .5, 1 }, shoot_cost[4] = { DEFAULT_COST, 30, 120, 160 };
 	float knockback[4] = { 2, 0, 10, 10 }, knockback_time[4] = { .5, 0, .5, 1 };
 	float charge_cooldown[4] = { 0,0,0,1 }; bool charging = false;
 	Shader* bullet_shaders[4]; Texture* bullet_textures[4]; Mesh* bullet_meshes[4];

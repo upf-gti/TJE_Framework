@@ -90,6 +90,7 @@ public:
 		bullets_normal.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
 		bullets_normal.fromPlayer = false;
 		bullets_normal.mesh = Mesh::Get("data/meshes/bullet.obj");
+		bullets_ball.damage = 5;
 
 		bullets_smallball.isInstanced = true;
 		bullets_smallball.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
@@ -97,6 +98,7 @@ public:
 		bullets_smallball.fromPlayer = false;
 		bullets_smallball.mesh = Mesh::Get("data/meshes/bulletballsmall.obj");
 		bullets_smallball.material.color = Vector4(1, 0.0, 0.5, 1);
+		bullets_ball.damage = 5;
 
 		bullets_ball.isInstanced = true;
 		bullets_ball.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
@@ -104,7 +106,7 @@ public:
 		bullets_ball.material.color = Vector4(1, 0, 1, 1);
 		bullets_ball.fromPlayer = false;
 		bullets_ball.mesh = Mesh::Get("data/meshes/bulletball.obj");
-		bullets_ball.damage = 3;
+		bullets_ball.damage = 8;
 
 		bullets_giantball.isInstanced = true;
 		bullets_giantball.material.shader = Shader::Get("data/shaders/instanced.vs", "data/shaders/texture.fs");
@@ -112,7 +114,7 @@ public:
 		bullets_giantball.material.color = Vector4(0.9, 0.4, 0, 1);
 		bullets_giantball.fromPlayer = false;
 		bullets_giantball.mesh = Mesh::Get("data/meshes/bulletballgiant.obj");
-		bullets_giantball.damage = 15;
+		bullets_giantball.damage = 20;
 
 		Shader* s = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
 		bullet_shaders[0] = s;

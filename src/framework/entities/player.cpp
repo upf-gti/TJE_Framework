@@ -19,7 +19,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 					if (targetable && bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 						colliding = true;
 						bullet->to_delete = true;
-						stage->anxiety += bullet->damage;
+						stage->anxiety -= bullet->damage;
 						targetable = false;
 						startHit = Game::instance->time;
 					}
@@ -29,7 +29,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				if (targetable && bullet->mesh->testSphereCollision(bullet->model, position, radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
-					stage->anxiety += bullet->damage;
+					stage->anxiety -= bullet->damage;
 					targetable = false;
 					startHit = Game::instance->time;
 				}
@@ -41,7 +41,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			sCollisionData data;
 			if (targetable && bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 				bns.despawnBullet(i);
-				stage->anxiety += bns.damage;
+				stage->anxiety -= bns.damage;
 				targetable = false;
 				startHit = Game::instance->time;
 			}
@@ -52,7 +52,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			sCollisionData data;
 			if (targetable && bbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 				bbs.despawnBullet(i);
-				stage->anxiety += bbs.damage;
+				stage->anxiety -= bbs.damage;
 				targetable = false;
 				startHit = Game::instance->time;
 			}
@@ -63,7 +63,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			sCollisionData data;
 			if (targetable && bsbs.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 				bsbs.despawnBullet(i);
-				stage->anxiety += bsbs.damage;
+				stage->anxiety -= bsbs.damage;
 				targetable = false;
 				startHit = Game::instance->time;
 			}
@@ -73,7 +73,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 			Matrix44& m = stage->enemy->bullets_giantball.models[i];
 			sCollisionData data;
 			if (targetable && bgb.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
-				stage->anxiety += bgb.damage * bgb.sizes[i];
+				stage->anxiety -= bgb.damage * bgb.sizes[i];
 				bgb.despawnBullet(i);
 				targetable = false;
 				startHit = Game::instance->time;
@@ -83,7 +83,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 	//if (isHit != targetable) Audio::Play("data/audio/whip.wav");
 }
 
-void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.3) {
+void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.25) {
 	if (!dashing) {
 		m_spd = 5 * DEFAULT_SPD;
 		timer_dash = Game::instance->time;
@@ -142,6 +142,8 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		return;
 	}
 	else if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+		Stage* stage = StageManager::instance->currStage;
+		if (bullet_type == sniper) stage->anxiety -= 2;
 		Audio::Play("data/audio/whip.wav");
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
@@ -454,7 +456,7 @@ float Player::updateSubframe(float delta_time) {
 	//if (Input::isKeyPressed(SDL_SCANCODE_S)) direction -= getFront();
 	//if (Input::isKeyPressed(SDL_SCANCODE_A)) direction += getRight();
 	//if (Input::isKeyPressed(SDL_SCANCODE_D)) direction -= getRight();
-	if (!targetable) targetable = (time - startHit >= 1.0f && time - dashInvulnerabilityTimer >= 1.f);
+	if (!targetable) targetable = (time - startHit >= 0.66f && time - dashInvulnerabilityTimer >= 1.f);
 
 	if (!dashing && m_spd > 0) {
 		m_spd -= DEFAULT_SPD * delta_time / stop_duration;
@@ -483,8 +485,8 @@ float Player::updateSubframe(float delta_time) {
 	}
 
 
-	mana += (DEFAULT_COST + 3) * delta_time / (DEFAULT_FIRERATE);
-	mana = clamp(mana, 0, 200);
+	mana += (DEFAULT_COST - 1) * delta_time / (DEFAULT_FIRERATE);
+	mana = clamp(mana, 0, 300);
 
 	std::vector<sCollisionData> collisions;
 	std::vector<sCollisionData> ground;
@@ -549,15 +551,22 @@ void Player::update(float delta_time) {
 	if (Input::wasKeyPressed(SDL_SCANCODE_LSHIFT) || dashing) {
 		dash(delta_time);
 	}
+	if (Input::wasKeyPressed(SDL_SCANCODE_Q)) {
+		if (mana + 10 < shoot_cost[bt]) {
+			Audio::Play("data/audio/incorrect.mp3");
+			return;
+		}
+	}
 	if (Input::isKeyPressed(SDL_SCANCODE_Q)) {
 		//std::cout << std::endl << "\ncharge:\n" << charge_cooldown[bt] << std::endl;
-		if (charge_cooldown[bt]) shootCharge(bt);
+		if (charge_cooldown[bt] && (mana - shoot_cost[bt]) > 0) shootCharge(bt);
 		else shoot(bt);
 	}
 	else charging = false;
 	if (autoshoot) {
 		shoot();
 	}
+
 
 	if (dashing) {
 		if (current_animation != DASH) {

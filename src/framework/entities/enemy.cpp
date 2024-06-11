@@ -56,7 +56,7 @@ void Enemy::render(Camera* camera)
 	// Disable shader after finishing rendering
 	material.shader->disable();
 
-	showHitbox(camera);
+	//showHitbox(camera);
 }
 
 void Enemy::showHitbox(Camera* camera) {
@@ -66,7 +66,7 @@ void Enemy::showHitbox(Camera* camera) {
 
 	flat_shader->enable();
 
-	float sphere_radius = HITBOX_RAD;
+	float sphere_radius = HITBOX_RAD*6;
 	m.translate(0.0f, PLAYER_HEIGHT, 0.0f);
 	m.scale(sphere_radius, sphere_radius, sphere_radius);
 
@@ -85,28 +85,32 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		sCollisionData data;
 		if (bullet->isInstanced) {
 			for (Matrix44& instanced_model : bullet->models) {
-				if (bullet->mesh->testSphereCollision(instanced_model, position, 3*radius, data.colPoint, data.colNormal)) {
+				if (bullet->mesh->testSphereCollision(instanced_model, position, 6*radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
-					stage->anxiety -= bullet->damage;
+					stage->anxiety += bullet->damage;
 				}
 			}
 		}
 		else {
-			if (bullet->mesh->testSphereCollision(bullet->model, position, 3 * radius, data.colPoint, data.colNormal)) {
-				colliding = true;
-				bullet->to_delete = true;
-				stage->anxiety -= bullet->damage;
+			if (bullet->active) {
+				if (bullet->mesh->testSphereCollision(bullet->model, position, 4 * radius, data.colPoint, data.colNormal)) {
+					colliding = true;
+					bullet->active = false;
+					bullet->active = false;
+					stage->anxiety += bullet->damage;
+				}
 			}
+
 		}
 	}
 	BulletNormal& bns = stage->player->bullets_normal;
 	for (int i = 0; i < bns.models.size(); i++) {
 		Matrix44& m = stage->player->bullets_normal.models[i];
 		sCollisionData data;
-		if (bns.mesh->testSphereCollision(m, position, 3 * radius, data.colPoint, data.colNormal)) {
+		if (bns.mesh->testSphereCollision(m, position, 6 * radius, data.colPoint, data.colNormal)) {
 			bns.despawnBullet(i);
-			stage->anxiety -= bns.damage;
+			stage->anxiety += bns.damage;
 		}
 	}
 	BulletAuto& bas = stage->player->bullets_auto;
@@ -115,7 +119,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		sCollisionData data;
 		if (bas.mesh->testSphereCollision(m, position, 2 * radius, data.colPoint, data.colNormal)) {
 			bas.despawnBullet(i);
-			stage->anxiety -= bas.damage;
+			stage->anxiety += bas.damage;
 		}
 	}
 }
