@@ -33,9 +33,6 @@ void Enemy::render(Camera* camera)
 	bullets_smallball.render(camera);
 	bullets_giantball.render(camera);
 	
-
-
-
 	if (!material.shader) {
 		material.shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	}
