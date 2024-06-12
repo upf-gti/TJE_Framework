@@ -3,6 +3,7 @@
 #include "game/game.h"
 #include "bullet/bullet.h"
 #include "game/StageManager.h"
+#include "game/GameStage.h"
 
 #include <algorithm>
 
@@ -184,9 +185,18 @@ void EntityMesh::renderWithLights(Camera* camera) {
 	if (!isInstanced) {
 		shader->setUniform("u_model", model);
 	}
+	glDepthFunc(GL_LEQUAL);
 
+	shader->setUniform("eye", camera->eye);
+	shader->setUniform("u_alpha", 30.0f);
+	shader->setUniform("u_specular", 0.2f);
 	shader->setUniform("u_ambient_light", StageManager::instance->ambient_night);
 
+	GameStage::lightToShader(GameStage::instance->mainLight, shader);
+	/*for (Light* light : GameStage::instance->lights) {
+		GameStage::lightToShader(light, shader);
+		glEnable(GL_BLEND);
+	}*/
 	shader->setUniform("u_time", Game::instance->time);
 
 	if (isInstanced)
@@ -196,6 +206,7 @@ void EntityMesh::renderWithLights(Camera* camera) {
 		std::cout << isAnimated << std::endl;
 	}
 	else mesh->render(GL_TRIANGLES);
+	glDepthFunc(GL_LESS);
 
 	// Disable shader after finishing rendering
 	shader->disable();

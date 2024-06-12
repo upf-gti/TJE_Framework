@@ -19,14 +19,6 @@ void EntityUI::render(Camera* camera2D) {
 		return;
 	}
 
-
-
-
-
-
-	std::cout << "EntityUI ";
-
-
 	if (posteffects) {
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
@@ -37,6 +29,7 @@ void EntityUI::render(Camera* camera2D) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
+
 
 	material.shader->enable();
 
@@ -63,7 +56,6 @@ void EntityUI::render(Camera* camera2D) {
 		quad.render(GL_TRIANGLES);
 	}
 	else {
-		std::cout << "Paiting Quad!";
 		mesh->render(GL_TRIANGLES);
 	}
 	material.shader->disable();
