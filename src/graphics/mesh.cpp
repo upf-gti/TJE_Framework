@@ -1180,6 +1180,7 @@ bool Mesh::loadOBJ(const char* filename)
 	if (f == NULL)
 	{
 		std::cerr << "File not found: " << filename << std::endl;
+		std::cout << "File not found: " << filename << std::endl;
 		return false;
 	}
 

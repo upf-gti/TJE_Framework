@@ -74,6 +74,8 @@ public:
 	Mesh* charge_mesh;
 	Matrix44 charge_model;
 
+	EntityMesh dir;
+
 	BulletNormal bullets_normal;
 	BulletAuto bullets_auto;
 
@@ -114,6 +116,11 @@ public:
 		this->type = PLAYER;
 		loadTextures();
 		loadAnims();
+
+		dir.mesh = Mesh::Get("data/meshes/directon.obj");
+		dir.material.diffuse = Texture::Get("data/meshes/directon.mtl");
+		dir.material.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
+		dir.material.color = Vector4(1);
 	};
 	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
 		this->mesh = mesh;
@@ -124,6 +131,7 @@ public:
 		this->type = PLAYER;
 		loadTextures();
 		loadAnims();
+
 	};
 	~Player() {
 

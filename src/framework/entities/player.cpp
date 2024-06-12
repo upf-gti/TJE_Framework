@@ -379,6 +379,8 @@ void Player::renderWithLights(Camera* camera) {
 	bullets_normal.render(camera);
 	bullets_auto.render(camera);
 
+	dir.render(camera);
+
 	showHitbox(camera);
 };
 
@@ -455,6 +457,9 @@ void Player::render(Camera* camera) {
 	}
 	bullets_normal.render(camera);
 	bullets_auto.render(camera);
+
+
+	dir.render(camera);
 
 	showHitbox(camera);
 };
@@ -638,6 +643,11 @@ void Player::update(float delta_time) {
 	this->sphere_bullet_collision(player_center + Vector3::UP * 4*HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
 	this->sphere_bullet_collision(player_center + Vector3::UP * 6 * HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
 	this->sphere_bullet_collision(player_center + Vector3::UP * 8 * HITBOX_RAD + minusPlayerHeight, HITBOX_RAD);
+
+	Matrix44 _m = model;
+	dir.model = _m;
+	dir.model.translate(Vector3(0, 0.01 - (_m.getTranslation().y - ground_y), 0));
+	
 }
 
 
