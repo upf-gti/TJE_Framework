@@ -16,6 +16,7 @@ public:
 	Stage* currStage;
 	std::unordered_map<std::string, Stage*> stages;
 
+
 	StageManager();
 
 	void render();

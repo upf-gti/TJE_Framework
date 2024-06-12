@@ -114,7 +114,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 	for (int i = 0; i < bas.models.size(); i++) {
 		Matrix44& m = bas.models[i];
 		sCollisionData data;
-		if (bas.mesh->testSphereCollision(m, position, 2 * radius, data.colPoint, data.colNormal)) {
+		if (bas.mesh->testSphereCollision(m, position, 4 * radius, data.colPoint, data.colNormal)) {
 			bas.despawnBullet(i);
 			stage->anxiety_dt += bas.damage;
 		}

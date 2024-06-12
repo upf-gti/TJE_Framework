@@ -14,18 +14,32 @@ void EntityUI::render(Camera* camera2D) {
 
 	if (!is3d) glEnable(GL_DEPTH_TEST);
 	
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (!mesh) {
+		std::cout << "NO MESH";
+		return;
+	}
+
+	if (posteffects) {
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	else {
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
 
 	material.shader->enable();
 
 	Stage* stage = StageManager::instance->currStage;
 
+	//material.shader->setUniform("u_camera_pos")
 	material.shader->setUniform("u_model", Matrix44());
 	material.shader->setUniform("u_color", Vector4(1.0f));
 	material.shader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
-	material.shader->setUniform("u_mask", mask);
+	//material.shader->setUniform("u_mask", mask);
 
 	if (material.diffuse) {
 		material.shader->setTexture("u_texture", material.diffuse, 0);
@@ -46,9 +60,17 @@ void EntityUI::render(Camera* camera2D) {
 	}
 	material.shader->disable();
 
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
+
+	if (posteffects) {
+		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
+	}
+	else {
+		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+	}
+
 
 	// Render hijos
 	for (size_t i = 0; i < children.size(); i++)

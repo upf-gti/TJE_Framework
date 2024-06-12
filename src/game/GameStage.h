@@ -31,6 +31,10 @@ public:
 	RenderToTexture* renderFBO;
 	FBO* shadowMapFBO;
 
+
+	float enoughmanatimer = 0;
+	float enoughmana;
+
 	//events
 	void onKeyDown(SDL_KeyboardEvent event) override;
 	void onKeyUp(SDL_KeyboardEvent event) override;
@@ -48,6 +52,10 @@ public:
   
 	void renderHUD();
  	void renderBar(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color, float decrease = 0);
+
+ 	void renderSquare(Vector2 barPosition, Vector2 barSize, float percentage, Vector4 color);
+	void renderPic(Vector2 position, Vector2 size, Texture* diffuse);
+
 
 	void generateShadowMaps(Camera* camera);
 
