@@ -79,7 +79,7 @@ void RenderToTexture::enable()
 
 void RenderToTexture::disable()
 {
-	// output goes to the FBO and it’s attached buffers
+	// output goes to the FBO and itï¿½s attached buffers
 	glPopAttrib();
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0);
 	if (generate_mipmaps)

@@ -365,9 +365,15 @@ GameStage::GameStage()
 	Audio::Get("data/audio/shotgun.wav");
 	Audio::Get("data/audio/shoot.wav");
 	Audio::Get("data/audio/shoot_player.wav");
-	Audio::Get("data/audio/hurt1.wav");
-	Audio::Get("data/audio/hurt2.wav");
-	Audio::Get("data/audio/hurt3.wav");
+	Audio::Get("data/audio/h1_0.mp3");
+	Audio::Get("data/audio/h1_1.mp3");
+	Audio::Get("data/audio/h1_2.mp3");
+	Audio::Get("data/audio/h2_0.mp3");
+	Audio::Get("data/audio/h2_1.mp3");
+	Audio::Get("data/audio/h3_0.mp3");
+	Audio::Get("data/audio/h3_1.mp3");
+	Audio::Get("data/audio/jump.wav");
+	Audio::Get("data/audio/dash_0.wav");
 	Audio::Get("data/audio/bgm.mp3", BASS_SAMPLE_LOOP);
 
 	HCHANNEL channel = Audio::Play("data/audio/bgm.mp3", 0.7);

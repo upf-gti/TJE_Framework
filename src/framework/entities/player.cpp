@@ -3,6 +3,7 @@
 #include "game/StageManager.h"
 #include "framework/audio.h"
 
+#include <string>
 #include <algorithm>
 
 // cubemap
@@ -10,6 +11,7 @@
 void Player::sphere_bullet_collision(Vector3 position, float radius) {
 	Stage* stage = StageManager::instance->currStage;
 	bool isHit = targetable;
+	std::string audiofile;
 	if (targetable) {
 		for (Bullet* bullet : stage->enemy->bullets) {
 			sCollisionData data;
@@ -22,7 +24,9 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 						stage->anxiety_dt -= bullet->damage;
 						targetable = false;
 						startHit = Game::instance->time;
-						Audio::Play("data/audio/hurt3.wav");
+						audiofile = std::to_string((int)floor(random(2.99))) + ".mp3";
+						Audio::Play("data/audio/h1_" + audiofile);
+						std::cout << "data/audio/h3_" + audiofile;
 						return;
 					}
 				}
@@ -34,7 +38,9 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 					stage->anxiety_dt -= bullet->damage;
 					targetable = false;
 					startHit = Game::instance->time;
-					Audio::Play("data/audio/hurt1.wav");
+					audiofile = std::to_string((int)floor(random(2.99))) + ".mp3";
+					Audio::Play("data/audio/h1_" + audiofile);
+					std::cout << "data/audio/h3_" + audiofile;
 					return;
 				}
 			}
@@ -48,7 +54,9 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				stage->anxiety_dt -= bns.damage;
 				targetable = false;
 				startHit = Game::instance->time;
-				Audio::Play("data/audio/hurt1.wav");
+				audiofile = std::to_string((int)floor(random(2.99))) + ".mp3";
+				Audio::Play("data/audio/h1_" + audiofile);
+				std::cout << "data/audio/h3_" + audiofile;
 				return;
 			}
 		}
@@ -61,7 +69,9 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				stage->anxiety_dt -= bbs.damage;
 				targetable = false;
 				startHit = Game::instance->time;
-				Audio::Play("data/audio/hurt2.wav");
+				audiofile = std::to_string((int)floor(random(1.99))) + ".mp3";
+				Audio::Play("data/audio/h2_" + audiofile);
+				std::cout << "data/audio/h3_" + audiofile;
 				return;
 			}
 		}
@@ -74,7 +84,9 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				stage->anxiety_dt -= bsbs.damage;
 				targetable = false;
 				startHit = Game::instance->time;
-				Audio::Play("data/audio/hurt1.wav");
+				audiofile = std::to_string((int)floor(random(2.99))) + ".mp3";
+				Audio::Play("data/audio/h1_" + audiofile);
+				std::cout << "data/audio/h3_" + audiofile;
 				return;
 			}
 		}
@@ -87,7 +99,9 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				bgb.despawnBullet(i);
 				targetable = false;
 				startHit = Game::instance->time;
-				Audio::Play("data/audio/hurt3.wav");
+				audiofile = std::to_string((int)floor(random(1.99))) + ".mp3";
+				Audio::Play("data/audio/h3_" + audiofile);
+				std::cout << "data/audio/h3_" + audiofile;
 				return;
 			}
 		}
@@ -103,6 +117,7 @@ void Player::dash(float delta_time, float dash_duration = 1, float invul_duratio
 		dashing = true;
 		targetable = false;
 		can_be_hit = false;
+		Audio::Play("data/audio/dash_0.wav");
 	}
 	else if (m_spd > DEFAULT_SPD) {
 		m_spd -= 3 * DEFAULT_SPD * delta_time / dash_duration;
@@ -123,6 +138,7 @@ void Player::jump(float delta_time) {
 		timer_jump = Game::instance->time;
 		grounded = false;
 		jumping = true;
+		Audio::Play("data/audio/jump.wav");
 	}
 	else v_spd = JUMP_SPD * (1 - (2 * (Game::instance->time - timer_jump)));
 }
