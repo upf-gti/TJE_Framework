@@ -48,6 +48,7 @@ Texture* sus;
 Texture* slot1;
 Texture* slot2;
 Texture* slot3;
+Texture* slotauto;
 Texture* selected;
 Texture* shoot_tuto;
 
@@ -297,12 +298,14 @@ GameStage::GameStage()
 
 	hudshader = Shader::Get("data/shaders/hud.vs", "data/shaders/hud.fs");
 	picshader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+	squareshader = Shader::Get("data/shaders/hud.vs", "data/shaders/square.fs");
 
 	slot1 = Texture::Get("data/textures/simple.PNG");
 	slot2 = Texture::Get("data/textures/shotgun.PNG");
 	slot3 = Texture::Get("data/textures/lazer.png");
+	slotauto = Texture::Get("data/textures/auto.PNG");
 	selected = Texture::Get("data/textures/selectslot.PNG");
-	shoot_tuto = Texture::Get("data/textures/shoot.PNG");
+	shoot_tuto = Texture::Get("data/textures/q.PNG");
 
 	player->material = *mat;
 	player->isAnimated = true;
@@ -403,32 +406,47 @@ void GameStage::renderHUD()
 
 	renderBar(barPosition, barSize, player->mana/300.0f, Vector3(0.3, 0.1, 0.8));
 
-	barPosition = Vector2(30 + gameWidth * 0.3f + 60, gameHeight - 55 - 30);
-	barSize = Vector2(160, 30);
-
-	if (((int) Game::instance->time % 2) && player->mana == 300) renderPic(barPosition, barSize, shoot_tuto);
 
 	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 70);
 	barSize = Vector2(70, 70);
 
 	renderPic(barPosition, barSize, slot1);
 
-
-	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 150);
+	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 140);
 	barSize = Vector2(70, 70);
 
 	renderPic(barPosition, barSize, slot2);
 
-	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 230);
+	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 210);
 	barSize = Vector2(70, 70);
 
 	renderPic(barPosition, barSize, slot3);
 
-	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 70 - 80 * (player->bt - 1));
+	bullet_type bt = player->bt;
+	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 70 - 70 * (bt - 1));
 	barSize = Vector2(70, 70);
 
-	renderSquare(barPosition, barSize, (time - player->timer_bullet[player->bt]) / player->shoot_cooldown[player->bt], Vector3(0, 1, 0));
+	bool enough_mana = (player->mana > player->shoot_cost[bt]);
+	if (enough_mana && !enoughmana) {
+		enoughmanatimer = time;
+		enoughmana = true;
+	}
+	else if (!enough_mana) enoughmana = false;
+	renderSquare(barPosition, barSize, (time - player->timer_bullet[bt]) / player->shoot_cooldown[bt], Vector4(0, enough_mana + (!enough_mana * 0.7), !enough_mana, 0.3));
 	renderPic(barPosition, barSize, selected);
+	if (((int)(time - enoughmanatimer) % 2) && enough_mana && enoughmanatimer + 5 < time && player->timer_bullet[bt] + 5 < time) renderPic(barPosition, barSize, shoot_tuto);
+
+
+	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 210 - 80);
+	barSize = Vector2(70, 70);
+
+	renderPic(barPosition, barSize, slotauto);
+
+	enough_mana = (player->mana > player->shoot_cost[0]);
+	if (player->autoshoot) {
+		renderSquare(barPosition, barSize, (time - player->timer_bullet[0]) / player->shoot_cooldown[0], Vector4(enough_mana, (!enough_mana * 0.7), !enough_mana, 0.3));
+		renderPic(barPosition, barSize, selected);
+	}
 
 }
 
@@ -463,14 +481,14 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 	glDisable(GL_BLEND);
 }
 
-void GameStage::renderSquare(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color)
+void GameStage::renderSquare(Vector2 barPosition, Vector2 barSize, float percentage, Vector4 color)
 {
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Mesh square;
-	shader = hudshader;
+	shader = squareshader;
 	shader->enable();
 
 	//Creation of the second quad. This one contains the life information. 
@@ -630,7 +648,7 @@ void GameStage::render(void)
 	glDisable(GL_DEPTH_TEST);
 
 
-	
+
 
 	renderFBO->disable();
 
@@ -646,6 +664,7 @@ void GameStage::render(void)
 
 	//amogus.render(camera2D);
 	renderHUD();
+
 
 
 }

@@ -174,7 +174,7 @@ private:
 		bullets_auto.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
 		bullets_auto.mesh = Mesh::Get("data/meshes/bullet.obj");
 		bullets_auto.material.color = Vector4(0.0, 68/255, 1, 1);
-		bullets_auto.damage = 0.2;
+		bullets_auto.damage = 0.25;
 
 		charge_mat.color = Vector4(1, 1, 1, 1);
 		charge_mat.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
