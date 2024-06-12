@@ -497,10 +497,10 @@ float Player::updateSubframe(float delta_time) {
 	Stage* stage = StageManager::instance->currStage;
 	float time = Game::instance->time;
 	direction = model.frontVector();
-	//if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
-	//	Input::isKeyPressed(SDL_SCANCODE_L) ||
-	//	Input::isKeyPressed(SDL_SCANCODE_A) ||
-	//	Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing /* && stage->mouse_locked*/) m_spd = DEFAULT_SPD;
+	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
+		Input::isKeyPressed(SDL_SCANCODE_L) ||
+		Input::isKeyPressed(SDL_SCANCODE_A) ||
+		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing /* && stage->mouse_locked*/) m_spd = DEFAULT_SPD;
 
 	//direction = Vector3(0.0f);
 
