@@ -46,7 +46,8 @@ public:
   
 	void renderHUD();
  	void renderBar(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color, float decrease = 0);
- 	void renderImage(Vector2 imgPosition, Vector2 imgSize, Texture img);
+ 	void renderSquare(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color);
+	void renderPic(Vector2 position, Vector2 size, Texture* diffuse);
 
 	int shadowMapSize = 1024;
 	void generateShadowMaps(Camera* camera);

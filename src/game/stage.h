@@ -28,6 +28,9 @@ public:
 	Enemy* enemy;
 	Player* player;
 
+	Shader* hudshader;
+	Shader* picshader;
+
 	float anxiety;
 	float anxiety_dt = 0;
 

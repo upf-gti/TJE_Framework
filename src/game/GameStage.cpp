@@ -45,6 +45,11 @@ Texture* cubemap = new Texture();
 
 Shader* image = NULL;
 Texture* sus;
+Texture* slot1;
+Texture* slot2;
+Texture* slot3;
+Texture* selected;
+Texture* shoot_tuto;
 
 EntityUI amogus;
 
@@ -271,6 +276,8 @@ COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& c
 	// return !collisions.empty();
 }
 
+
+
 GameStage::GameStage()
 {
 	mouse_locked = true;
@@ -287,18 +294,15 @@ GameStage::GameStage()
 	mat->diffuse = Texture::Get("data/meshes/asian.png");
 	player->mesh = Mesh::Get("data/meshes/char.MESH");
 
-	shader = Shader::Get("data/shaders/hud.vs", "data/shaders/texture.fs");
-	sus = Texture::Get("data/gus.tga");
-	Material amogus_mat = Material();
-	amogus_mat.color = Vector4(1.0f);
-	amogus_mat.diffuse = sus;
-	amogus_mat.shader = shader;
-	amogus = EntityUI();
-	amogus.material = amogus_mat;
-	Mesh* _quad = new Mesh();
-	_quad->createQuad(300, 400, 200, 100, false);
-	amogus.mesh = _quad;
 
+	hudshader = Shader::Get("data/shaders/hud.vs", "data/shaders/hud.fs");
+	picshader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+
+	slot1 = Texture::Get("data/textures/simple.PNG");
+	slot2 = Texture::Get("data/textures/shotgun.PNG");
+	slot3 = Texture::Get("data/textures/lazer.png");
+	selected = Texture::Get("data/textures/selectslot.PNG");
+	shoot_tuto = Texture::Get("data/textures/shoot.PNG");
 
 	player->material = *mat;
 	player->isAnimated = true;
@@ -387,7 +391,7 @@ GameStage::GameStage()
 void GameStage::renderHUD()
 {
 	float gameWidth = Game::instance->window_width, gameHeight = Game::instance->window_height;
-
+	float time = Game::instance->time;
 	//Render HP bar
 	Vector2 barPosition = Vector2(30 + gameWidth / 4.0, gameHeight - 40 - 15);
 	Vector2 barSize = Vector2(gameWidth/2.0f, 30);
@@ -398,6 +402,34 @@ void GameStage::renderHUD()
 	barSize = Vector2(gameWidth*0.3f, 20);
 
 	renderBar(barPosition, barSize, player->mana/300.0f, Vector3(0.3, 0.1, 0.8));
+
+	barPosition = Vector2(30 + gameWidth * 0.3f + 60, gameHeight - 55 - 30);
+	barSize = Vector2(160, 30);
+
+	if (((int) Game::instance->time % 2) && player->mana == 300) renderPic(barPosition, barSize, shoot_tuto);
+
+	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 70);
+	barSize = Vector2(70, 70);
+
+	renderPic(barPosition, barSize, slot1);
+
+
+	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 150);
+	barSize = Vector2(70, 70);
+
+	renderPic(barPosition, barSize, slot2);
+
+	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 230);
+	barSize = Vector2(70, 70);
+
+	renderPic(barPosition, barSize, slot3);
+
+	barPosition = Vector2(45 + 35, gameHeight - 55 - 30 - 70 - 80 * (player->bt - 1));
+	barSize = Vector2(70, 70);
+
+	renderSquare(barPosition, barSize, (time - player->timer_bullet[player->bt]) / player->shoot_cooldown[player->bt], Vector3(0, 1, 0));
+	renderPic(barPosition, barSize, selected);
+
 }
 
 // Assuming you have a function to loadTGA that reads the TGA data
@@ -409,7 +441,7 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 
 	Mesh innerQuad;
 	Mesh outerQuad;
-	shader = Shader::Get("data/shaders/hud.vs", "data/shaders/hud.fs");
+	shader = hudshader;
 	shader->enable();
 
 	//Creation of the second quad. This one contains the life information. 
@@ -427,6 +459,58 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 	shader->setUniform("u_decrease", decrease);
 
 	innerQuad.render(GL_TRIANGLES);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+}
+
+void GameStage::renderSquare(Vector2 barPosition, Vector2 barSize, float percentage, Vector3 color)
+{
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	Mesh square;
+	shader = hudshader;
+	shader->enable();
+
+	//Creation of the second quad. This one contains the life information. 
+	square.createQuad(barPosition.x, barPosition.y, barSize.x, barSize.y, true);
+	shader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
+	shader->setUniform("u_color", color);
+	shader->setUniform("u_percentage", percentage);
+	shader->setUniform("u_decrease", 0.0f);
+
+	square.render(GL_TRIANGLES);
+
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+}
+
+
+void GameStage::renderPic(Vector2 position, Vector2 size, Texture* diffuse) {
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	picshader->enable();
+
+	Mesh quad;
+	quad.createQuad(position.x, position.y, size.x, size.y, false);
+
+	Stage* stage = StageManager::instance->currStage;
+
+	picshader->setUniform("u_model", Matrix44());
+	picshader->setUniform("u_color", Vector4(1.0f));
+	picshader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
+
+	if (diffuse) {
+		picshader->setTexture("u_texture", diffuse, 0);
+	}
+
+	quad.render(GL_TRIANGLES);
+
+	picshader->disable();
+
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 }
@@ -545,6 +629,9 @@ void GameStage::render(void)
 
 	glDisable(GL_DEPTH_TEST);
 
+
+	
+
 	renderFBO->disable();
 
 	Shader* shader = Shader::Get("data/shaders/postfx.vs", "data/shaders/postfx.fs");
@@ -557,9 +644,10 @@ void GameStage::render(void)
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
 	drawText(2, 400, std::to_string(player->targetable), Vector3(1, 1, 1), 5);
 
-
+	//amogus.render(camera2D);
 	renderHUD();
-	amogus.render(camera2D);
+
+
 }
 
 bool GameStage::compareFunction(const Entity* e1, const Entity* e2) {
