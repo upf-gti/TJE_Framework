@@ -8,9 +8,20 @@
 
 #include "framework/entities/entity.h"
 
+enum eLightType : uint32 {
+	NO_LIGHT = 0,
+	POINTLIGHT = 1,
+	SPOT = 2,
+	DIRECTIONAL = 3
+};
+
 class Light : Entity
 {
 public:
+	eLightType lightType;
+
+	Matrix44 model;
+
 	float intensity;
 	Vector3 color;
 	float near_distance;
@@ -23,7 +34,7 @@ public:
 	FBO* shadowMapFBO;
 	mat4 shadowMap_viewProjection;
 
-	Light();
+	Light(eLightType type, bool isDay=false);
 
 	Vector3 getFront() { return model.frontVector(); }
 };

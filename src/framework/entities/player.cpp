@@ -2,6 +2,7 @@
 #include "enemy.h"
 #include "game/StageManager.h"
 #include "framework/audio.h"
+#include "game/GameStage.h"
 
 #include <string>
 #include <algorithm>
@@ -365,9 +366,12 @@ void Player::renderWithLights(Camera* camera) {
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 
 	shader->setUniform("eye", camera->eye);
-	shader->setUniform("u_alpha", 30);
+	shader->setUniform("u_alpha", 30.0f);
 	shader->setUniform("u_specular", 0.2f);
-	shader->setUniform("u_ambient_light", Vector3(0.15, 0.15, 0.25).normalize());
+	shader->setUniform("u_ambient_light", StageManager::instance->ambient_night);
+
+	GameStage::lightToShader(GameStage::instance->mainLight, shader);
+	//for (Light* light : GameStage::instance->lights) GameStage::lightToShader(light, shader);
 
 	if (material.diffuse) {
 		shader->setTexture("u_texture", material.diffuse, 0);
@@ -493,10 +497,10 @@ float Player::updateSubframe(float delta_time) {
 	Stage* stage = StageManager::instance->currStage;
 	float time = Game::instance->time;
 	direction = model.frontVector();
-	if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
-		Input::isKeyPressed(SDL_SCANCODE_L) ||
-		Input::isKeyPressed(SDL_SCANCODE_A) ||
-		Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing /* && stage->mouse_locked*/) m_spd = DEFAULT_SPD;
+	//if ((Input::isKeyPressed(SDL_SCANCODE_W) ||
+	//	Input::isKeyPressed(SDL_SCANCODE_L) ||
+	//	Input::isKeyPressed(SDL_SCANCODE_A) ||
+	//	Input::isKeyPressed(SDL_SCANCODE_D)) && !dashing /* && stage->mouse_locked*/) m_spd = DEFAULT_SPD;
 
 	//direction = Vector3(0.0f);
 

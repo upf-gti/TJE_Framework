@@ -48,6 +48,8 @@ Texture* sus;
 
 EntityUI amogus;
 
+GameStage* GameStage::instance = NULL;
+
 // Cosas nuevas que he añadido
 
 
@@ -273,6 +275,7 @@ COL_TYPE GameStage::sphere_collided(Entity* root, std::vector<sCollisionData>& c
 
 GameStage::GameStage()
 {
+	GameStage::instance = this;
 	mouse_locked = true;
 	SDL_ShowCursor(!mouse_locked);
 	SDL_SetRelativeMouseMode((SDL_bool)(mouse_locked));
@@ -313,6 +316,7 @@ GameStage::GameStage()
 	mat2->shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
 	mat2->diffuse = Texture::Get("data/meshes/maolixi.png");
 	enemy = new Enemy(Mesh::Get("data/meshes/maolixi.MESH"), *mat2, "Francisco", true, 1);
+	enemy->model.setTranslation(Vector3(0, 0, 0));
 	this->enemy = enemy;
 	this->player = player;
 
@@ -380,12 +384,18 @@ GameStage::GameStage()
 
 	renderFBO = NULL;
 	
-	mainLight = new Light();
+	mainLight = new Light(eLightType::DIRECTIONAL);
+	mainLight->model.setTranslation(0, 20, 10);
+	centerLight = new Light(eLightType::POINTLIGHT);
+	centerLight->model.setTranslation(0, 0, 0);
+
+	lights.push_back(mainLight); lights.push_back(centerLight);
 }
 
 
 void GameStage::renderHUD()
 {
+	camera2D->enable();
 	float gameWidth = Game::instance->window_width, gameHeight = Game::instance->window_height;
 
 	//Render HP bar
@@ -425,90 +435,105 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 	shader->setUniform("u_color", color);
 	shader->setUniform("u_percentage", percentage);
 	shader->setUniform("u_decrease", decrease);
+	shader->setUniform("u_texture_option", 0.0f);
 
 	innerQuad.render(GL_TRIANGLES);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 }
 
-// Assuming you have a function to loadTGA that reads the TGA data
-//void GameStage::renderImage(Vector2 imgPosition, Vector2 imgSize, Texture img)
-//{
-//	glDisable(GL_DEPTH_TEST);
-//	glEnable(GL_BLEND);
-//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//
-//	Mesh innerQuad;
-//	Mesh outerQuad;
-//	shader = Shader::Get("data/shaders/hud.vs", "data/shaders/hud.fs");
-//	shader->enable();
-//
-//	//Creation of the second quad. This one contains the life information. 
-//	outerQuad.createQuad(barPosition.x, barPosition.y, barSize.x, barSize.y, true);
-//	shader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
-//	shader->setUniform("u_color", Vector3(32.0f / 255.0f));
-//	shader->setUniform("u_percentage", 1.0f);
-//	shader->setUniform("u_decrease", 0.0f);
-//
-//	outerQuad.render(GL_TRIANGLES);
-//
-//	innerQuad.createQuad(barPosition.x, barPosition.y, barSize.x - 10, barSize.y - 10, true);
-//	shader->setUniform("u_color", color);
-//	shader->setUniform("u_percentage", percentage);
-//	shader->setUniform("u_decrease", decrease);
-//
-//	innerQuad.render(GL_TRIANGLES);
-//	glEnable(GL_DEPTH_TEST);
-//	glDisable(GL_BLEND);
-//}
-
 void GameStage::generateShadowMaps(Camera* camera)
 {
-	if (!mainLight->shadowMapFBO || mainLight->shadowMapFBO->width != shadowMapSize)
+	int shadowMapSize = 1024;
+
+	for (int i = 0; i < lights.size(); ++i)
 	{
-		if (mainLight->shadowMapFBO)
-			delete mainLight->shadowMapFBO;
-		mainLight->shadowMapFBO = new FBO();
-		mainLight->shadowMapFBO->setDepthOnly(shadowMapSize, shadowMapSize);
+		Light* light = lights[i];
+
+		if (!light->cast_shadows || light->lightType == eLightType::POINTLIGHT)
+			continue;
+
+		if (light->shadowMapFBO == nullptr || light->shadowMapFBO->width != shadowMapSize)
+		{
+			if (light->shadowMapFBO)
+				delete light->shadowMapFBO;
+			light->shadowMapFBO = new FBO();
+			light->shadowMapFBO->setDepthOnly(shadowMapSize, shadowMapSize);
+		}
+
+		Camera light_camera;
+		Vector3 up = Vector3(0, 1, 0);
+
+		Vector3 pos = camera->eye;
+		light_camera.lookAt(pos, pos - light->getFront(), up);
+
+		light->shadowMapFBO->bind();
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		if (light->lightType == eLightType::DIRECTIONAL)
+		{
+			//light = mainLight;
+			//pos = camera->eye;
+			light_camera.lookAt(pos, pos - light->getFront(), up);
+
+			float halfArea = light->area / 2.0f;
+			light_camera.setOrthographic(-halfArea, halfArea, -halfArea, halfArea, light->near_distance, light->max_distance);
+
+			//compute texel size in world units, where frustum size is the distance from left to right in the camera
+			float grid = light->area / (float)shadowMapSize;
+
+			//snap camera X,Y to that size in camera space assuming the frustum is square, otherwise compute gridx and gridy
+			light_camera.view_matrix.M[3][0] = round(light_camera.view_matrix.M[3][0] / grid) * grid;
+
+			light_camera.view_matrix.M[3][1] = round(light_camera.view_matrix.M[3][1] / grid) * grid;
+
+			//update viewproj matrix (be sure no one changes it)
+			light_camera.viewprojection_matrix = light_camera.view_matrix * light_camera.projection_matrix;
+
+		}
+		else if (light->lightType == eLightType::SPOT)
+		{
+			light_camera.setPerspective(light->cone_info.y * 2.0f, 1.0f, light->near_distance, light->max_distance);
+		}
+
+		light->shadowMap_viewProjection = light_camera.viewprojection_matrix;
+		light_camera.enable();
+
+		root_opaque->render(&light_camera);
+
+		light->shadowMapFBO->unbind();
 	}
+}
 
-	Camera light_camera;
-	vec3 up = vec3(0, 1, 0);
+void GameStage::shadowToShader(Light* light, int& shadowMapPos, Shader* shader)
+{
+	shader->setUniform("u_light_cast_shadows", 1);
+	shader->setUniform("u_shadowmap", light->shadowMapFBO->depth_texture, 8);
+	shader->setUniform("u_shadowmap_viewprojection", light->shadowMap_viewProjection);
+	shader->setUniform("u_shadow_bias", light->shadow_bias);
+}
 
-	vec3 pos = camera->eye;
-	light_camera.lookAt(pos, pos - mainLight->getFront(), up);
+void GameStage::lightToShader(Light* light, Shader* shader)
+{
+	Vector2 cone_info = Vector2(cosf(light->cone_info.x * PI / 180.0f), cosf(light->cone_info.y * PI / 180.0f));
 
-	mainLight->shadowMapFBO->bind();
-	glClear(GL_DEPTH_BUFFER_BIT);
+	shader->setUniform("u_light_type", (int)light->lightType);
+	shader->setUniform("u_light_position", light->model.getTranslation());
+	shader->setUniform("u_light_front", light->getFront());
+	shader->setUniform("u_light_color", light->color * light->intensity);
+	shader->setUniform("u_light_max_distance", light->max_distance);
+	shader->setUniform("u_light_cone_info", cone_info);
 
-	light_camera.lookAt(pos, pos - mainLight->getFront(), up);
-
-	float halfArea = mainLight->area / 2.0f;
-	light_camera.setOrthographic(-halfArea, halfArea, -halfArea, halfArea, mainLight->near_distance, mainLight->max_distance);
-
-	//compute texel size in world units, where frustum size is the distance from left to right in the camera
-	float grid = mainLight->area / (float)shadowMapSize;
-
-	//snap camera X,Y to that size in camera space assuming the frustum is square, otherwise compute gridx and gridy
-	light_camera.view_matrix.M[3][0] = round(light_camera.view_matrix.M[3][0] / grid) * grid;
-
-	light_camera.view_matrix.M[3][1] = round(light_camera.view_matrix.M[3][1] / grid) * grid;
-
-	//update viewproj matrix (be sure no one changes it)
-	light_camera.viewprojection_matrix = light_camera.view_matrix * light_camera.projection_matrix;
-
-	mainLight->shadowMap_viewProjection = light_camera.viewprojection_matrix;
-	light_camera.enable();
-
-	root_opaque->render(camera);
-
-	mainLight->shadowMapFBO->unbind();
+	int shadowMapPos = 8;
+	if (light->cast_shadows) GameStage::shadowToShader(light, shadowMapPos, shader);
+	else shader->setUniform("u_light_cast_shadows", 0);
 }
 
 //what to do when the image has to be draw
 void GameStage::render(void)
 {
 	float width = Game::instance->window_width, height = Game::instance->window_height;
+	generateShadowMaps(camera);
 	if (!renderFBO) {
 		renderFBO = new RenderToTexture();
 		renderFBO->create(width, height);
@@ -541,8 +566,6 @@ void GameStage::render(void)
 
 	root_transparent->renderWithLights(camera);
 
-
-
 	glDisable(GL_DEPTH_TEST);
 
 	renderFBO->disable();
@@ -552,6 +575,7 @@ void GameStage::render(void)
 	shader->setUniform("iResolution", Vector2(renderFBO->width, renderFBO->height));
 
 	renderFBO->toViewport(shader);
+	//mainLight->shadowMapFBO->depth_texture->toViewport();
 
 	// Render the FPS, Draw Calls, etc
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
@@ -559,7 +583,6 @@ void GameStage::render(void)
 
 
 	renderHUD();
-	amogus.render(camera2D);
 }
 
 bool GameStage::compareFunction(const Entity* e1, const Entity* e2) {
