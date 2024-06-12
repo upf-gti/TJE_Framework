@@ -90,6 +90,7 @@ public:
 		bullets_normal.material.diffuse = Texture::Get("data/meshes/bullet.mtl");
 		bullets_normal.fromPlayer = false;
 		bullets_normal.mesh = Mesh::Get("data/meshes/bullet.obj");
+		bullets_normal.material.color = Vector4(1, 0.0, 0.0, 1);
 		bullets_ball.damage = 5;
 
 		bullets_smallball.isInstanced = true;

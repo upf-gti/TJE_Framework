@@ -11,7 +11,7 @@ struct sMeshLOD {
 
 enum COL_TYPE : int32 {
 	NONE = 0,
-	FLOOR = 1 << 0,
+	FLOOR = 1,
 	WALL = 1 << 1,
 	PLAYER = 1 << 2,
 	ENEMY = 1 << 3,

@@ -67,7 +67,7 @@ void Enemy::showHitbox(Camera* camera) {
 	flat_shader->enable();
 
 	float sphere_radius = HITBOX_RAD*6;
-	m.translate(0.0f, PLAYER_HEIGHT, 0.0f);
+	m.translate(0.0f, getPosition().y + 1.5, 0.0f);
 	m.scale(sphere_radius, sphere_radius, sphere_radius);
 
 	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
@@ -98,6 +98,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 					colliding = true;
 					bullet->active = false;
 					stage->anxiety_dt += bullet->damage;
+					Audio::Play("data/audio/lazer_hit.wav");
 				}
 			}
 
@@ -126,7 +127,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 void Enemy::update(float time_elapsed)
 {
 	Stage* stage = StageManager::instance->currStage;
-	Vector3 player_center = getPosition();
+	Vector3 player_center = getPosition() + Vector3(0,1.2,0);
 
 	if (looking_at_player) {
 
@@ -146,7 +147,7 @@ void Enemy::update(float time_elapsed)
 
 	std::vector<sCollisionData> ground;
 	std::vector<sCollisionData> collisions;
-	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000, FLOOR);
+	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000, false ,FLOOR);
 	stage->sphere_collided(stage->root, collisions, player_center, HITBOX_RAD, COL_TYPE::EBCOLS);
 
 

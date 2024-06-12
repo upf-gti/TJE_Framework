@@ -202,7 +202,9 @@ bool GameStage::ray_collided(Entity* root, std::vector<sCollisionData>& ray_coll
 		Entity* e = root->children[i];
 		ray_collided(e, ray_collisions, position, direction, dist, in_object_space, collision_type);
 		EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
-		if (!ee) continue; if ((ee->type & collision_type) == 0) continue;
+		if (!ee) continue; 
+		if ((ee->type & collision_type) == 0) continue;
+		//std::cout << " Frame:" << Game::instance->time << " Type: " << ee->type << " Requested type: " << collision_type << " Equal? " << (ee->type & collision_type) << std::endl;
 		sCollisionData data;
 		if (ee->isInstanced) {
 			for (Matrix44& instanced_model : ee->models) {
@@ -360,6 +362,12 @@ GameStage::GameStage()
 	Audio::Get("data/audio/incorrect.wav");
 	Audio::Get("data/audio/charge_lazer.wav");
 	Audio::Get("data/audio/lazer.wav");
+	Audio::Get("data/audio/shotgun.wav");
+	Audio::Get("data/audio/shoot.wav");
+	Audio::Get("data/audio/shoot_player.wav");
+	Audio::Get("data/audio/hurt1.wav");
+	Audio::Get("data/audio/hurt2.wav");
+	Audio::Get("data/audio/hurt3.wav");
 	Audio::Get("data/audio/bgm.mp3", BASS_SAMPLE_LOOP);
 
 	HCHANNEL channel = Audio::Play("data/audio/bgm.mp3", 0.7);

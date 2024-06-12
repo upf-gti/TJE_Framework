@@ -22,6 +22,8 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 						stage->anxiety_dt -= bullet->damage;
 						targetable = false;
 						startHit = Game::instance->time;
+						Audio::Play("data/audio/hurt3.wav");
+						return;
 					}
 				}
 			}
@@ -32,6 +34,8 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 					stage->anxiety_dt -= bullet->damage;
 					targetable = false;
 					startHit = Game::instance->time;
+					Audio::Play("data/audio/hurt1.wav");
+					return;
 				}
 			}
 		}
@@ -44,6 +48,8 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				stage->anxiety_dt -= bns.damage;
 				targetable = false;
 				startHit = Game::instance->time;
+				Audio::Play("data/audio/hurt1.wav");
+				return;
 			}
 		}
 		BulletNormal& bbs = stage->enemy->bullets_ball;
@@ -55,6 +61,8 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				stage->anxiety_dt -= bbs.damage;
 				targetable = false;
 				startHit = Game::instance->time;
+				Audio::Play("data/audio/hurt2.wav");
+				return;
 			}
 		}
 		BulletNormal& bsbs = stage->enemy->bullets_smallball;
@@ -66,6 +74,8 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				stage->anxiety_dt -= bsbs.damage;
 				targetable = false;
 				startHit = Game::instance->time;
+				Audio::Play("data/audio/hurt1.wav");
+				return;
 			}
 		}
 		BulletResize& bgb = stage->enemy->bullets_giantball;
@@ -77,6 +87,8 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 				bgb.despawnBullet(i);
 				targetable = false;
 				startHit = Game::instance->time;
+				Audio::Play("data/audio/hurt3.wav");
+				return;
 			}
 		}
 	}
@@ -85,7 +97,7 @@ void Player::sphere_bullet_collision(Vector3 position, float radius) {
 
 void Player::dash(float delta_time, float dash_duration = 1, float invul_duration = 0.25) {
 	if (!dashing) {
-		m_spd = 5 * DEFAULT_SPD;
+		m_spd = 3 * DEFAULT_SPD;
 		timer_dash = Game::instance->time;
 		dashInvulnerabilityTimer = Game::instance->time;
 		dashing = true;
@@ -93,7 +105,7 @@ void Player::dash(float delta_time, float dash_duration = 1, float invul_duratio
 		can_be_hit = false;
 	}
 	else if (m_spd > DEFAULT_SPD) {
-		m_spd -= 4 * DEFAULT_SPD * delta_time / dash_duration;
+		m_spd -= 3 * DEFAULT_SPD * delta_time / dash_duration;
 	}
 	else {
 		m_spd = DEFAULT_SPD;
@@ -120,7 +132,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	_m.setFrontAndOrthonormalize(_m.frontVector() * Vector3(1, 0, 1));
 	if (bullet_type == shotgun) {
 		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
-			Audio::Play("data/audio/whip.wav");
+			Audio::Play("data/audio/shotgun.wav");
 			timer_bullet[bullet_type] = Game::instance->time;
 			mana -= shoot_cost[bullet_type];
 			free_bullets -= amount[bullet_type];
@@ -132,7 +144,7 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 	}
 	else if (bullet_type == auto_aim) {
 		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
-			Audio::Play("data/audio/whip.wav");
+			Audio::Play("data/audio/shoot_player.wav", 0.1);
 			timer_bullet[bullet_type] = Game::instance->time;
 			mana -= shoot_cost[bullet_type];
 			free_bullets -= amount[bullet_type];
@@ -141,10 +153,21 @@ void Player::shoot(bullet_type bullet_type = auto_aim) {
 		}
 		return;
 	}
+	else if (bullet_type == circle) {
+		if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
+			Audio::Play("data/audio/shoot_player.wav", 0.5);
+			timer_bullet[bullet_type] = Game::instance->time;
+			mana -= shoot_cost[bullet_type];
+			free_bullets -= amount[bullet_type];
+			Patterns::horizontal3(_m, bullets_normal, 5, 20, 0.3);
+			std::cout << mana << " " << bullet_idx_first << " " << free_bullets << " " << bullet_type << std::endl;
+		}
+		return;
+	}
 	else if (free_bullets && mana > shoot_cost[bullet_type] && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
 		Stage* stage = StageManager::instance->currStage;
 		if (bullet_type == sniper) stage->anxiety_dt -= 2;
-		Audio::Play("data/audio/whip.wav");
+		Audio::Play("data/audio/lazer.mp3");
 		timer_bullet[bullet_type] = Game::instance->time;
 		mana -= shoot_cost[bullet_type];
 		free_bullets -= amount[bullet_type];
@@ -159,6 +182,7 @@ void Player::shootCharge(bullet_type bullet_type) {
 
 	if (time && !charging && Game::instance->time - timer_bullet[bullet_type] > shoot_cooldown[bullet_type]) {
 		timer_charge[bullet_type] = Game::instance->time;
+		charge_channel = Audio::Play("data/audio/lazer_charge.mp3");
 		charging = true;
 	}
 	else if (charging) {
@@ -355,7 +379,7 @@ void Player::renderWithLights(Camera* camera) {
 	bullets_normal.render(camera);
 	bullets_auto.render(camera);
 
-	//showHitbox(camera);
+	showHitbox(camera);
 };
 
 void Player::render(Camera* camera) {
@@ -494,7 +518,7 @@ float Player::updateSubframe(float delta_time) {
 	Vector3 player_center = getPosition() + Vector3(0, player_height, 0);
 	if (!mesh) std::cout << "NOMESH ";
 	colliding = stage->sphere_collided(stage->root, collisions, player_center, HITBOX_RAD);
-	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000000, FLOOR);
+	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 100, false , FLOOR);
 
 	for (sCollisionData& g : collisions) {
 		direction += g.colNormal * 10000;
@@ -562,7 +586,12 @@ void Player::update(float delta_time) {
 		if (charge_cooldown[bt] && (mana - shoot_cost[bt]) > 0) shootCharge(bt);
 		else shoot(bt);
 	}
-	else charging = false;
+	else {
+		charging = false;
+		timer_charge[bt] = 0;
+		Audio::Stop(charge_channel);
+	}
+
 	if (autoshoot) {
 		shoot();
 	}

@@ -2,6 +2,8 @@
 #ifndef BULLET_AUTO_H
 #define BULLET_AUTO_H
 
+
+
 #include "framework/entities/bullet/bullet.h"
 
 
@@ -38,6 +40,8 @@ public:
 		this->accels.push_back(accel);
 		this->angular_speeds.push_back(angular_speed);
 		this->angular_accels.push_back(angular_accel);
+
+		Audio::Play("data/audio/shoot.wav", BULLET_VOL);
 	};
 
 	void move(Vector3 vec);

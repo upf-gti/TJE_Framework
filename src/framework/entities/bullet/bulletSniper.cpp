@@ -72,7 +72,11 @@ void BulletSniper::update(float delta_time) {
 	if (active) {
 		Vector3 bullet_center = model.getTranslation() + model_base.frontVector() * (scale / 10);
 		bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, 0.2, SCENARIO);
-		if (colliding) active = false;
+		if (colliding) {
+			active = false;
+			Audio::Play("data/audio/lazer_hit.wav");
+		}
+
 	}
 	else {
 		despawning(delta_time);

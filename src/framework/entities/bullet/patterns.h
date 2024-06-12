@@ -99,6 +99,16 @@ public:
 		}
 	}
 
+	static void horizontal3(Matrix44 model, BulletNormal& bullets, int amount = 1, float speed = BULLET_SPD, float separation = 1) {
+		model.translate(Vector3(0, HEIGHT, 0));
+		for (int i = 0; i < amount; i++) {
+			Matrix44 _m = model;
+			//_m.translate(Vector3((i - (amount / 2)) * 2.5, 0, 0));
+			_m.translate(Vector3((i - amount / 2) * separation, 0, 0));
+			bullets.addInstance(_m, speed);
+		}
+	}
+
 	static void shotgun(Vector3 objective, Vector3 direction, Matrix44 model, std::vector<Bullet*>& bullets, int amount, Shader* shader, Texture* texture, Mesh* mesh, bool fromPlayer = true) {
 		Material mat = Material();
 		mat.diffuse = texture;
@@ -133,6 +143,7 @@ public:
 		b->acceleration = 0;
 		b->opacity_dec = 1;
 		b->damage = 15;
+		b->color = Vector4(1);
 		bullets.push_back(b);
 	}
 };

@@ -4,8 +4,10 @@
 
 #include "framework/entities/entityCollider.h"
 #include "game/game.h"
+#include "framework/audio.h"
 
 #define BULLET_SPD 10
+#define BULLET_VOL 0.02
 
 
 // Bullets
