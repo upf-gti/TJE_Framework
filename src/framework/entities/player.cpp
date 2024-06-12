@@ -680,8 +680,10 @@ void Player::update(float delta_time) {
 	vec.model.translateGlobal(vec.model.frontVector().normalize() + Vector3(0, 0.05 - (_m.getTranslation().y - ground_y), 0));
 
 	float dot = vec.model.frontVector().normalize().dot(dir.model.frontVector());
+	bool enough_mana = (mana > shoot_cost[bt]);
+
 	if (dot > 0.98) {
-		dir.material.color = Vector4::GREEN;
+		dir.material.color = Vector4(0, enough_mana + (!enough_mana * 0.7), !enough_mana, 0.3);
 	}
 	else dir.material.color = Vector4::WHITE;
 	

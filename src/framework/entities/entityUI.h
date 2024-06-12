@@ -18,6 +18,8 @@ public:
 	// Attributes of the derived class  
 	bool visible = true;
 
+	bool posteffects = true;
+
 	eButtonID button_id;
 
 	Vector2 size;
