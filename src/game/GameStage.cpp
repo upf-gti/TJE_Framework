@@ -431,6 +431,37 @@ void GameStage::renderBar(Vector2 barPosition, Vector2 barSize, float percentage
 	glDisable(GL_BLEND);
 }
 
+// Assuming you have a function to loadTGA that reads the TGA data
+//void GameStage::renderImage(Vector2 imgPosition, Vector2 imgSize, Texture img)
+//{
+//	glDisable(GL_DEPTH_TEST);
+//	glEnable(GL_BLEND);
+//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//
+//	Mesh innerQuad;
+//	Mesh outerQuad;
+//	shader = Shader::Get("data/shaders/hud.vs", "data/shaders/hud.fs");
+//	shader->enable();
+//
+//	//Creation of the second quad. This one contains the life information. 
+//	outerQuad.createQuad(barPosition.x, barPosition.y, barSize.x, barSize.y, true);
+//	shader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
+//	shader->setUniform("u_color", Vector3(32.0f / 255.0f));
+//	shader->setUniform("u_percentage", 1.0f);
+//	shader->setUniform("u_decrease", 0.0f);
+//
+//	outerQuad.render(GL_TRIANGLES);
+//
+//	innerQuad.createQuad(barPosition.x, barPosition.y, barSize.x - 10, barSize.y - 10, true);
+//	shader->setUniform("u_color", color);
+//	shader->setUniform("u_percentage", percentage);
+//	shader->setUniform("u_decrease", decrease);
+//
+//	innerQuad.render(GL_TRIANGLES);
+//	glEnable(GL_DEPTH_TEST);
+//	glDisable(GL_BLEND);
+//}
+
 void GameStage::generateShadowMaps(Camera* camera)
 {
 	if (!mainLight->shadowMapFBO || mainLight->shadowMapFBO->width != shadowMapSize)
@@ -526,8 +557,9 @@ void GameStage::render(void)
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
 	drawText(2, 400, std::to_string(player->targetable), Vector3(1, 1, 1), 5);
 
-	// amogus.render(camera2D);
+
 	renderHUD();
+	amogus.render(camera2D);
 }
 
 bool GameStage::compareFunction(const Entity* e1, const Entity* e2) {

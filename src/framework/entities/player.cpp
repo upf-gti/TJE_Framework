@@ -381,6 +381,9 @@ void Player::renderWithLights(Camera* camera) {
 	// Disable shader after finishing rendering
 	shader->disable();
 
+	dir.render(camera);
+	vec.render(camera);
+
 	glDisable(GL_BLEND);
 	glFrontFace(GL_CCW);
 	glDisable(GL_CULL_FACE);
@@ -395,7 +398,7 @@ void Player::renderWithLights(Camera* camera) {
 	bullets_normal.render(camera);
 	bullets_auto.render(camera);
 
-	dir.render(camera);
+
 
 	showHitbox(camera);
 };
@@ -663,6 +666,24 @@ void Player::update(float delta_time) {
 	Matrix44 _m = model;
 	dir.model = _m;
 	dir.model.translate(Vector3(0, 0.01 - (_m.getTranslation().y - ground_y), 0));
+	vec.model = _m;
+	Vector3 enemypos = stage->enemy->getPosition();
+	enemypos.y = 0;
+	Vector3 playerpos = getPosition();
+	playerpos.y = 0;
+
+	vec.model.rotate(vec.model.getYawRotationToAimTo(enemypos), Vector3::UP);
+
+	float dist = clamp((playerpos.distance(enemypos) / 10) - 0.2f, 0.2, 2);
+	vec.model.scale(Vector3(1, 1, dist));
+
+	vec.model.translateGlobal(vec.model.frontVector().normalize() + Vector3(0, 0.05 - (_m.getTranslation().y - ground_y), 0));
+
+	float dot = vec.model.frontVector().normalize().dot(dir.model.frontVector());
+	if (dot > 0.98) {
+		dir.material.color = Vector4::GREEN;
+	}
+	else dir.material.color = Vector4::WHITE;
 	
 }
 

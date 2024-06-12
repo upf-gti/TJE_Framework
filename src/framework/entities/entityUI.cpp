@@ -13,6 +13,8 @@ void EntityUI::render(Camera* camera2D) {
 	if (!visible) return;
 
 	if (!is3d) glEnable(GL_DEPTH_TEST);
+	
+	std::cout << "EntityUI ";
 
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -28,6 +30,7 @@ void EntityUI::render(Camera* camera2D) {
 	material.shader->setUniform("u_mask", mask);
 
 	if (material.diffuse) {
+		std::cout << "Texture found: ";
 		material.shader->setTexture("u_texture", material.diffuse, 0);
 	}
 
@@ -42,6 +45,7 @@ void EntityUI::render(Camera* camera2D) {
 		quad.render(GL_TRIANGLES);
 	}
 	else {
+		std::cout << "Paiting Quad!";
 		mesh->render(GL_TRIANGLES);
 	}
 	material.shader->disable();

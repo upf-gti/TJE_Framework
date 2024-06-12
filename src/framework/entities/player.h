@@ -63,7 +63,7 @@ public:
 	uint16 free_bullets = MAX_BULLETS;
 	float timer_bullet_general = 0;
 	float timer_bullet[4] = { 0,0,0,0 }, timer_charge[4] = { 0,0,0,0 };
-	float shoot_cooldown[4] = { DEFAULT_FIRERATE, .3, .5, 1 }, shoot_cost[4] = { DEFAULT_COST, 45, 120, 160 };
+	float shoot_cooldown[4] = { DEFAULT_FIRERATE, .3, .5, 1 }, shoot_cost[4] = { DEFAULT_COST, 45, 105, 160 };
 	float knockback[4] = { 2, 0, 10, 10 }, knockback_time[4] = { .5, 0, .5, 1 };
 	float charge_cooldown[4] = { 0,0,0,1 }; bool charging = false;
 	Shader* bullet_shaders[4]; Texture* bullet_textures[4]; Mesh* bullet_meshes[4];
@@ -75,6 +75,7 @@ public:
 	Matrix44 charge_model;
 
 	EntityMesh dir;
+	EntityMesh vec;
 
 	BulletNormal bullets_normal;
 	BulletAuto bullets_auto;
@@ -121,6 +122,11 @@ public:
 		dir.material.diffuse = Texture::Get("data/meshes/directon.mtl");
 		dir.material.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
 		dir.material.color = Vector4(1);
+
+		vec.mesh = Mesh::Get("data/meshes/vec.obj");
+		vec.material.diffuse = Texture::Get("data/meshes/vec.mtl");
+		vec.material.shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+		vec.material.color = Vector4(0.5,0.5,1,0.2);
 	};
 	Player(Mesh* mesh, const Material& material, const std::string& name = "", float speed = 0, float mana = DEFAULT_MANA) {
 		this->mesh = mesh;
