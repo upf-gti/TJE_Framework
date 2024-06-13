@@ -32,6 +32,8 @@ public:
 	Shader* picshader;
 	Shader* squareshader;
 
+	Shader* shader;
+
 	float anxiety;
 	float anxiety_dt = 0;
 

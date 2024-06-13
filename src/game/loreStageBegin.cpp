@@ -121,9 +121,9 @@ void LoreStageBegin::renderSquare(Vector2 barPosition, Vector2 barSize, float pe
 
 	Mesh square;
 	if (!squareshader) {
-		squareshader = Shader::Get("data/shaders/basic.vs", "data/shaders/square.fs");
+		squareshader = Shader::Get("data/shaders/hud.vs", "data/shaders/square.fs");
 	}
-	Shader* shader = squareshader;
+	shader = squareshader;
 
 	shader->enable();
 
@@ -141,17 +141,48 @@ void LoreStageBegin::renderSquare(Vector2 barPosition, Vector2 barSize, float pe
 	glDisable(GL_BLEND);
 }
 
-void LoreStageBegin::pushText(std::string content, float offset, float starttime, float size, Vector2 position, Font* font) {
+void LoreStageBegin::pushText(std::string content, float offset, float starttime, float endtime, float size, Vector2 position, Font* font) {
 	if (font == nullptr) font = font1;
 	Text newtext;
 	newtext.content = content;
 	newtext.offset = offset;
 	newtext.starttime = starttime;
+	newtext.endtime = endtime;
 	newtext.size = size;
 	newtext.font = font;
 	newtext.position = position;
 
 	texts.push_back(newtext);
+}
+
+void getCenterX(std::string text, Font* font, float size, float offset, float& centerX, float& textDuration) {
+	int gamewidth = Game::instance->window_width;
+	int gameheight = Game::instance->window_height;
+	int textsize = text.size();
+	centerX = (gamewidth - size * textsize * font->tilesize.x) / 2;
+	textDuration = textsize * offset;
+}
+
+void LoreStageBegin::pushTransition(float start_time, float fade_in, float fade_out, float duration, Vector4 color) {
+	ColorTransition transition;
+	transition.color = color;
+	transition.duration = duration;
+	transition.fade_in = fade_in;
+	transition.fade_out = fade_out;
+	transition.start_time = start_time;
+
+	transitions.push_back(transition);
+}
+
+void LoreStageBegin::pushScene(std::string scenepath, float starttime, float endtime, Vector2 pos, Vector2 posdt, Vector2 size, Vector2 sizedt) {
+	Scene scene;
+	scene.scene = Texture::Get(scenepath);
+	scene.starttime = starttime;
+	scene.endtime = endtime;
+	scene.position = pos;
+	scene.position_dt = posdt;
+	scene.size = size;
+	scene.size_dt = sizedt;
 }
 
 LoreStageBegin::LoreStageBegin()
@@ -161,7 +192,7 @@ LoreStageBegin::LoreStageBegin()
 	font1->tilesize = Vector2(16, 24);
 	textShader = Shader::Get("data/shaders/basic.vs", "data/shaders/text.fs");
 	picshader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-	squareshader = Shader::Get("data/shaders/basic.vs", "data/shaders/square.fs");
+	squareshader = Shader::Get("data/shaders/hud.vs", "data/shaders/square.fs");
 
 	gus = Texture::Get("data/textures/gus.png");
     // Create our camera
@@ -176,14 +207,22 @@ LoreStageBegin::LoreStageBegin()
 	int gamewidth = Game::instance->window_width;
 	int gameheight = Game::instance->window_height;
 
-	float nextoffset;
+	float textDuration;
+	float centerX;
+	float size;
+	float offset;
+	std::string nexttext;
     nextStage = "IntroStage";
 
-	std::string nexttext = "Esta es la historia de nuestro amigo"; float center_x = (gamewidth - 1.5 * nexttext.size() * font1->tilesize.x) / 2 + 5;
-	pushText(nexttext, 0.05, 2, 1.5, Vector2(center_x, 500), font1);
+	nexttext = "Esta es la historia de nuestro amigo"; size = 1.5; offset = 0.05;
+	getCenterX(nexttext, font1, size, offset, centerX, textDuration);
+	pushText(nexttext, offset, 2, 7, size, Vector2(centerX, 500), font1);
 
-	nexttext = "Osuka Reiesu"; center_x = (gamewidth - 1 * nexttext.size() * 3 * font1->tilesize.x) / 2 + 5;
-	pushText(nexttext, 0.1, 4.5, 3, Vector2(center_x, 500 - font1->tilesize.y * 2.5), font1);
+	nexttext = "Osuka Reiesu"; size = 3; offset = 0.1;
+	getCenterX(nexttext, font1, size, offset, centerX, textDuration);
+	pushText(nexttext, 0.1, 4.5, 7, size, Vector2(centerX, 500 - font1->tilesize.y * 2.5), font1);
+
+	pushTransition(6, 1, 1, 1, Vector4(1, 1, 1, 1));
 
 	//nexttext = "La historia de un pobre desgraciado que inmigro a otro pais"; center_x = (gamewidth - 1 * nexttext.size() * font1->tilesize.x) / 2 + 5;
 	//pushText(nexttext, 0.05, 5, 1, Vector2(center_x, 500 - font1->tilesize.y * 1.8), font1);
@@ -211,7 +250,7 @@ void LoreStageBegin::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Set the camera as default
-	camera->enable();
+	camera2D->enable();
 
 
 
@@ -228,7 +267,7 @@ void LoreStageBegin::render()
 	int gameheight = Game::instance->window_height;
 
 	for (int i = 0; i < texts.size(); ++i) {
-		if (time > texts[i].starttime) {
+		if (time > texts[i].starttime && time < texts[i].endtime) {
 			if (texts[i].currcharupdatetime + texts[i].offset < time && texts[i].currchars < texts[i].content.size()) {
 				texts[i].currchars++;
 				texts[i].currcharupdatetime = time;
@@ -242,8 +281,22 @@ void LoreStageBegin::render()
 		}
 	}
 
-	renderSquare(Vector2(100, 100), Vector2(100, 100), 0.5, Vector4(1, 0, 1, 1));
-	renderPic(Vector2(200,100), Vector2(100,100), gus);
+	
+	for (int i = 0; i < transitions.size(); ++i) {
+		float start_time = transitions[i].start_time;
+		float fadein_time = transitions[i].fade_in;
+		float fadeout_time = transitions[i].fade_out;
+		float duration = transitions[i].duration;
+		if (time > start_time && time < start_time + fadein_time + duration) {
+			renderSquare(Vector2(gamewidth / 2, gameheight / 2), Vector2(gamewidth, gameheight), 1, Vector4(0, 0, 0, (time - start_time)/fadein_time));
+		}
+		else if (time > start_time + fadein_time + duration && time < start_time + fadein_time + duration + fadeout_time){
+			renderSquare(Vector2(gamewidth / 2, gameheight / 2), Vector2(gamewidth, gameheight), 1, Vector4(0, 0, 0, 1 - (time - (start_time + fadein_time + duration)) / fadeout_time));
+			//std::cout << 1 - (time - (start_time + fadein_time + duration)) / fadeout_time << std::endl;
+		}
+	}
+	
+	//renderPic(Vector2(200,100), Vector2(100,100), gus);
 
 
 

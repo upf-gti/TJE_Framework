@@ -27,7 +27,6 @@
 Mesh* mesh = NULL;
 Mesh* cube = NULL;
 Texture* texture = NULL;
-Shader* shader = NULL;
 float angle = 0;
 float mouse_speed = 100.0f;
 
