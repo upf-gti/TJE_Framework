@@ -18,6 +18,9 @@ Font* font1;
 Texture* gus;
 Shader* textShader;
 
+float timemultiplier = 1;
+float timeoffset = 0;
+
 void LoreStageBegin::renderPic(Vector2 position, Vector2 size, Texture* diffuse) {
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -75,6 +78,11 @@ void LoreStageBegin::renderLetter(Texture* font, Vector2 tileSize, char letter, 
 	else if (letter == ' ') {
 		selectedTile = Vector2(26, 0);
 	} else if (letter == '.') selectedTile = Vector2(5, 0);
+	else if (letter == ',') selectedTile = Vector2(4, 0);
+	else if (letter == ':') selectedTile = Vector2(2, 0);
+	else if (letter == '!') selectedTile = Vector2(0, 0);
+	else if (letter == '?') selectedTile = Vector2(1, 0);
+	else  selectedTile = Vector2(26, 0);
 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -106,9 +114,38 @@ void LoreStageBegin::renderLetter(Texture* font, Vector2 tileSize, char letter, 
 	glDisable(GL_BLEND);
 }
 
-void LoreStageBegin::renderText(Texture* font, std::string text, float interval, Vector2 position, float fontsize, Vector2 tilesize) {
-	for (std::string::iterator it = text.begin(); it != text.end(); ++it) {
-		renderLetter(font, tilesize, *it, position, tilesize * fontsize);
+void LoreStageBegin::renderText(Texture* font, std::string text, float interval, Vector2 position, float fontsize, Vector2 tilesize, Vector2 textbox) {
+	float origin = position.x;
+	std::istringstream wordStream(text);
+	std::string word;
+
+	while (wordStream >> word) {
+		// Calculate the width of the word
+		float wordWidth = word.length() * tilesize.x * fontsize;
+
+		// Check if the word fits in the current line
+		if (position.x + wordWidth > textbox.x) {
+			// Move to the next line if the word doesn't fit
+			position.x = origin;
+			position.y -= tilesize.y * fontsize * 1.1;
+		}
+
+		// Render each letter of the word
+		for (size_t i = 0; i < word.length(); ++i) {
+			if (word[i] == static_cast<char>(-79)) {
+				// Ignore the previous character if the current character is 'ñ'
+				if (i > 0) {
+					position.x -= tilesize.x * fontsize;
+				}
+				renderLetter(font, tilesize, word[i], position, tilesize * fontsize);
+			}
+			else {
+				renderLetter(font, tilesize, word[i], position, tilesize * fontsize);
+			}
+			position.x += tilesize.x * fontsize;
+		}
+
+		// Add space after the word
 		position.x += tilesize.x * fontsize;
 	}
 }
@@ -141,7 +178,7 @@ void LoreStageBegin::renderSquare(Vector2 barPosition, Vector2 barSize, float pe
 	glDisable(GL_BLEND);
 }
 
-void LoreStageBegin::pushText(std::string content, float offset, float starttime, float endtime, float size, Vector2 position, Font* font) {
+void LoreStageBegin::pushText(std::string content, float offset, float starttime, float endtime, float size, Vector2 position, Vector2 textbox, Font* font, std::string audiopath){
 	if (font == nullptr) font = font1;
 	Text newtext;
 	newtext.content = content;
@@ -151,6 +188,12 @@ void LoreStageBegin::pushText(std::string content, float offset, float starttime
 	newtext.size = size;
 	newtext.font = font;
 	newtext.position = position;
+	newtext.textboxsize = textbox;
+
+	if (audiopath != "") {
+		newtext.hasaudio = true;
+		newtext.audiopath = audiopath;
+	}
 
 	texts.push_back(newtext);
 }
@@ -174,7 +217,7 @@ void LoreStageBegin::pushTransition(float start_time, float fade_in, float fade_
 	transitions.push_back(transition);
 }
 
-void LoreStageBegin::pushScene(std::string scenepath, float starttime, float endtime, Vector2 pos, Vector2 posdt, Vector2 size, Vector2 sizedt) {
+void LoreStageBegin::pushScene(const char* scenepath, float starttime, float endtime, Vector2 pos, Vector2 posdt, Vector2 size, Vector2 sizedt) {
 	Scene scene;
 	scene.scene = Texture::Get(scenepath);
 	scene.starttime = starttime;
@@ -183,6 +226,21 @@ void LoreStageBegin::pushScene(std::string scenepath, float starttime, float end
 	scene.position_dt = posdt;
 	scene.size = size;
 	scene.size_dt = sizedt;
+
+	scenes.push_back(scene);
+}
+
+void LoreStageBegin::pushBox(float start_time, float fade_in, float fade_out, float duration, Vector4 color, Vector2 position, Vector2 size) {
+	Box box;
+	box.color = color;
+	box.duration = duration;
+	box.fade_in = fade_in;
+	box.fade_out = fade_out;
+	box.start_time = start_time;
+	box.position = position;
+	box.size = size;
+
+	boxes.push_back(box);
 }
 
 LoreStageBegin::LoreStageBegin()
@@ -195,7 +253,7 @@ LoreStageBegin::LoreStageBegin()
 	squareshader = Shader::Get("data/shaders/hud.vs", "data/shaders/square.fs");
 
 	gus = Texture::Get("data/textures/gus.png");
-    // Create our camera
+	// Create our camera
 	camera = new Camera();
 	camera->lookAt(Vector3(0.f, 100.f, 100.f), Vector3(0.f, 0.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
 	camera->setPerspective(70.f, Game::instance->window_width / (float)Game::instance->window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
@@ -212,17 +270,64 @@ LoreStageBegin::LoreStageBegin()
 	float size;
 	float offset;
 	std::string nexttext;
-    nextStage = "IntroStage";
+	nextStage = "IntroStage";
 
-	nexttext = "Esta es la historia de nuestro amigo"; size = 1.5; offset = 0.05;
+	float starttime = 0;
+	float duration = 0;
+
+	nexttext = "Esta es la historia de nuestro amigo"; size = 1.5; offset = 0.05; starttime = 2; duration = 5;
 	getCenterX(nexttext, font1, size, offset, centerX, textDuration);
-	pushText(nexttext, offset, 2, 7, size, Vector2(centerX, 500), font1);
+	pushText(nexttext, offset, starttime, starttime + duration, size, Vector2(centerX, 500), Vector2(gamewidth), font1);
+	starttime += duration;
 
 	nexttext = "Osuka Reiesu"; size = 3; offset = 0.1;
 	getCenterX(nexttext, font1, size, offset, centerX, textDuration);
-	pushText(nexttext, 0.1, 4.5, 7, size, Vector2(centerX, 500 - font1->tilesize.y * 2.5), font1);
+	pushText(nexttext, offset, 4.5, 7, size, Vector2(centerX, 500 - font1->tilesize.y * 2.5), Vector2(gamewidth), font1);
 
 	pushTransition(6, 1, 1, 1, Vector4(1, 1, 1, 1));
+
+
+	pushScene("data/textures/scene1.png", 7, 120, Vector2(gamewidth /2, gameheight/2 - gameheight/2), Vector2(0, 2), Vector2(gamewidth * 2, gameheight * 2), Vector2(20,20));
+	pushBox(9, 1, 1, 110, Vector4(0, 0, 0, 0.7), Vector2(gamewidth/2, gameheight * 0.15 + 50), Vector2(gamewidth * 0.8, gameheight * 0.3));
+
+	offset = 0.045;
+
+	nexttext = "Osuka Reiesu es un joven immigrante que acaba de llegar al barrio de XiwangNan, trabajando bajo un contrato desfavorable en el Bar Leinuozi bajo el mando del malvado Maolixi Keermeneiluo. "; size = 1.2;
+	pushText(nexttext, offset, 10, 22, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth*0.9 - 30), font1);
+
+	offset = 0.05;
+
+	pushTransition(21, 1, 1, 0.4, Vector4(1, 1, 1, 1));
+	pushScene("data/textures/scene2.png", 22, 66.5, Vector2(gamewidth / 2, gameheight / 2 - gameheight / 3), Vector2(3, 5), Vector2(gamewidth * 2, gameheight * 2), Vector2(-14, -14));
+
+	nexttext = "Maolixi: Osuka! Todavia no has fregado los platos?? Eres un inutil, te doy un trabajo y asi me lo pagas!";
+	pushText(nexttext, offset, 23, 33, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth * 0.9 - 30), font1, "maolixi1.mp3");
+
+	nexttext = "Osuka: Pero señor, ya los he lavado."; 
+	pushText(nexttext, offset, 33, 35.2, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth * 0.9 - 30), font1, "osuka1.mp3");
+
+	nexttext = "Maolixi: Que te calles! Pues los lavas otra vez!!";
+	pushText(nexttext, offset, 35, 39, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth * 0.9 - 30), font1, "maolixi2.mp3");
+	nexttext = "Maolixi: Por cierto, recuerda que mañana tienes que venir a jugar al golf! No quiero escuchar ninguna excusa.";
+	pushText(nexttext, offset, 39, 46, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth * 0.9 - 30), font1, "maolixi3.mp3");
+
+	nexttext = "Osuka: Pero señor, mañana tengo que ir a ver el partido de mi hijo!";
+	pushText(nexttext, offset, 46, 51, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth * 0.9 - 30), font1, "osuka2.mp3");
+
+	nexttext = "Maolixi: Pero que mas da, si en el equipo de tu hijo son todos muy malos, ya sabes que van a perder otra vez. Para la proxima buscate una excusa mejor, hombre. Mañana nos vemos en el golf.";
+	pushText(nexttext, offset, 51, 66.5, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth * 0.9 - 30), font1, "maolixi4.mp3");
+
+	pushTransition(65.5, 1, 1, 0.4, Vector4(1, 1, 1, 1));
+
+	nexttext = "El joven indignado por todas las ofensas, decide un dia plantar cara a su jefe. Sin embargo, su ansiedad no le permite tomar acciones, asi que decide hacerlo solo en sus sueños, donde es un poderoso mago. "; size = 1.2;
+	pushText(nexttext, offset, 67, 80, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth * 0.9 - 30), font1);
+
+	nexttext = "No obstante, Maolixi, al ser la fuente de sus problemas, opone resistencia incluso en los sueños de Osuka, pues su ego no le permite ser difamado ni en los sueños de otros. Podra Osuka derrotar su bloqueo mental para finalmente oponerse a Maolixi en la realidad?"; size = 1.2;
+	pushText(nexttext, offset, 80, 110, size, Vector2(gamewidth * 0.1 + 30, gameheight * 0.3 + 20), Vector2(gamewidth * 0.9 - 30), font1);
+
+	pushTransition(94, 7, 1, 100, Vector4(1, 1, 1, 1));
+	
+	
 
 	//nexttext = "La historia de un pobre desgraciado que inmigro a otro pais"; center_x = (gamewidth - 1 * nexttext.size() * font1->tilesize.x) / 2 + 5;
 	//pushText(nexttext, 0.05, 5, 1, Vector2(center_x, 500 - font1->tilesize.y * 1.8), font1);
@@ -238,6 +343,12 @@ LoreStageBegin::LoreStageBegin()
 	Audio::Get("data/audio/loredump/type3");
 	Audio::Get("data/audio/loredump/type4");
 	Audio::Get("data/audio/loredump/type5");
+	Audio::Get("data/audio/loredump/maolixi1.mp3");
+	Audio::Get("data/audio/loredump/maolixi2.mp3");
+	Audio::Get("data/audio/loredump/maolixi3.mp3");
+	Audio::Get("data/audio/loredump/maolixi4.mp3");
+	Audio::Get("data/audio/loredump/osuka1.mp3");
+	Audio::Get("data/audio/loredump/osuka2.mp3");
 }
 
 void LoreStageBegin::render()
@@ -261,10 +372,32 @@ void LoreStageBegin::render()
 
 	//drawText(Game::instance->window_width / 2.0f, Game::instance->window_height / 2.0f, "AAE", Vector3(((int)Game::instance->time) % 2), 5);
 
-	float time = Game::instance->time;
+	float time = timemultiplier * Game::instance->time + timeoffset;
 
 	int gamewidth = Game::instance->window_width;
 	int gameheight = Game::instance->window_height;
+
+	for (int i = 0; i < scenes.size(); i++) {
+		if (time > scenes[i].starttime && time < scenes[i].endtime) {
+			renderPic(scenes[i].position, scenes[i].size, scenes[i].scene);
+		}
+	}
+
+	for (int i = 0; i < boxes.size(); ++i) {
+		float start_time = boxes[i].start_time;
+		float fadein_time = boxes[i].fade_in;
+		float fadeout_time = boxes[i].fade_out;
+		float duration = boxes[i].duration;
+		float zero_one;
+		if (time > start_time && time < start_time + fadein_time + duration) {
+			zero_one = clamp((time - start_time) / fadein_time, 0, 1);
+			renderSquare(boxes[i].position, boxes[i].size, 1, Vector4(boxes[i].color.x, boxes[i].color.y, boxes[i].color.z, boxes[i].color.w * zero_one));
+		}
+		else if (time > start_time + fadein_time + duration && time < start_time + fadein_time + duration + fadeout_time) {
+			zero_one = clamp((1 - (time - (start_time + fadein_time + duration)) / fadeout_time), 0, 1);
+			renderSquare(boxes[i].position, boxes[i].size, 1, Vector4(boxes[i].color.x, boxes[i].color.y, boxes[i].color.z, boxes[i].color.w * zero_one));
+		}
+	}
 
 	for (int i = 0; i < texts.size(); ++i) {
 		if (time > texts[i].starttime && time < texts[i].endtime) {
@@ -273,11 +406,18 @@ void LoreStageBegin::render()
 				texts[i].currcharupdatetime = time;
 				std::string currentcontent = texts[i].content;
 				if (currentcontent.at(texts[i].currchars - 1) != ' ') {
-					std::string audiofile = std::to_string((int)floor(random(5.99))) + ".wav";
-					Audio::Play("data/audio/loredump/type" + audiofile);
+					if (texts[i].hasaudio && !texts[i].hasplayed) {
+						std::cout << "playing audio: " << "data/audio/loredump/" + texts[i].audiopath;
+						Audio::Play("data/audio/loredump/" + texts[i].audiopath);
+						texts[i].hasplayed = true;
+					}
+					else if (!texts[i].hasaudio) {
+						std::string audiofile = std::to_string((int)floor(random(5.99))) + ".wav";
+						Audio::Play("data/audio/loredump/type" + audiofile);
+					}
 				}
 			}
-			renderText(texts[i].font->font, texts[i].content.substr(0, texts[i].currchars), 0, texts[i].position, texts[i].size, texts[i].font->tilesize);
+			renderText(texts[i].font->font, texts[i].content.substr(0, texts[i].currchars), 0, texts[i].position, texts[i].size, texts[i].font->tilesize, texts[i].textboxsize);
 		}
 	}
 
@@ -287,11 +427,14 @@ void LoreStageBegin::render()
 		float fadein_time = transitions[i].fade_in;
 		float fadeout_time = transitions[i].fade_out;
 		float duration = transitions[i].duration;
+		float zero_one;
 		if (time > start_time && time < start_time + fadein_time + duration) {
-			renderSquare(Vector2(gamewidth / 2, gameheight / 2), Vector2(gamewidth, gameheight), 1, Vector4(0, 0, 0, (time - start_time)/fadein_time));
+			zero_one = clamp((time - start_time) / fadein_time, 0, 1);
+			renderSquare(Vector2(gamewidth / 2, gameheight / 2), Vector2(gamewidth, gameheight), 1, Vector4(0, 0, 0, zero_one));
 		}
 		else if (time > start_time + fadein_time + duration && time < start_time + fadein_time + duration + fadeout_time){
-			renderSquare(Vector2(gamewidth / 2, gameheight / 2), Vector2(gamewidth, gameheight), 1, Vector4(0, 0, 0, 1 - (time - (start_time + fadein_time + duration)) / fadeout_time));
+			zero_one = clamp(1 - (time - (start_time + fadein_time + duration)) / fadeout_time, 0, 1);
+			renderSquare(Vector2(gamewidth / 2, gameheight / 2), Vector2(gamewidth, gameheight), 1, Vector4(0, 0, 0, zero_one));
 			//std::cout << 1 - (time - (start_time + fadein_time + duration)) / fadeout_time << std::endl;
 		}
 	}
@@ -308,7 +451,23 @@ void LoreStageBegin::render()
 
 void LoreStageBegin::update(double seconds_elapsed)
 {
-    if (Input::wasKeyPressed(SDL_SCANCODE_A)) {
+
+	float time = timemultiplier * Game::instance->time + timeoffset;
+
+    if (Input::wasKeyPressed(SDL_SCANCODE_A) || time > 102) {
         StageManager::instance->transitioning = true;
     }
+
+	seconds_elapsed *= timemultiplier;
+
+
+	int gamewidth = Game::instance->window_width;
+	int gameheight = Game::instance->window_height;
+
+	for (int i = 0; i < scenes.size(); i++) {
+		if (time > scenes[i].starttime && time < scenes[i].endtime) {
+			scenes[i].size = scenes[i].size + scenes[i].size_dt * seconds_elapsed;
+			scenes[i].position = scenes[i].position + scenes[i].position_dt * seconds_elapsed;
+		}
+	}
 }
