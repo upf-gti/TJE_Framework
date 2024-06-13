@@ -50,6 +50,8 @@ public:
 	virtual void onGamepadButtonDown(SDL_JoyButtonEvent event) {};
 	virtual void onGamepadButtonUp(SDL_JoyButtonEvent event) {};
 
+
+
 	virtual void handlePlayerHP(Player* p, float hp) {};
 	virtual void handleEnemyHP(Enemy* e, float hp) {};
 

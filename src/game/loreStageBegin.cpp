@@ -15,6 +15,7 @@
 
 std::vector<Texture*> scenes;
 Font* font1;
+Texture* gus;
 Shader* textShader;
 
 void LoreStageBegin::renderPic(Vector2 position, Vector2 size, Texture* diffuse) {
@@ -112,6 +113,34 @@ void LoreStageBegin::renderText(Texture* font, std::string text, float interval,
 	}
 }
 
+void LoreStageBegin::renderSquare(Vector2 barPosition, Vector2 barSize, float percentage, Vector4 color)
+{
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	Mesh square;
+	if (!squareshader) {
+		squareshader = Shader::Get("data/shaders/basic.vs", "data/shaders/square.fs");
+	}
+	Shader* shader = squareshader;
+
+	shader->enable();
+
+	//Creation of the second quad. This one contains the life information. 
+	square.createQuad(barPosition.x, barPosition.y, barSize.x, barSize.y, true);
+	shader->setUniform("u_viewprojection", camera2D->viewprojection_matrix);
+	shader->setUniform("u_color", color);
+	shader->setUniform("u_percentage", percentage);
+
+	square.render(GL_TRIANGLES);
+
+	shader->disable();
+
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+}
+
 void LoreStageBegin::pushText(std::string content, float offset, float starttime, float size, Vector2 position, Font* font) {
 	if (font == nullptr) font = font1;
 	Text newtext;
@@ -132,6 +161,9 @@ LoreStageBegin::LoreStageBegin()
 	font1->tilesize = Vector2(16, 24);
 	textShader = Shader::Get("data/shaders/basic.vs", "data/shaders/text.fs");
 	picshader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+	squareshader = Shader::Get("data/shaders/basic.vs", "data/shaders/square.fs");
+
+	gus = Texture::Get("data/textures/gus.png");
     // Create our camera
 	camera = new Camera();
 	camera->lookAt(Vector3(0.f, 100.f, 100.f), Vector3(0.f, 0.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
@@ -181,6 +213,8 @@ void LoreStageBegin::render()
 	// Set the camera as default
 	camera->enable();
 
+
+
 	// Set flags
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
@@ -190,7 +224,8 @@ void LoreStageBegin::render()
 
 	float time = Game::instance->time;
 
-
+	int gamewidth = Game::instance->window_width;
+	int gameheight = Game::instance->window_height;
 
 	for (int i = 0; i < texts.size(); ++i) {
 		if (time > texts[i].starttime) {
@@ -207,7 +242,9 @@ void LoreStageBegin::render()
 		}
 	}
 
-	
+	renderSquare(Vector2(100, 100), Vector2(100, 100), 0.5, Vector4(1, 0, 1, 1));
+	renderPic(Vector2(200,100), Vector2(100,100), gus);
+
 
 
 
