@@ -387,7 +387,7 @@ GameStage::GameStage()
 	Audio::Get("data/audio/dash_0.wav");
 	Audio::Get("data/audio/bgm.mp3", BASS_SAMPLE_LOOP);
 
-	HCHANNEL channel = Audio::Play("data/audio/bgm.mp3", 0.7);
+	
 
 	renderFBO = NULL;
 	
