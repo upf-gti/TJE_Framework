@@ -245,6 +245,8 @@ void LoreStageBegin::pushBox(float start_time, float fade_in, float fade_out, fl
 
 LoreStageBegin::LoreStageBegin()
 {
+	renderFBO = NULL;
+
 	font1 = new Font();
 	font1->font = Texture::Get("data/textures/fontpool.PNG");
 	font1->tilesize = Vector2(16, 24);
@@ -365,10 +367,7 @@ void LoreStageBegin::render()
 
 
 
-	// Set flags
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
+
 
 	//drawText(Game::instance->window_width / 2.0f, Game::instance->window_height / 2.0f, "AAE", Vector3(((int)Game::instance->time) % 2), 5);
 
@@ -377,11 +376,43 @@ void LoreStageBegin::render()
 	int gamewidth = Game::instance->window_width;
 	int gameheight = Game::instance->window_height;
 
+	float width = Game::instance->window_width, height = Game::instance->window_height;
+	if (!renderFBO) {
+		renderFBO = new RenderToTexture();
+		renderFBO->create(width, height);
+	}
+	renderFBO->enable();
+
+	// Set the clear color (the background color)
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+
+	// Clear the window and the depth buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+	// Set flags
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
 	for (int i = 0; i < scenes.size(); i++) {
 		if (time > scenes[i].starttime && time < scenes[i].endtime) {
 			renderPic(scenes[i].position, scenes[i].size, scenes[i].scene);
 		}
 	}
+	glDisable(GL_DEPTH_TEST);
+	renderFBO->disable();
+
+	Shader* shader = Shader::Get("data/shaders/postfx.vs", "data/shaders/postfx2.fs");
+	shader->enable();
+	shader->setUniform("iResolution", Vector2(renderFBO->width, renderFBO->height));
+
+	renderFBO->toViewport(shader);
+
+	// Set flags
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 
 	for (int i = 0; i < boxes.size(); ++i) {
 		float start_time = boxes[i].start_time;
@@ -470,4 +501,13 @@ void LoreStageBegin::update(double seconds_elapsed)
 			scenes[i].position = scenes[i].position + scenes[i].position_dt * seconds_elapsed;
 		}
 	}
+}
+
+void LoreStageBegin::resize()
+{
+	Stage::resize();
+	float width = Game::instance->window_width, height = Game::instance->window_height;
+
+	if (!renderFBO) renderFBO = new RenderToTexture();
+	renderFBO->create(width, height);
 }

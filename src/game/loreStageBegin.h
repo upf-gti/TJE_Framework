@@ -1,5 +1,6 @@
 #pragma once
 #include "stage.h"
+#include <graphics/render_to_texture.h>
 
 struct Font {
     Texture* font;
@@ -60,6 +61,7 @@ public:
     std::vector<Scene> scenes;
     std::vector<Box> boxes;
 
+    RenderToTexture* renderFBO;
 
     void renderPic(Vector2 position, Vector2 size, Texture* diffuse);
     void renderLetter(Texture* font, Vector2 tileSize, char letter, Vector2 position, Vector2 size);
@@ -74,4 +76,6 @@ public:
 
     void render(void) override;
     void update(double seconds_elapsed) override;
+
+    void resize() override;
 };
