@@ -18,6 +18,7 @@ public:
 	void renderWithLights(Camera* camera) { render(camera); }
 
 	void update(float time_elapsed);
+	Vector3 updateSubframe(float elapsed_time);
 
 	bool touching_ground = false;
 	bool colliding = false;
@@ -50,6 +51,8 @@ public:
 
 	Mesh* hitbox_mesh = Mesh::Get("data/meshes/sphere.obj");
 	Shader* flat_shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
+
+	Mesh* shadow_mesh = Mesh::Get("data/meshes/shadow.obj");
 
 	enum pattern {
 		SWIRL,

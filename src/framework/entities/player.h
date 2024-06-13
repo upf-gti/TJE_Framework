@@ -20,7 +20,7 @@
 #define MAX_BULLETS 1000
 #define DEFAULT_FIRERATE 0.3	// Fire Rate of Autoaim
 #define DEFAULT_COST 7			// Mana Cost of Autoaim
-#define HITBOX_RAD 0.2
+#define HITBOX_RAD 0.9
 #define PLAYER_HEIGHT 0.6
 
 

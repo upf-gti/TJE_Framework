@@ -18,9 +18,10 @@ enum COL_TYPE : int32 {
 	PBULLET = 1 << 4,
 	EBULLET = 1 << 5,
 	BORDER = 1 << 6,
+	COLUMN = 1 << 7,
 	// Both WALL and FLOOR are considered SCENARIO
 	// using OR operator
-	SCENARIO = WALL | FLOOR | BORDER,
+	SCENARIO = WALL | FLOOR | BORDER | COLUMN,
 	EBCOLS = SCENARIO | PLAYER,
 	PBCOLS = SCENARIO | ENEMY,
 	ALL = 0xFF

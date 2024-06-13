@@ -77,7 +77,7 @@ void BulletResize::update(float delta_time) {
 			int a = SCENARIO;
 			bool colliding = stage->sphere_collided(stage->root, collisions, bullet_center, clamp(sizes[i], 0.05, 0.5), SCENARIO);
 
-			if (colliding || spawn_time[i] + 10 < Game::instance->time) {
+			if (colliding || spawn_time[i] + 10 < Game::instance->time || sizes[i] < 0.06) {
 				// stage->root_transparent->addChild((Entity*) new BulletResize(this->mesh, this->material, this->direction, m, 0));
 				despawnBullet(i);
 				collisions.clear();

@@ -144,6 +144,7 @@ bool GameStage::parseScene(const char* filename)
 			new_entity = new EntityCollider(mesh, mat);
 			new_entity->type = WALL;
 			std::cout << "WALL: " << (FLOOR & WALL);
+			std::cout << " This is a wall! ";
 			// Create a different type of entity
 			// new_entity = new ...
 		}
@@ -152,11 +153,20 @@ bool GameStage::parseScene(const char* filename)
 			new_entity = new EntityCollider(mesh, mat);
 			new_entity->type = BORDER;
 			std::cout << "BORDER: " << (BORDER & FLOOR);
+			std::cout << " This is a border! ";
+		}
+		else if (data.first.find("@column") != std::string::npos) {
+			Mesh* mesh = Mesh::Get(mesh_name.c_str());
+			new_entity = new EntityCollider(mesh, mat);
+			new_entity->type = COLUMN;
+			//std::cout << "BORDER: " << (BORDER & FLOOR);
+			std::cout << " This is a COLUMN! ";
 		}
 		else {
 			Mesh* mesh = Mesh::Get(mesh_name.c_str());
 			new_entity = new EntityCollider(mesh, mat);
 			new_entity->type = FLOOR;
+			std::cout << " This is floor! ";
 		}
 		std::cout << std::endl << "Tag: " << tag << std::endl;
 		if (!new_entity) {
@@ -181,7 +191,7 @@ bool GameStage::parseScene(const char* filename)
 
 		std::cout << " " << &new_entity->material.shader << std::endl;
 
-		if (data.first.find("@wall") != std::string::npos || data.first.find("@border") != std::string::npos) {
+		if (data.first.find("@wall") != std::string::npos || data.first.find("@column") != std::string::npos) {
 			root_transparent->addChild(new_entity);
 			std::cout << " This is a Transparent element";
 		}
@@ -705,7 +715,7 @@ void GameStage::update(double seconds_elapsed)
 		anxiety_dt -= anxiety_dt * seconds_elapsed * 10;
 	}
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
-	player->update(seconds_elapsed);
+
 	// e2->model.rotate(angle * DEG2RAD, Vector3(0.0f, 1.0f, 0.0f));
 
 	// Example
@@ -734,13 +744,13 @@ void GameStage::update(double seconds_elapsed)
 		Vector3 enemy_pos = enemy->getPosition();
 		Vector3 director = player_pos - enemy_pos;
 
-		Vector3 cam_pos = player_pos + director.normalize() * (2 * zoom) + Vector3(0, 1 + 1 * zoom, 0);
+		Vector3 cam_pos = player_pos + director.normalize() * (3 * zoom) + Vector3(0, 5 + 1 * zoom, 0);
 
-		std::vector<sCollisionData> cols;
-		ray_collided(root, cols, cam_pos, Vector3::UP, 200, WALL);
-		for (sCollisionData& c : cols) {
-			cam_pos.y += (c.colPoint.y - cam_pos.y);
-		}
+		//std::vector<sCollisionData> cols;
+		//ray_collided(root, cols, cam_pos, Vector3::UP, 200, WALL);
+		//for (sCollisionData& c : cols) {
+		//	cam_pos.y += (c.colPoint.y - cam_pos.y);
+		//}
 
 		camera->lookAt(cam_pos, enemy_pos, camera->up);
 	}
@@ -749,7 +759,7 @@ void GameStage::update(double seconds_elapsed)
 	float sign; zdiff >= 0 ? sign = 1 : sign = -1;
 	float reverse_dist = 1 / sqrt(clamp(player->distance(e2) / 1000, 0.1, 2.5));
 	camera->lookAt((2*reverse_dist)*(player->model.getTranslation() - e2->model.getTranslation()) + Vector3(0,500 - player->model.getTranslation().y * 2 * reverse_dist, 0), e2->model.getTranslation() + Vector3(0, 200, 0), camera->up);*/
-	enemy->update(seconds_elapsed);
+
 
 	if (trees_shoot + interval < Game::instance->time) {
 		for (Entity* e : root_transparent->children) {
@@ -775,6 +785,28 @@ void GameStage::update(double seconds_elapsed)
 	}
 
 
+	if (columns_shoot + columns_interval < Game::instance->time) {
+		for (Entity* e : root_transparent->children) {
+			EntityMesh* ee = dynamic_cast <EntityMesh*> (e);
+			if (ee == nullptr) continue;
+			if (ee->type == COLUMN) {
+				Matrix44 _m = Matrix44();
+				Vector3 center_world = ee->model * ee->mesh->box.center;
+				_m.translate(center_world);
+				for (int i = 0; i < 6; i++) {
+					_m.rotate(PI / 3, Vector3::UP);
+					Matrix44 __m = _m;
+					__m.translate(Vector3(2, -1, 0));
+					Patterns::circle5(__m, enemy->bullets_giantball, Vector2(0, 2), Vector2(-2, 2), 1, 0.7, 0.1, 0.5, -0.25, 0.0);
+					//Patterns::circle3(__m, enemy->bullets_ball, 1, 0, 1);
+				}
+			}
+		}
+		columns_shoot = Game::instance->time;
+		columns_interval = 5;
+	}
+	enemy->update(seconds_elapsed);
+	player->update(seconds_elapsed);
 }
 
 //Keyboard event handler (sync input)

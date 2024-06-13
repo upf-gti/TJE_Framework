@@ -13,8 +13,19 @@ void EntityMesh::render(Camera* camera) {
 		std::cout << "no mesh";
 		return;
 	}
+	if (type == BORDER) {
+		std::cout << "is border! ";
+		return;
+	}
 	std::vector<Matrix44>* final_models = &models;
 	std::vector<Matrix44> models_instanced;
+
+	int is_border = (type & BORDER);
+	if (is_border != 0) {
+		std::cout << "is border! ";
+		return;
+	}
+
 	if (isInstanced) {
 
 		for (int i = 0; i < models.size(); i++) {
@@ -35,10 +46,10 @@ void EntityMesh::render(Camera* camera) {
 			return;
 		}
 		int is_wall = (type & WALL);
-		int is_border = (type & BORDER);
+		int is_column = (type & COLUMN);
 		center_world.y = camera->eye.y;
 		float dist = camera->eye.distance(center_world);
-		if (dist < 7 && (is_wall != 0)) material.color.w = clamp(((dist - 2)/ 5), 0, 1);
+		if (dist < 10 && (is_wall != 0 || is_column != 0)) material.color.w = clamp(((dist - 5)/ 5), 0, 1);
 		else if (dist < 35 && (is_border != 0)) { 
 			material.color.w = clamp(((dist - 30) / 5), .3, 1); 
 		}
@@ -120,6 +131,7 @@ void EntityMesh::renderWithLights(Camera* camera) {
 		std::cout << "no mesh";
 		return;
 	}
+	if (type == BORDER) return;
 	std::vector<Matrix44>* final_models = &models;
 	std::vector<Matrix44> models_instanced;
 	if (isInstanced) {
@@ -142,13 +154,10 @@ void EntityMesh::renderWithLights(Camera* camera) {
 			return;
 		}
 		int is_wall = (type & WALL);
-		int is_border = (type & BORDER);
+		int is_column = (type & COLUMN);
 		center_world.y = camera->eye.y;
 		float dist = camera->eye.distance(center_world);
-		if (dist < 7 && (is_wall != 0)) material.color.w = clamp(((dist - 2) / 5), 0, 1);
-		else if (dist < 35 && (is_border != 0)) {
-			material.color.w = clamp(((dist - 30) / 5), .3, 1);
-		}
+		if (dist < 15 && (is_wall != 0 || is_column != 0)) material.color.w = clamp(((dist - 7) / 8), 0, 1);
 		else material.color.w = 1;
 	}
 

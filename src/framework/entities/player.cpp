@@ -404,7 +404,7 @@ void Player::renderWithLights(Camera* camera) {
 
 
 
-	showHitbox(camera);
+	//showHitbox(camera);
 };
 
 void Player::render(Camera* camera) {
@@ -484,7 +484,7 @@ void Player::render(Camera* camera) {
 
 	dir.render(camera);
 
-	showHitbox(camera);
+	//showHitbox(camera);
 };
 
 void Player::move(const Vector3& vec) {
@@ -681,7 +681,7 @@ void Player::update(float delta_time) {
 	float dist = clamp((playerpos.distance(enemypos) / 10) - 0.2f, 0.2, 2);
 	vec.model.scale(Vector3(1, 1, dist));
 
-	vec.model.translateGlobal(vec.model.frontVector().normalize() + Vector3(0, 0.05 - (_m.getTranslation().y - ground_y), 0));
+	vec.model.translateGlobal(vec.model.frontVector().normalize() + Vector3(0, 0.1 - (_m.getTranslation().y - ground_y), 0));
 
 	float dot = vec.model.frontVector().normalize().dot(dir.model.frontVector());
 	bool enough_mana = (mana > shoot_cost[bt]);

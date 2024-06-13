@@ -1,12 +1,12 @@
-# Blender 4.1.1 MTL File: 'escena33.blend'
+# Blender 4.1.1 MTL File: 'platform.blend'
 # www.blender.org
 
-newmtl Material
+newmtl Material.001
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
-Ni 1.450000
+Ni 1.500000
 d 1.000000
 illum 2
-map_Kd blue_grey.png
+map_Kd border.PNG

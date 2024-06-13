@@ -1,7 +1,7 @@
-# Blender 4.1.1 MTL File: 'escena33.blend'
+# Blender 4.1.1 MTL File: 'platform.blend'
 # www.blender.org
 
-newmtl colormap.003
+newmtl colormap
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.000000 0.000000 0.000000

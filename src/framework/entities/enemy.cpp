@@ -32,6 +32,24 @@ void Enemy::render(Camera* camera)
 	bullets_ball.render(camera);
 	bullets_smallball.render(camera);
 	bullets_giantball.render(camera);
+
+	// Render the Shadow
+	Matrix44 squash = model;
+	squash.setTranslation(Vector3(model.getTranslation().x, ground_y, model.getTranslation().z));
+	squash.scale(3.5 / (1 + ground_below_y), 0.01, 3.5 / (1 + ground_below_y));
+
+	//glDepthFunc(GL_GREATER);
+	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
+	//glFrontFace(GL_CW);
+	//glDepthMask(false);
+	flat_shader->enable();
+
+	flat_shader->setUniform("u_color", Vector4(0.0f, 0.0f, 0.0f, 0.5f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", squash);
+
+	shadow_mesh->render(GL_TRIANGLES);
 	
 	if (!material.shader) {
 		material.shader = Shader::Get("data/shaders/skinning.vs", "data/shaders/texture.fs");
@@ -63,8 +81,22 @@ void Enemy::showHitbox(Camera* camera) {
 
 	flat_shader->enable();
 
-	float sphere_radius = HITBOX_RAD*6;
-	m.translate(0.0f, getPosition().y + 1.5, 0.0f);
+	float sphere_radius = HITBOX_RAD;
+	m.translate(0.0f, getPosition().y + 1.2, 0.0f);
+	m.scale(sphere_radius, sphere_radius, sphere_radius);
+
+	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
+	flat_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	flat_shader->setUniform("u_model", m);
+
+	hitbox_mesh->render(GL_LINES);
+
+	flat_shader->disable();
+
+	flat_shader->enable();
+
+	sphere_radius = HITBOX_RAD;
+	m.translate(0.0f, getPosition().y + 1.2 + HITBOX_RAD, 0.0f);
 	m.scale(sphere_radius, sphere_radius, sphere_radius);
 
 	flat_shader->setUniform("u_color", Vector4(touching_ground, 0.0f, colliding, 1.0f));
@@ -82,7 +114,7 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		sCollisionData data;
 		if (bullet->isInstanced) {
 			for (Matrix44& instanced_model : bullet->models) {
-				if (bullet->mesh->testSphereCollision(instanced_model, position, 6*radius, data.colPoint, data.colNormal)) {
+				if (bullet->mesh->testSphereCollision(instanced_model, position, radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->to_delete = true;
 					stage->anxiety_dt += bullet->damage;
@@ -91,21 +123,21 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 		}
 		else {
 			if (bullet->active) {
-				if (bullet->mesh->testSphereCollision(bullet->model, position, 5 * radius, data.colPoint, data.colNormal)) {
+				Vector3 newpos = position - model.frontVector() * 2 + Vector3(0,1*radius, 0);
+				if (bullet->mesh->testSphereCollision(bullet->model, newpos, 2 * radius, data.colPoint, data.colNormal)) {
 					colliding = true;
 					bullet->active = false;
 					stage->anxiety_dt += bullet->damage;
-					Audio::Play("data/audio/lazer_hit.wav");
+					Audio::Play("data/audio/whip.wav");
 				}
 			}
-
 		}
 	}
 	BulletNormal& bns = stage->player->bullets_normal;
 	for (int i = 0; i < bns.models.size(); i++) {
 		Matrix44& m = stage->player->bullets_normal.models[i];
 		sCollisionData data;
-		if (bns.mesh->testSphereCollision(m, position, 6 * radius, data.colPoint, data.colNormal)) {
+		if (bns.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 			bns.despawnBullet(i);
 			stage->anxiety_dt += bns.damage;
 		}
@@ -114,17 +146,24 @@ void Enemy::sphere_bullet_collision(Vector3 position, float radius) {
 	for (int i = 0; i < bas.models.size(); i++) {
 		Matrix44& m = bas.models[i];
 		sCollisionData data;
-		if (bas.mesh->testSphereCollision(m, position, 4 * radius, data.colPoint, data.colNormal)) {
+		if (bas.mesh->testSphereCollision(m, position, radius, data.colPoint, data.colNormal)) {
 			bas.despawnBullet(i);
 			stage->anxiety_dt += bas.damage;
 		}
 	}
 }
 
+Vector3 Enemy::updateSubframe(float time_elapsed) {
+	Stage* stage = StageManager::instance->currStage;
+
+	return NULL;
+}
+
 void Enemy::update(float time_elapsed)
 {
 	Stage* stage = StageManager::instance->currStage;
-	Vector3 player_center = getPosition() + Vector3(0,1.2,0);
+
+	Vector3 player_center = getPosition() + Vector3(0, 1.2, 0);
 
 	if (looking_at_player) {
 
@@ -137,14 +176,14 @@ void Enemy::update(float time_elapsed)
 		this->model.setFrontAndOrthonormalize(front);
 	}
 
-	player_center.y += PLAYER_HEIGHT;
+	//player_center.y += PLAYER_HEIGHT;
 
 	ground_below_y = 10000;
 	ground_y = -10000;
 
 	std::vector<sCollisionData> ground;
 	std::vector<sCollisionData> collisions;
-	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000, false ,FLOOR);
+	stage->ray_collided(stage->root, ground, player_center, -Vector3::UP, 1000, false, FLOOR);
 	stage->sphere_collided(stage->root, collisions, player_center, HITBOX_RAD, COL_TYPE::EBCOLS);
 
 
@@ -173,9 +212,9 @@ void Enemy::update(float time_elapsed)
 
 	grounded = touching_ground;
 
-	if (!grounded) {
-		v_spd -= GRAVITY * time_elapsed;
-	}
+	//if (!grounded) {
+	//	v_spd -= GRAVITY * time_elapsed;
+	//}
 
 	Vector3 movement = (currDirection.normalize() + Vector3::UP * (grounded ? (ground_y - getPosition().y) * 40 : v_spd)) * time_elapsed;
 
@@ -187,7 +226,7 @@ void Enemy::update(float time_elapsed)
 			moving = false;
 			startFiring = Game::instance->time;
 			float r = random() * 13;
-			current_pattern = (pattern) clamp(floor(r), 0, 12);
+			current_pattern = (pattern)clamp(floor(r), 0, 12);
 			//current_pattern = SUN;
 			std::cout << current_pattern << " " << r << std::endl;
 			burstCount = 0;
@@ -203,7 +242,7 @@ void Enemy::update(float time_elapsed)
 		}
 	}
 	else
-	{ 
+	{
 		switch (current_pattern) {
 		case SWIRL:
 			if (startFiring + 4 <= Game::instance->time)
@@ -287,12 +326,12 @@ void Enemy::update(float time_elapsed)
 				rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
 				Matrix44 _m1 = model;
 				Matrix44 _m2 = model;
-				_m1.rotate(+ 2*Game::instance->time / 1, Vector3::UP);
-				_m2.rotate(- 2*Game::instance->time / 1, Vector3::UP);
+				_m1.rotate(+2 * Game::instance->time / 1, Vector3::UP);
+				_m2.rotate(-2 * Game::instance->time / 1, Vector3::UP);
 				Patterns::circle2(_m1, bullets_normal, 4, BULLET_SPD);
 				Patterns::circle2(_m2, bullets_normal, 4, BULLET_SPD);
-				Patterns::circle2(_m1, bullets_normal, 4, BULLET_SPD/1.5);
-				Patterns::circle2(_m2, bullets_normal, 4, BULLET_SPD/1.5);
+				Patterns::circle2(_m1, bullets_normal, 4, BULLET_SPD / 1.5);
+				Patterns::circle2(_m2, bullets_normal, 4, BULLET_SPD / 1.5);
 			}
 			break;
 		case SHOTGUN:
@@ -309,12 +348,12 @@ void Enemy::update(float time_elapsed)
 				Matrix44 _m = model;
 				Patterns::circle3(_m, bullets_ball, 24, BULLET_SPD / 4 - 1, -2);
 
-				_m.rotate(- PI / 6, Vector3::UP);
+				_m.rotate(-PI / 6, Vector3::UP);
 
 				for (int i = 0; i < 5; i++) {
 					_m.rotate(PI / 12, Vector3::UP);
 					for (int j = 0; j < 10; j++) {
-						Patterns::circle2(_m, bullets_normal, 1, BULLET_SPD/4 + j);
+						Patterns::circle2(_m, bullets_normal, 1, BULLET_SPD / 4 + j);
 					}
 				}
 			}
@@ -439,7 +478,7 @@ void Enemy::update(float time_elapsed)
 				Patterns::circle4(_m1, bullets_smallball, 7, 1);
 				Matrix44 _m2 = model;
 				_m2.rotate(PI / 2 - Game::instance->time / 1, Vector3::UP);
-				Patterns::circle4(_m2, bullets_smallball, 7, -1, -PI/300);
+				Patterns::circle4(_m2, bullets_smallball, 7, -1, -PI / 300);
 			}
 			break;
 		case SPIRALBURST:
@@ -477,7 +516,7 @@ void Enemy::update(float time_elapsed)
 				rotate_matrix.setRotation(((int)Game::instance->time % 314) / 100, Vector3::UP);
 				Matrix44 _m1 = model;
 				_m1.rotate(PI / 2 + Game::instance->time / 3, Vector3::UP);
-				Patterns::circle5(_m1, bullets_giantball, Vector2(0,10), Vector2(0, 10), 6, 0, 0.2, 0.6, -0.1, 2);
+				Patterns::circle5(_m1, bullets_giantball, Vector2(0, 10), Vector2(0, 10), 6, 0, 0.2, 0.6, -0.1, 2);
 			}
 			if (burstCD + 0.1 <= Game::instance->time) {
 				looking_at_player = false;
@@ -502,8 +541,8 @@ void Enemy::update(float time_elapsed)
 				Matrix44 _m1 = model;
 				_m1.rotate(_m1.getYawRotationToAimTo(stage->player->model.getTranslation()), Vector3::UP);
 				for (int i = 0; i < 6; i++) {
-					_m1.rotate(random(PI/8) - PI/16, Vector3::UP);
-					Patterns::ring(_m1, bullets_smallball, 14, (BULLET_SPD/2) + i, 0.7);
+					_m1.rotate(random(PI / 8) - PI / 16, Vector3::UP);
+					Patterns::ring(_m1, bullets_smallball, 14, (BULLET_SPD / 2) + i, 0.7);
 				}
 			}
 			if (burstCD + 0.1 <= Game::instance->time) {
@@ -516,7 +555,6 @@ void Enemy::update(float time_elapsed)
 			}
 			break;
 		}
-
 	}
 
 	for (int i = 0; i < bullets.size(); i++) {

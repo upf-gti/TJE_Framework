@@ -21,6 +21,9 @@ public:
 	float trees_shoot = 0;
 	float interval = 10;
 
+	float columns_shoot = 0;
+	float columns_interval = 5;
+
 	Vector3 cam_position;
 
 	Light* mainLight;
