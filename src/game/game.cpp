@@ -114,6 +114,7 @@ void Game::render(void)
 	SDL_GL_SwapWindow(this->window);
 }
 
+<<<<<<< Updated upstream
 bool Game::parseScene(const char* filename) {
 	std::cout << " + Scene loading: " << filename << "..." << std::endl;
 
@@ -201,11 +202,17 @@ bool Game::parseScene(const char* filename) {
 
 void Game::update(double seconds_elapsed)
 {
+=======
+void Game::update(double seconds_elapsed)
+{
+	
+>>>>>>> Stashed changes
 	float speed = seconds_elapsed * mouse_speed; //the speed is defined by the seconds_elapsed so it goes constant
 
 	// Example
 	angle += (float)seconds_elapsed * 10.0f;
 
+<<<<<<< Updated upstream
 	// Mouse input to rotate the cam
 	if (Input::isMousePressed(SDL_BUTTON_LEFT) || mouse_locked) //is left button pressed?
 	{
@@ -219,6 +226,9 @@ void Game::update(double seconds_elapsed)
 	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) camera->move(Vector3(0.0f, 0.0f,-1.0f) * speed);
 	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) camera->move(Vector3(1.0f, 0.0f, 0.0f) * speed);
 	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f,0.0f, 0.0f) * speed);
+=======
+	StageManager::get_instance()->update(seconds_elapsed);
+>>>>>>> Stashed changes
 }
 
 //Keyboard event handler (sync input)
@@ -258,12 +268,17 @@ void Game::onMouseWheel(SDL_MouseWheelEvent event)
 
 void Game::onGamepadButtonDown(SDL_JoyButtonEvent event)
 {
+<<<<<<< Updated upstream
 
 }
 
 void Game::onGamepadButtonUp(SDL_JoyButtonEvent event)
 {
 
+=======
+}
+void Game::onGamepadButtonUp(SDL_JoyButtonEvent event) {
+>>>>>>> Stashed changes
 }
 
 void Game::onResize(int width, int height)
