@@ -25,7 +25,7 @@ void EntityPlayer::render(Camera* camera)
 {
 	//Render mesh
 	EntityMesh::render(camera);
-	float sphere_radius = World::get_instance()->sphere_radius;
+	/*float sphere_radius = World::get_instance()->sphere_radius;
 	float sphere_ground_radius = World::get_instance()->sphere_ground_radius;
 	float player_height = World::get_instance()->player_height;
 
@@ -60,7 +60,7 @@ void EntityPlayer::render(Camera* camera)
 		sphere_mesh->render(GL_LINES);
 	}
 
-	sphere_shader->disable();
+	sphere_shader->disable();*/
 	
 }
 
