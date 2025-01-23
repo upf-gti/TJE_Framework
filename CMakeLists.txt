@@ -33,10 +33,15 @@ endmacro()
 # Directories
 set(DIR_ROOT       ${CMAKE_CURRENT_LIST_DIR})
 set(DIR_SOURCES    "${DIR_ROOT}/src")
+set(DIR_LIBS       "${DIR_ROOT}/libraries")
 
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 
 project (TJE_Framework CXX)
+
+if(MSVC)
+  add_definitions(/MP)
+endif()
 
 find_package(OpenGL REQUIRED)
 
@@ -117,6 +122,13 @@ set_property(TARGET libglew_static PROPERTY FOLDER "External/libglew_static")
 
 #opengl
 target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL OpenGL::GLU)
+
+# bass
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PUBLIC "${DIR_LIBS}/bass/bass.lib")
+else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC -lbass)
+endif()
 
 # Properties
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 20)
