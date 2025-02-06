@@ -35,6 +35,8 @@ public:
 	void render( void );
 	void update( double dt );
 
+	void setMouseLocked(bool must_lock);
+
 	//events
 	void onKeyDown( SDL_KeyboardEvent event );
 	void onKeyUp(SDL_KeyboardEvent event);
