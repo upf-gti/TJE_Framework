@@ -9,6 +9,10 @@ class Entity {
 
 public:
 
+	Matrix44 model;
+	Matrix44 global_model;
+	BoundingBox aabb;
+
 	Entity() {}; 			// Constructor
 	virtual ~Entity() {}; 	// Destructor
 
