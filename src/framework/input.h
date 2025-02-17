@@ -74,6 +74,7 @@ public:
 
 	//mouse state
 	static int mouse_state; //tells which buttons are pressed
+	static int prev_mouse_state; //tells which buttons were pressed
 	static Vector2 mouse_position; //last mouse position
 	static Vector2 mouse_delta; //mouse movement in the last frame
 	static float mouse_wheel;
@@ -93,6 +94,7 @@ public:
 
 	//mouse
 	static bool isMousePressed(int button) { return mouse_state & SDL_BUTTON(button); } //button could be SDL_BUTTON_LEFT
+	static bool wasMousePressed(int button) { return (mouse_state & SDL_BUTTON(button)) && !(prev_mouse_state & SDL_BUTTON(button)); } //button could be SDL_BUTTON_LEFT
 
 	static void init( SDL_Window* window );
 	static void update();
