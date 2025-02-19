@@ -87,9 +87,26 @@ void blendSkeleton(Skeleton* a, Skeleton* b, float w, Skeleton* result, uint8 la
 		Skeleton::Bone& boneB = b->bones[i];
 		if (layer != 0xFF && !(bone.layer & layer)) //not in the same layer
 			continue;
-#pragma omp for  
-		for (int j = 0; j < 16; ++j)
-			bone.model.m[j] = lerp(boneA.model.m[j], boneB.model.m[j], w);
+
+		Vector3 translationA, scaleA;
+		Quaternion rotationA;
+		boneA.model.decompose(translationA, rotationA, scaleA);
+
+		Vector3 translationB, scaleB;
+		Quaternion rotationB;
+		boneB.model.decompose(translationB, rotationB, scaleB);
+
+		// blend components
+		Vector3 translation = lerp(translationA, translationB, w);
+		Quaternion rotation = Qslerp(rotationA, rotationB, w);
+		Vector3 scale = lerp(scaleA, scaleB, w);
+
+		// compose final matrix
+		bone.model.compose(translation, rotation, scale);
+
+		//#pragma omp for
+		//for (int j = 0; j < 16; ++j)
+		//	bone.model.m[j] = lerp(boneA.model.m[j], boneB.model.m[j], w);
 	}
 }
 

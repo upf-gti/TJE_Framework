@@ -70,7 +70,7 @@ void Vector2::parseFromText(const char* text)
 Vector2 operator * (const Vector2& a, float v) { return Vector2(a.x * v, a.y * v); }
 Vector2 operator + (const Vector2& a, const Vector2& b) { return Vector2(a.x + b.x, a.y + b.y); }
 Vector2 operator - (const Vector2& a, const Vector2& b) { return Vector2(a.x - b.x, a.y - b.y); }
-
+Vector2 operator / (const Vector2& a, const Vector2& b) { return Vector2(a.x / b.x, a.y / b.y); }
 
 // **************************************
 
@@ -284,7 +284,6 @@ void Matrix44::rotate( float angle_in_rad, const Vector3& axis )
 	*this = R * *this;
 }
 
-
 void Matrix44::scale(float x, float y, float z)
 {
 	Matrix44 S;
@@ -408,6 +407,92 @@ bool Matrix44::getXYZ(float* euler) const
         euler[2] = 0.0f;
     }
 	return false;
+}
+
+void Matrix44::decompose(Vector3& translation, Quaternion& rotation, Vector3& scale)
+{
+	translation = getTranslation();
+
+	// get scale from the length of each axis vector
+	scale.x = Vector3(_11, _12, _13).length();
+	scale.y = Vector3(_21, _22, _23).length();
+	scale.z = Vector3(_31, _32, _33).length();
+
+	// remove scale from the rotation matrix
+	Matrix44 rotMatrix = *this;
+	rotMatrix._11 /= scale.x;
+	rotMatrix._12 /= scale.x;
+	rotMatrix._13 /= scale.x;
+
+	rotMatrix._21 /= scale.y;
+	rotMatrix._22 /= scale.y;
+	rotMatrix._23 /= scale.y;
+
+	rotMatrix._31 /= scale.z;
+	rotMatrix._32 /= scale.z;
+	rotMatrix._33 /= scale.z;
+
+	// Convert the normalized rotation matrix to a quaternion
+	rotMatrix.toQuaternion(rotation);
+}
+
+void Matrix44::compose(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
+{
+	// get first a rotation matrix, apply scale and translate into place
+	rotation.toMatrix(*this);
+
+	_11 *= scale.x;
+	_12 *= scale.x;
+	_13 *= scale.x;
+
+	_21 *= scale.y;
+	_22 *= scale.y;
+	_23 *= scale.y;
+
+	_31 *= scale.z;
+	_32 *= scale.z;
+	_33 *= scale.z;
+
+	_41 = translation.x;
+	_42 = translation.y;
+	_43 = translation.z;
+	_44 = 1.0f;
+}
+
+void Matrix44::toQuaternion(Quaternion& q) const
+{
+	float trace = _11 + _22 + _33;
+
+	if (trace > 0.0f) {
+		float s = 0.5f / std::sqrt(trace + 1.0f);
+		q.w = 0.25f / s;
+		q.x = (_32 - _23) * s;
+		q.y = (_13 - _31) * s;
+		q.z = (_21 - _12) * s;
+	}
+	else {
+		if (_11 > _22 && _11 > _33) {
+			float s = 2.0f * std::sqrt(1.0f + _11 - _22 - _33);
+			q.w = (_32 - _23) / s;
+			q.x = 0.25f * s;
+			q.y = (_12 + _21) / s;
+			q.z = (_13 + _31) / s;
+		}
+		else if (_22 > _33) {
+			float s = 2.0f * std::sqrt(1.0f + _22 - _11 - _33);
+			q.w = (_13 - _31) / s;
+			q.x = (_12 + _21) / s;
+			q.y = 0.25f * s;
+			q.z = (_23 + _32) / s;
+		}
+		else {
+			float s = 2.0f * std::sqrt(1.0f + _33 - _11 - _22);
+			q.w = (_21 - _12) / s;
+			q.x = (_13 + _31) / s;
+			q.y = (_23 + _32) / s;
+			q.z = 0.25f * s;
+		}
+	}
 }
 
 float Matrix44::getYawRotationToAimTo(const Vector3& position)
@@ -1224,7 +1309,6 @@ void Quaternion::toEulerAngles(Vector3 &euler) const
 		euler.z = atan2f(sz, cz);
 	}
 }
-
 
 void Quaternion::setAxisAngle(float ax, float ay, float az, float angle)
 {

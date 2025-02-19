@@ -61,6 +61,7 @@ public:
 Vector2 operator * (const Vector2& a, float v);
 Vector2 operator + (const Vector2& a, const Vector2& b);
 Vector2 operator - (const Vector2& a, const Vector2& b);
+Vector2 operator / (const Vector2& a, const Vector2& b);
 
 Vector2 normalize(Vector2 n);
 inline Vector2 lerp(const Vector2& a, const Vector2& b, float v) { return a*(1.0f - v) + b*v; }
@@ -204,6 +205,8 @@ inline Vector4ub lerp(const Vector4ub& a, const Vector4ub& b, float v) { return 
 
 typedef Vector4ub Color;
 
+class Quaternion;
+
 //****************************
 //Matrix44 class
 class Matrix44
@@ -232,7 +235,7 @@ class Matrix44
 		void clear();
 		void setIdentity();
 		void transpose();
-		void normalizeAxis();
+		// void normalizeAxis();
 
 		//get base vectors
 		Vector3 rightVector() { return Vector3(m[0],m[1],m[2]); }
@@ -266,10 +269,11 @@ class Matrix44
 		void setRotation( float angle_in_rad, const Vector3& axis );
 		void setScale(float x, float y, float z);
 
+		void decompose(Vector3& translation, Quaternion& rotation, Vector3& scale);
+		void compose(const Vector3& translation, const Quaternion& rotation, const Vector3& scale);
+
 		Vector3 getTranslation() const;
-
 		bool getXYZ(float* euler) const;
-
 		float getYawRotationToAimTo(const Vector3& position);
 
 		void lookAt(Vector3& eye, Vector3& center, Vector3& up);
@@ -277,6 +281,8 @@ class Matrix44
 		void ortho(float left, float right, float bottom, float top, float near_plane, float far_plane);
 
 		Vector3 project(const Vector3& v);
+
+		void toQuaternion(Quaternion&) const;
 
 		//old fixed pipeline (do not used if possible)
 		void multGL();
@@ -315,7 +321,6 @@ public:
 	void set(const float X, const float Y, const float Z, const float W);
 	void slerp(const Quaternion& b, float t);
 	void slerp(const Quaternion& q2, float t, Quaternion &q3) const;
-
 	void lerp(const Quaternion& b, float t);
 	void lerp(const Quaternion& q2, float t, Quaternion &q3) const;
 
@@ -332,14 +337,11 @@ public:
 
 	friend Quaternion operator + (const Quaternion &q1, const Quaternion& q2);
 	friend Quaternion operator * (const Quaternion &q1, const Quaternion& q2);
-
 	friend Quaternion operator * (const Quaternion &q, const Vector3& v);
-
 	friend Quaternion operator * (float f, const Quaternion &q);
 	friend Quaternion operator * (const Quaternion &q, float f);
 
 	Quaternion& operator -();
-
 
 	friend bool operator==(const Quaternion& q1, const Quaternion& q2);
 	friend bool operator!=(const Quaternion& q1, const Quaternion& q2);
@@ -361,10 +363,10 @@ public:
 float DotProduct(const Quaternion &q1, const Quaternion &q2);
 Quaternion Qlerp(const Quaternion &q1, const Quaternion &q2, float t);
 Quaternion Qslerp(const Quaternion &q1, const Quaternion &q2, float t);
-Quaternion Qsquad(const Quaternion &q1, const Quaternion &q2, const Quaternion &a, const Quaternion &b, float t);
-Quaternion Qsquad(const Quaternion &q1, const Quaternion &q2, const Quaternion &a, float t);
-Quaternion Qspline(const Quaternion &q1, const Quaternion &q2, const Quaternion &q3);
-Quaternion QslerpNoInvert(const Quaternion &q1, const Quaternion &q2, float t);
+// Quaternion Qsquad(const Quaternion &q1, const Quaternion &q2, const Quaternion &a, const Quaternion &b, float t);
+// Quaternion Qsquad(const Quaternion &q1, const Quaternion &q2, const Quaternion &a, float t);
+// Quaternion Qspline(const Quaternion &q1, const Quaternion &q2, const Quaternion &q3);
+// Quaternion QslerpNoInvert(const Quaternion &q1, const Quaternion &q2, float t);
 Quaternion Qexp(const Quaternion &q);
 Quaternion Qlog(const Quaternion &q);
 Quaternion SimpleRotation(const Vector3 &a, const Vector3 &b);
@@ -395,9 +397,8 @@ Vector3 RayPlaneCollision( const Vector3& plane_pos, const Vector3& plane_normal
 bool RaySphereCollision(const Vector3& center, const float& radius, const Vector3& ray_origin, const Vector3& ray_dir, Vector3& coll);
 Vector3 reflect(const Vector3& I, const Vector3& N);
 
-//value between 0 and 1
+// Value between 0 and 1
 inline float random(float range = 1.0f, float offset = 0.0f) { return static_cast<float>(((rand() % 10000) / (10000.0))) * range + offset; }
-
 
 typedef Vector3 vec2;
 typedef Vector3 vec3;
