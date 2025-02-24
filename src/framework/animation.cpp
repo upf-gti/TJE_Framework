@@ -562,6 +562,10 @@ void Animator::update(float delta_time)
 	if (!playing_loop && time >= (current_animation->duration - transition_time)
 		&& last_loop_animation && !target_animation) {
 
+		if (on_finish_animation) {
+			on_finish_animation(current_animation->name);
+		}
+
 		playAnimation(last_loop_animation, true, 0.3f, false);
 	}
 

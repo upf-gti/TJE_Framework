@@ -123,6 +123,7 @@ class Animator {
 	// Callbacks
 	float last_time = 0.0f;
 	std::vector<AnimationCallback> callbacks;
+	std::function<void(std::string)> on_finish_animation = nullptr;
 
 public:
 
@@ -139,4 +140,6 @@ public:
 
 	Animation* getCurrentAnimation() { return target_animation ? target_animation : current_animation; };
 	Skeleton& getCurrentSkeleton();
+
+	void setOnFinishAnimation(std::function<void(std::string)> fn) { on_finish_animation = fn; }
 };
