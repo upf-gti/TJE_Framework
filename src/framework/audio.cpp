@@ -103,6 +103,18 @@ HCHANNEL Audio::Play3D(const std::string& filename, Vector3 pos, float volume)
 	return channel;
 }
 
+void Audio::UpdateListener3D(Vector3 position, Vector3 front, Vector3 up)
+{
+	BASS_3DVECTOR b_pos(position.x, position.y, position.z);
+	BASS_3DVECTOR b_front(front.x, front.y, front.z);
+	BASS_3DVECTOR b_top(up.x, up.y, up.z);
+
+	BASS_Set3DPosition(&b_pos, NULL, &b_front, &b_top);
+
+	// Apply changes to 3D system
+	BASS_Apply3D();
+}
+
 bool Audio::Stop(HCHANNEL channel)
 {
 	return BASS_ChannelStop(channel);
