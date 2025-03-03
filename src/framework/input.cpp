@@ -72,6 +72,8 @@ void Input::updateGamepadState(SDL_Joystick* joystick, GamepadState& state)
 	char prev_button[16];
 	memcpy(prev_button, state.button, 16);
 
+	memcpy(state.prev_axis, state.axis, 32);
+
 	//reset all gamepad state
 	memset(&state, 0, sizeof(GamepadState));
 	state.connected = false;

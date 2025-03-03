@@ -55,6 +55,7 @@ struct GamepadState
 	int num_axis;		//num analog sticks
 	int num_buttons;	//num buttons
 	float axis[8];		//analog sticks and triggers
+	float prev_axis[8];	//analog sticks and triggers before
 	char button[16];	//buttons
 	char prev_button[16]; //buttons in the previous frame
 	char direction;		//which direction is the left stick pointing at
@@ -64,6 +65,7 @@ struct GamepadState
 	bool isButtonPressed(int num) { return button[num] != 0; }
 	bool wasButtonPressed(int num) { return (button[num] & !prev_button[num]) != 0; }
 	bool didDirectionChanged(char dir) { return direction != prev_direction && (direction & dir) != 0; }
+	float getAxisDelta(int num) { float dt = prev_axis[num] - axis[num]; if (fabsf(dt) > 0.6f) return dt; else return 0.0f; }
 };
 
 class Input {
