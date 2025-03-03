@@ -1445,6 +1445,8 @@ bool Mesh::loadMESH(const char* filename)
 
 	delete[] data;
 
+	updateBoundingBox();
+
 	return true;
 }
 
