@@ -30,7 +30,7 @@ bool Audio::load(const std::string& filename, uint8_t flags)
 HCHANNEL Audio::play(float volume)
 {
 	// Store sample channel in handler
-	HCHANNEL channel = BASS_SampleGetChannel(sample, false);
+	HCHANNEL channel = BASS_SampleGetChannel(sample, 0);
 
 	// Change channel volume
 	BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume);
@@ -103,6 +103,11 @@ HCHANNEL Audio::Play3D(const std::string& filename, Vector3 pos, float volume)
 	return channel;
 }
 
+bool Audio::ChangeVolume(HCHANNEL channel, float volume)
+{
+	return BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume) == BASS_OK;
+}
+
 void Audio::UpdateListener3D(Vector3 position, Vector3 front, Vector3 up)
 {
 	BASS_3DVECTOR b_pos(position.x, position.y, position.z);
@@ -117,5 +122,5 @@ void Audio::UpdateListener3D(Vector3 position, Vector3 front, Vector3 up)
 
 bool Audio::Stop(HCHANNEL channel)
 {
-	return BASS_ChannelStop(channel);
+	return BASS_ChannelStop(channel) == BASS_OK;
 }
