@@ -27,6 +27,8 @@ inline float clamp(float v, float a = 0.0f, float b = 1.0f) { return v < a ? a :
 inline float lerp(float a, float b, float v ) { return a*(1.0f-v) + b*v; }
 inline float invlerp(float a, float b, float v ) { return (v-a)/(b-a); }
 inline float remap(float iMin, float iMax, float oMin, float oMax, float v ) { return lerp( oMin,oMax, invlerp(iMin,iMax,v)); }
+inline float lerpAngleRad(float a, float b, float t) { return a + (fmodf(b - a + PI * 3.0f, PI * 2.0f) - PI) * t; }
+inline float explerpFactor(float dt, float s) { return 1.0f - expf(-dt * s); }
 
 class Vector2
 {
