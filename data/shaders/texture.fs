@@ -7,7 +7,6 @@ varying vec4 v_color;
 
 uniform vec4 u_color;
 uniform sampler2D u_texture;
-uniform float u_time;
 
 void main()
 {

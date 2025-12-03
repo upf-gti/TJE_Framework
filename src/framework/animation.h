@@ -110,6 +110,7 @@ class Animator {
 
 	bool playing_loop = true;
 	Animation* current_animation = nullptr;
+	uint8 mask_layer = 0xFF;
 
 	// Transitions
 	bool must_play_loop = true;
@@ -130,7 +131,7 @@ public:
 	Animator() {};
 	~Animator();
 
-	void playAnimation(const char* path, bool loop = true, float transition = 0.2f, bool reset_time = true);
+	void playAnimation(const char* path, bool loop = true, float transition = 0.2f, uint8 new_mask_layer = 0xFF, bool reset_time = true, bool force = false);
 	void stopAnimation();
 
 	void update(float delta_time);

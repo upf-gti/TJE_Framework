@@ -513,13 +513,13 @@ Animator::~Animator()
 	delete target_animation;
 }
 
-void Animator::playAnimation(const char* path, bool loop, float transition, bool reset_time)
+void Animator::playAnimation(const char* path, bool loop, float transition, uint8 new_mask_layer, bool reset_time, bool force)
 {
 	Animation* new_animation = Animation::Get(path);
 
 	if (current_animation) {
 
-		if (new_animation == current_animation) {
+		if (new_animation == current_animation && !force) {
 			target_animation = nullptr;
 			return;
 		}
@@ -534,8 +534,9 @@ void Animator::playAnimation(const char* path, bool loop, float transition, bool
 
 	transition_counter = 0.0f;
 	transition_time = transition;
+	mask_layer = new_mask_layer;
 
-	if (reset_time) {
+	if (reset_time && new_mask_layer == 0xFF) {
 		time = 0.0f;
 	}
 
@@ -558,15 +559,29 @@ void Animator::update(float delta_time)
 	if (!current_animation)
 		return;
 
+	bool masking = mask_layer != 0xFF;
+	bool must_finish = last_loop_animation;
+
+	if (masking) {
+		must_finish &= target_animation && transition_counter >= (target_animation->duration + transition_time) && !must_play_loop;
+	}
+	else {
+		must_finish &= !target_animation && time >= (current_animation->duration - transition_time) && !playing_loop;
+	}
+
 	// Set previous loop in case there's any.. if not, leave action pose
-	if (!playing_loop && time >= (current_animation->duration - transition_time)
-		&& last_loop_animation && !target_animation) {
+	if (must_finish) {
 
 		if (on_finish_animation) {
 			on_finish_animation(current_animation->name);
 		}
 
-		playAnimation(last_loop_animation, true, 0.3f, false);
+		if (masking) {
+			target_animation = nullptr;
+		}
+		else {
+			playAnimation(last_loop_animation, true, 0.25f, 0xFF, false);
+		}
 	}
 
 	current_animation->assignTime(time, playing_loop);
@@ -577,16 +592,30 @@ void Animator::update(float delta_time)
 
 		transition_counter += delta_time;
 
+		float blend_weight;
+
+		if (masking) {
+			// If we didn't reach the duration, use the transition time (0 to 1)
+			// else, use the complementary of the spare duration normalized using again the transition time
+			blend_weight = std::clamp(transition_counter < (target_animation->duration) ? 
+				transition_counter / transition_time : (1.0f - (transition_counter - target_animation->duration) / transition_time), 0.0f, 1.0f);
+		}
+		else {
+			blend_weight = transition_counter / transition_time;
+		}
+
 		blendSkeleton(
 			&current_animation->skeleton,
 			&target_animation->skeleton,
-			transition_counter / transition_time,
-			&blended_skeleton);
+			blend_weight,
+			&blended_skeleton,
+			mask_layer
+		);
 
-		if (transition_counter >= transition_time) {
-			current_animation = target_animation;
+		if (!masking && transition_counter >= transition_time) {
 			playing_loop = must_play_loop;
 			time = transition_counter; // continue where the transition ended..
+			current_animation = target_animation;
 			target_animation = nullptr;
 			return;
 		}
