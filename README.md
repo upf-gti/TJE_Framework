@@ -70,6 +70,9 @@ If this process leads to cmake errors, run this command an try again:
 sudo xcode-select --reset
 ```
 
+> [!CAUTION]
+> For audio this project uses the C++ middleware BASS. The library is distributed as a .dylib file, and due to Mac OS security policy it will ask you to quarantine this file. It is important to go to "Privacy and security" and enable loading for "libbass.dylib" when promted in order to build this project. This should be necessary to do only once.
+
 ## Linux
 
 Install *cmake* and needed libraries using this command:

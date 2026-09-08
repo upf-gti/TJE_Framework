@@ -126,6 +126,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL OpenGL::GLU)
 # bass
 if (WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC "${DIR_LIBS}/bass/bass.lib")
+elseif (APPLE)
+    target_link_libraries(${PROJECT_NAME} PUBLIC "${DIR_LIBS}/bass/libbass.dylib")
 else()
     target_link_libraries(${PROJECT_NAME} PUBLIC -lbass)
 endif()
