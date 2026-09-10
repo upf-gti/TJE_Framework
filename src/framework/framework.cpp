@@ -501,7 +501,7 @@ float Matrix44::getYawRotationToAimTo(const Vector3& position)
 	Vector3 dir = position - getTranslation();
 	float dx = frontVector().dot(dir);
 	float dy = -rightVector().dot(dir);
-	float angle = std::atan2f(dy, dx);
+	float angle = atan2f(dy, dx);
 	return angle;
 }
 
