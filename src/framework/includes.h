@@ -15,7 +15,7 @@
     #define APIENTRY
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) || defined(__linux__)
 	#define USE_GLEW
 	#include <GL/glew.h>
 #endif
@@ -30,9 +30,7 @@
 #ifdef WIN32
     //#include <GL/glext.h>
     #include "GL/GLU.h"
-#endif
-
-#ifdef __APPLE__
+#elif __APPLE__
     #include "OpenGL/glu.h"
 #endif
 
@@ -41,5 +39,5 @@
 //remove warnings
 
 //used to access opengl extensions
-#define REGISTER_GLEXT(RET, FUNCNAME, ...) typedef RET ( * FUNCNAME ## _func)(__VA_ARGS__); FUNCNAME ## _func FUNCNAME = NULL; 
+#define REGISTER_GLEXT(RET, FUNCNAME, ...) typedef RET ( * FUNCNAME ## _func)(__VA_ARGS__); FUNCNAME ## _func FUNCNAME = NULL;
 #define IMPORT_GLEXT(FUNCNAME) FUNCNAME = (FUNCNAME ## _func) SDL_GL_GetProcAddress(#FUNCNAME); if (FUNCNAME == NULL) { std::cout << "ERROR: This Graphics card doesnt support " << #FUNCNAME << std::endl; }

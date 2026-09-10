@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <cassert>
+#include <string.h>
 
 class Shader;
 class FBO;

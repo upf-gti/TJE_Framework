@@ -129,7 +129,7 @@ if (WIN32)
 elseif (APPLE)
     target_link_libraries(${PROJECT_NAME} PUBLIC "${DIR_LIBS}/bass/libbass.dylib")
 else()
-    target_link_libraries(${PROJECT_NAME} PUBLIC -lbass)
+    target_link_libraries(${PROJECT_NAME} PUBLIC "${DIR_LIBS}/bass/linux/${CMAKE_SYSTEM_PROCESSOR}/libbass.so")
 endif()
 
 # Properties

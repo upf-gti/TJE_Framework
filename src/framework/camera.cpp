@@ -2,6 +2,7 @@
 
 #include "includes.h"
 #include <iostream>
+#include <string.h>
 
 Camera* Camera::current = NULL;
 

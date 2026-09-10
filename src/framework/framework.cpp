@@ -3,7 +3,8 @@
 #include "includes.h"
 #include <cassert>
 #include <cmath> //for sqrt (square root) function
-#include <math.h> //atan2
+//#include <math.h> //atan2
+#include <string.h>
 
 #ifndef M_PI_2
     #define M_PI_2 1.57079632679489661923

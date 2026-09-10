@@ -1,14 +1,14 @@
 #include "texture.h"
-#include "fbo.h"
-#include "framework/utils.h"
 
 #include <iostream> //to output
 #include <cmath>
+#include <cassert>
 
+#include "fbo.h"
+#include "framework/utils.h"
 #include "mesh.h"
 #include "shader.h"
 #include "framework/extra/picopng.h"
-#include <cassert>
 
 //bilinear interpolation
 Color Image::getPixelInterpolated(float x, float y, bool repeat) {

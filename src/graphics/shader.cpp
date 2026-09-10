@@ -1,13 +1,14 @@
 #include "shader.h"
 #include <cassert>
 #include <iostream>
-#include "framework/utils.h"
-#include <algorithm> 
-#include <functional> 
+#include <algorithm>
+#include <functional>
 #include <cctype>
 #include <locale>
 
 #include "texture.h"
+#include "framework/utils.h"
+
 
 std::string Shader::s_shader_atlas_filename;
 std::map<std::string, std::string> Shader::s_shaders_atlas;

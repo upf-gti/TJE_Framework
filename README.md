@@ -92,6 +92,9 @@ This will generate a Makefile inside the folder ``build/`` that you can use to c
 
 Use ``make`` to compile. You can speed-up compilation using more threads with ``-j(num threads)``, for example: ``make -j8``.
 
+> [!CAUTION]
+> Note that when running the executable, in order for the paths to align, you will need to run it from the project directory, not from the build folder.
+
 ### Visual Studio Code (Linux, optional for other platforms)
 
 After installing all the libs for your platform, if you need a more light weight IDEs which can be used in any platform (included Linux), this is your better option.

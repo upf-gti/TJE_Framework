@@ -5,14 +5,16 @@
 #pragma once
 
 #include "framework/includes.h"
+#include "framework/framework.h"
+
 #include <string>
 #include <map>
-#include "framework/framework.h"
 #include <cassert>
+#include <string.h>
 
 #ifdef _DEBUG
 #define CHECK_SHADER_VAR(a,b) if (a == -1) return
-//#define CHECK_SHADER_VAR(a,b) if (a == -1) { std::cout << "Shader error: Var not found in shader: " << b << std::endl; return; } 
+//#define CHECK_SHADER_VAR(a,b) if (a == -1) { std::cout << "Shader error: Var not found in shader: " << b << std::endl; return; }
 #else
 #define CHECK_SHADER_VAR(a,b) if (a == -1) return
 #endif
