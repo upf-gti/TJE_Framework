@@ -90,8 +90,12 @@ void mainLoop()
 	long now = start_time;
 	long frames_this_second = 0;
 
+	const int ms_per_frame = 1000 / 60;
+	uint32_t initial_ticks, elapsed_ms;
+
 	while (!game->must_exit)
 	{
+		initial_ticks = SDL_GetTicks();
 		Input::update();
 
 		//update events
@@ -166,6 +170,9 @@ void mainLoop()
 		#ifdef _DEBUG
 			checkGLErrors();
 		#endif
+
+		elapsed_ms = SDL_GetTicks() - initial_ticks;
+		if (elapsed_ms < ms_per_frame) SDL_Delay(ms_per_frame - elapsed_ms);
 	}
 
 	SDL_GL_DeleteContext(glcontext);
